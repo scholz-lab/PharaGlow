@@ -1,2 +1,2 @@
 # pumpTracker
-a toolset to analyze videos of forahing animals. 
+a toolset to analyze videos of foraging animals. 
