@@ -6,13 +6,13 @@ import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from skimage.filters import threshold_li
-from skimage.morphology import medial_axis, skeletonize
-from skimage import img_as_float
+from skimage.morphology import skeletonize, watershed, disk
+from skimage import img_as_float, img_as_ubyte
 from skimage.segmentation import morphological_chan_vese, inverse_gaussian_gradient,checkerboard_level_set
 from skimage.transform import rescale
 from scipy.cluster.hierarchy import linkage, leaves_list
 from scipy.optimize import curve_fit
-
+from skimage.filters import rank
 from skimage.measure import find_contours, profile_line
 
 
@@ -78,7 +78,8 @@ def morphologicalPharynxContour(mask, scale = 4, **kwargs):
     contour= find_contours(snake, level = 0.5)#, fully_connected='high', positive_orientation='high',)
     # just in case we find multiple, get only the longest contour
     contour = contour[np.argmax([len(x) for x in contour])]
-    contour = np.array(contour/scale).T
+    cX, cY = np.array(contour/scale).T
+    contour = np.stack((cX, cY), axis =1)
     return contour
 
 
@@ -86,10 +87,11 @@ def cropcenterline(poptX, poptY, contour, nP):
     """Define start and end point of centerline by crossing of contour. 
     Inputs: poptX, poptY optimal fit parameters describing pharynx shape/centerline.
             contour: (N,2) array of points describing the pharynx outline.
+            nP: number of points in original skeleton.
     output: start and end coordinate to apply to _pharynxFunc(x) to create a centerline 
     spanning the length of the pharynx.."""
     xs = np.linspace(-0.25*nP,1.25*nP, 100)
-    tmpcl = np.c_[func(xs, *poptX), func(xs, *poptY)]
+    tmpcl = np.c_[pharynxFunc(xs, *poptX), pharynxFunc(xs, *poptY)]
     # update centerline based on crossing the contour
     # we are looking for two crossing points
     distClC = np.sum((tmpcl-contour[:,np.newaxis])**2, axis =-1)
@@ -97,8 +99,6 @@ def cropcenterline(poptX, poptY, contour, nP):
 
     # update centerline length
     xstart, xend = xs[start],xs[end]
-    xs = np.linspace(xs[start],xs[end], nP)
-    cl = np.c_[func(xs, *poptX), func(xs, *poptY)]
     return xs[start],xs[end]
 
 
@@ -108,7 +108,7 @@ def centerline(poptX, poptY, xs):
         xs: array of coordinates to create centerline from _pharynxFunc(x, *p, deriv = 0).
         output: (N,2) acenterline spanning the length of the pharynx.. Same length as xs.
         """
-    return np.c_[func(xs, *poptX), func(xs, *poptY)]
+    return np.c_[pharynxFunc(xs, *poptX), pharynxFunc(xs, *poptY)]
 
 
 
@@ -120,12 +120,13 @@ def normalVecCl(poptX, poptY, xs):
     """
 
     # make an orthogonal vector to the cl by calculating derivative (dx, dy) and using (-dy, dx) as orthogonal vectors.
-    dCl = np.c_[func(xs, *poptY, deriv = 1), func(xs, *poptX, deriv = 1)]#p.diff(cl, axis=0)
+    dCl = np.c_[pharynxFunc(xs, *poptX, deriv = 1), pharynxFunc(xs, *poptY, deriv = 1)]#p.diff(cl, axis=0)
     dCl =dCl[:,::-1]
     # normalize northogonal vectors
     dCl[:,0] *=-1
     dClnorm = norm(dCl, axis = 1)
-    dCl = dCl/dClnorm[:,np.newaxis]
+    dCl = dCl/np.repeat(dClnorm[:,np.newaxis], 2, axis =1)
+    #dCl = dCl/dClnorm[:,np.newaxis]
     return dCl
 
 
@@ -138,7 +139,9 @@ def intensityAlongCenterline(im, cl, **kwargs):
         output: array of (?,) length. Length is determined by pathlength of centerline.
         """
     if 'width' in kwargs:
-        return np.concatenate([profile_line(im, cl[i], cl[i+1], lw = kwargs['width'][i],**kwargs) for i in range(len(cl)-1)])
+        w = kwargs['width']
+        kwargs.pop('width', None)
+        return np.concatenate([profile_line(im, cl[i], cl[i+1], linewidth = w[i], **kwargs) for i in range(len(cl)-1)])
     return np.concatenate([profile_line(im, cl[i], cl[i+1], **kwargs) for i in range(len(cl)-1)])
 
 
@@ -156,10 +159,8 @@ def widthPharynx(cl, contour, dCl):
     # get normed vectors
     vCClnorm = norm(vCCl, axis = 2)
     vCCl = vCCl/vCClnorm[:,:,np.newaxis]
-    print(vCCl.shape, dCl.shape)
     # calculate relative angles between centerline and contour-centerline vectors
     angles = np.sum(vCCl*dCl, axis =-1)
-    print(angles.shape)
     c1 = np.argmin(angles, axis=0)
     c2 = np.argmax(angles, axis=0)
     # new widths
@@ -189,4 +190,12 @@ def straightenPharynx(im, xstart, xend, poptX, poptY, width):
     kymo = [profile_line(im, pts[0], pts[1], linewidth=1, order=3) for pts in widths]
     # interpolate to obtain straight image
     tmp = [np.interp(np.arange(-width, width), np.arange(-len(ky)/2, len(ky)/2), ky) for ky in kymo]
-    return tmp
+    return np.array(tmp)
+
+
+def gradientPharynx(im):
+    """apply a local gradient to the image."""
+    # denoise image
+    denoised = rank.median(im, disk(2))
+    gradient = rank.gradient(denoised, disk(2))
+    return gradient
