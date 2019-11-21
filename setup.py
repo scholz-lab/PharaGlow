@@ -2,10 +2,10 @@
 
 from distutils.core import setup
 
-setup(name='pypeline',
+setup(name='pharaglow',
       version='0.1',
-      description='Analysis of wholebrain imaging data in freely behaving C. elegans',
-      author='M.Scholz, F. Randi et. al',
-      author_email='mscholz@princeton.edu',
-      packages=['pypeline'],
+      description='a toolset to analyze videos of foraging animals. ',
+      author='M.Scholz',
+      author_email='monika.k.scholz@gmail.com',
+      packages=['pharaglow'],
      )
