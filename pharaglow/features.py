@@ -176,10 +176,10 @@ def scalarWidth(widths):
     return np.sqrt(np.sum(np.diff(widths, axis =1)**2, axis =-1))
 
 
-def straightenPharynx(im, xstart, xend, poptX, poptY, width):
+def straightenPharynx(im, xstart, xend, poptX, poptY, width, nPts = 50):
     """Based on centerline, straighten the animal."""
     # use linescans to generate straightened animal
-    xn = np.linspace(xstart,xend, 50)
+    xn = np.linspace(xstart,xend, nPts)
     clF = centerline(poptX, poptY, xn)
     
     # make vectors orthogonal to the cl
