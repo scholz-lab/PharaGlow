@@ -54,16 +54,16 @@ def preprocess(img, minSize = 800, threshold = None):
 
 @pims.pipeline
 def refine(img):
-	"""Refine segmentation using watershed."""
+    """Refine segmentation using watershed."""
     distance = ndi.distance_transform_edt(img)
-    local_maxi = peak_local_max(distance, indices=False, footprint=np.ones((5, 5)),
+    local_maxi = peak_local_max(distance, indices=False, footprint=np.ones((5, 5)),\
                                 labels=img)
     markers = ndi.label(local_maxi)[0]
     return watershed(-distance, markers, mask=img)
 
 
 def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50 ):
-	"""standard median stack-projection to obtain a background image followd by thresholding and filtering of small objects to get a clean binary mask."""
+	"""standard median stack-projection to obtain a background image followd by thresholding and filtering of small objects to get a clean mask."""
 	bg = np.median(rawframes[::bgWindows], axis=0)
 	#subtract bg from all frames
     frames = subtractBG(rawframes, bg)
