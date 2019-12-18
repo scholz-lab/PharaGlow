@@ -40,6 +40,9 @@ print('Detecting features')
 features = tracking.runfeatureDetection(rawframes, masks)
 print('Done')
 ```
+![png](examples/trajectories.png)
+
+
 #### Running pharaglow on tracked dataframes.
 ```python
 print('Linking trajectories')
@@ -48,6 +51,8 @@ print('Extracting pharynx data')
 trajectories = run.runPharaglowOnStack(trajectories, param)
 print('Done tracking. Successfully tracked {} frames with {} trajectories.'.format(len(rawframes), trajectories['particle'].nunique()))
 ```
+An example kymograph after running both tracking and pharynx analysis
+![png](examples/kymographs.png)
 
 ### Example running pharaGlow only
 This would be useful when working with single-worm cropped data where tracking isn't neccessary.
