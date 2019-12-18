@@ -48,7 +48,7 @@ def preprocess(img, minSize = 800, threshold = None):
     # dilations
     #mask = ndimage.binary_dilation(mask)
     #mask = ndimage.binary_dilation(mask)
-    mask = morphology.remove_small_objects(mask, min_size=min_size, connectivity=1, in_place=True)
+    mask = morphology.remove_small_objects(mask, min_size=minSize, connectivity=1, in_place=True)
     return mask
 
 
@@ -63,10 +63,10 @@ def refine(img):
 
 
 def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50 ):
-	"""standard median stack-projection to obtain a background image followd by thresholding and filtering of small objects to get a clean mask."""
-	bg = np.median(rawframes[::bgWindows], axis=0)
-	#subtract bg from all frames
-    frames = subtractBG(rawframes, bg)
+    """standard median stack-projection to obtain a background image followd by thresholding and filtering of small objects to get a clean mask."""
+    bg = np.median(frames[::bgWindow], axis=0)
+    #subtract bg from all frames
+    frames = subtractBG(frames, bg)
     # get an overall threshold value and binarize images 
     threshs = getThreshold(frames[::thresholdWindow])
     thresh = np.median(threshs)
@@ -75,29 +75,30 @@ def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50 ):
 
 
 def runfeatureDetection(frames, masks):
-	"""detect objects in each image and use region props to extract features and store a local image."""
-	features = pd.DataFrame()
-	for num, img in enumerate(frames):
-	    label_image = skimage.measure.label(masks[num], background=0, connectivity = 2)
-	    for region in skimage.measure.regionprops(label_image, intensity_image=img):
-	        if region.area > 200:
-	            # Store features which survived to the criterions
-	            features = features.append([{'y': region.centroid[0],
-	                                         'x': region.centroid[1],
-	                                         'slice':region.slice,
-	                                         'frame': num,
-	                                         'area': region.area,
-	                                         'image': region.intensity_image
-	                                         },])
+    """detect objects in each image and use region props to extract features and store a local image."""
+    features = pd.DataFrame()
+    for num, img in enumerate(frames):
+        label_image = skimage.measure.label(masks[num], background=0, connectivity = 2)
+        for region in skimage.measure.regionprops(label_image, intensity_image=img):
+            if region.area > 200:
+                # Store features which survived to the criterions
+                features = features.append([{'y': region.centroid[0],
+                                             'x': region.centroid[1],
+                                             'slice':region.slice,
+                                             'frame': num,
+                                             'area': region.area,
+                                             'image': region.intensity_image
+                                             },])
+    return features
 
 
 def linkParticles(df, searchRange, minimalDuration, **kwargs):
-	"""input is a pandas dataframe that contains at least the columns 'frame' and 'x', 'y'. the function
-	inplace modifies the input dataframe by adding a column called 'particles' which labels the objects belonging to one trajectory. 
-	**kwargs can be passed to the trackpy function link_df to modify tracking behavior."""
-	traj = tp.link_df(df, searchRange)
-	# filter short trajectories
-	tp.filter_stubs(traj, minimalDuration)
-	# make a numerical index
-	traj.set_index(np.arange(len(traj.index)))
-	return traj
+    """input is a pandas dataframe that contains at least the columns 'frame' and 'x', 'y'. the function
+    inplace modifies the input dataframe by adding a column called 'particles' which labels the objects belonging to one trajectory. 
+    **kwargs can be passed to the trackpy function link_df to modify tracking behavior."""
+    traj = tp.link_df(df, searchRange)
+    # filter short trajectories
+    tp.filter_stubs(traj, minimalDuration)
+    # make a numerical index
+    traj.reset_index(inplace=True)
+    return traj
