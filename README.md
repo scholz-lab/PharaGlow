@@ -1,12 +1,56 @@
 # PharaGlow
 
-Package to track and analyze C. elegans pharynx from movies. 
+Package to track and analyze C. elegans pharynx from movies. Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v0.4.2/). The package can be used to simply track labelled pharynxes or as a simple center of mass tracker for brightfield, but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.
 
 ### Installation
 5. Install pharaglow
 python setup.py install --user
+### Running pharaglow on labelled pharynx movies
+## Tracking worms with PharaGlow
+This code generates a pandas dataframe that contains the particles that were tracked.
 
-### Example running pharaGlow
+```python
+%matplotlib inline
+import numpy as np
+import pandas as pd
+import pims
+# image io and analysis
+import json
+from skimage.measure import label
+# plotting
+import matplotlib  as mpl 
+import matplotlib.pyplot as plt 
+
+#our packages
+from pharaglow import tracking, run, features
+
+# io
+fname = "pathToData/NZ_0007_croppedsample.tif"
+parameterfile = "PathToFile/pharaglow_parameters.txt"
+print('Starting pharaglow analysis...')
+rawframes = pims.open(fname)
+print('Analyzing', rawframes)
+print('Loading parameters from {}'.format(parameterfile))
+with open(parameterfile) as f:
+    param = json.load(f)
+# detecting objects
+print('Binarizing images')
+masks = tracking.calculateMask(rawframes, minSize = param['minSize'])
+print('Detecting features')
+features = tracking.runfeatureDetection(rawframes, masks)
+print('Done')
+```
+## Running pharaglow on tracked dataframes.
+```python
+print('Linking trajectories')
+trajectories = tracking.linkParticles(features, param['searchRange'], param['minimalDuration'])
+print('Extracting pharynx data')
+trajectories = run.runPharaglowOnStack(trajectories, param)
+print('Done tracking. Successfully tracked {} frames with {} trajectories.'.format(len(rawframes), trajectories['particle'].nunique()))
+```
+
+### Example running pharaGlow only
+This would be useful when working with single-worm cropped data where tracking isn't neccessary.
 
 ```python
 import matplotlib.pylab as plt
