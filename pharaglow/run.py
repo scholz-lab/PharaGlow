@@ -1,8 +1,10 @@
 import matplotlib.pylab as plt
 import numpy as np
 from skimage.io import imread
+from skimage import util
 import json
 
+import pandas as pd
 import pharaglow.features as pg
 import pharaglow.tracking as pgt
 
@@ -39,14 +41,13 @@ def runPharaglowKymo(im, cl, widths, **kwargs):
     return kymo, kymoWeighted
 
 
-def runPharaglowImg(im, xstart, xend, poptX, poptY, widths):
+def runPharaglowImg(im, xstart, xend, poptX, poptY, width):
     # make sure image is float
     im = util.img_as_float64(im)
     #local derivative, can enhance contrast
     gradientImage = pg.gradientPharynx(im)
     # straightened image
-    w = np.max(pg.scalarWidth(widths))//2
-    straightIm = pg.straightenPharynx(im, xstart, xend, poptX, poptY, width=8)
+    straightIm = pg.straightenPharynx(im, xstart, xend, poptX, poptY, width=width)
     return gradientImage, straightIm
 
 
@@ -77,10 +78,10 @@ def pharynxorientation(df):
     df['Xend'] = df.apply(lambda row: row['Xend'] if row['Similarity'] else row['Xtmp'], axis=1)
 
 
-def runPharaglowOnStack(df):
+def runPharaglowOnStack(df, param):
     """runs the whole pharaglow toolset on a dataframe. Can be linked or unliked before. only the last step depends on having a particle ID."""
     # run image analysis on all rows of the dataframe
-    df[['Mask', 'SkeletonX', 'SkeletonY']] = df.apply(
+    df[['Mask', 'SkeletonX', 'SkeletonY']] = df.apply(\
         lambda row: pd.Series(runPharaglowSkel(row['image'])), axis=1)
     # run centerline fitting
     df[['ParX', 'ParY', 'Xstart', 'Xend', 'Centerline', 'dCl', 'Widths', 'Contour']] = df.apply(\
@@ -88,7 +89,7 @@ def runPharaglowOnStack(df):
     # run image operations
     df[['Gradient', 'Straightened']] = df.apply(\
         lambda row: pd.Series(runPharaglowImg(row['image'], row['Xstart'], row['Xend'],\
-                                              row['ParX'], row['ParY'], row['Widths'],\
+                                              row['ParX'], row['ParY'], param['widthStraight'],\
                                              )), axis=1)
     # run kymographs
     df[['Kymo', 'WeightedKymo']] = df.apply(\
@@ -99,22 +100,22 @@ def runPharaglowOnStack(df):
 
 
 
-def main():
-    fname = "/home/scholz_la/Dropbox (Scholz Lab)/Scholz Lab's shared workspace/Nicolina ImageJ analysis/NZ_0007_croppedsample.tif"
-    parameterfile = "/home/scholz_la/Dropbox (Scholz Lab)/Scholz Lab's shared workspace/Nicolina ImageJ analysis/pharaglow_parameters.txt"
-    print('Starting pharaglow analysis...')
-    rawframes = pims.open(fname)
-    print('Analyzing', rawframes)
-    print('Loading parameters from {}'.format(parameterfile))
-    with open(parameterfile) as f:
-        param = json.load(f)
+# def main():
+#     fname = "/home/scholz_la/Dropbox (Scholz Lab)/Scholz Lab's shared workspace/Nicolina ImageJ analysis/NZ_0007_croppedsample.tif"
+#     parameterfile = "/home/scholz_la/Dropbox (Scholz Lab)/Scholz Lab's shared workspace/Nicolina ImageJ analysis/pharaglow_parameters.txt"
+#     print('Starting pharaglow analysis...')
+#     rawframes = pims.open(fname)
+#     print('Analyzing', rawframes)
+#     print('Loading parameters from {}'.format(parameterfile))
+#     with open(parameterfile) as f:
+#         param = json.load(f)
     
-    print('Binarizing images')
-    masks = pgt.calculateMasks(rawframes)
-    print('Detecting features')
-    features = pgt.runfeatureDetection(frames, masks)
-    print('Linking trajectories')
-    trajectories = pgt.linkParticles(features, param['searchRange'], param['minimalDuration'], **kwargs)
-    print('Extracting pharynx data')
-    trajectories = runPharaglowOnStack(trajectories)
-    print('Done tracking. Successfully tracked {} frames with {} trajectories.'.format(len(frames), trajectories['particle'].nunique()))
+#     print('Binarizing images')
+#     masks = pgt.calculateMasks(rawframes)
+#     print('Detecting features')
+#     features = pgt.runfeatureDetection(frames, masks)
+#     print('Linking trajectories')
+#     trajectories = pgt.linkParticles(features, param['searchRange'], param['minimalDuration'], **kwargs)
+#     print('Extracting pharynx data')
+#     trajectories = runPharaglowOnStack(trajectories)
+#     print('Done tracking. Successfully tracked {} frames with {} trajectories.'.format(len(frames), trajectories['particle'].nunique()))
