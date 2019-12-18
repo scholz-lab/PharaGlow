@@ -6,7 +6,7 @@ Package to track and analyze C. elegans pharynx from movies. Tracking is based o
 5. Install pharaglow
 python setup.py install --user
 ### Running pharaglow on labelled pharynx movies
-## Tracking worms with PharaGlow
+#### Tracking worms with PharaGlow
 This code generates a pandas dataframe that contains the particles that were tracked.
 
 ```python
@@ -40,7 +40,7 @@ print('Detecting features')
 features = tracking.runfeatureDetection(rawframes, masks)
 print('Done')
 ```
-## Running pharaglow on tracked dataframes.
+#### Running pharaglow on tracked dataframes.
 ```python
 print('Linking trajectories')
 trajectories = tracking.linkParticles(features, param['searchRange'], param['minimalDuration'])
