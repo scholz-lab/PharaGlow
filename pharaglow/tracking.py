@@ -30,16 +30,17 @@ def subtractBG(img, bg):
 @pims.pipeline
 def getThreshold(img):
     """"return a global threshold value"""
-    return filters.threshold_yen(img)
+    return filters.threshold_li(img)
 
 
 @pims.pipeline
-def preprocess(img, minSize = 800, threshold = None):
+def preprocess(img, minSize = 800, threshold = None, smooth = True):
     """
     Apply image processing functions to return a binary image
     """
     # smooth
-    img = filters.gaussian(img, 2)
+    if smooth:
+        img = filters.gaussian(img, 2, preserve_range = True)
     # Apply thresholds
     if threshold ==None:
         threshold = filters.threshold_yen(img)#, initial_guess=skimage.filters.threshold_otsu)
@@ -62,32 +63,43 @@ def refine(img):
     return watershed(-distance, markers, mask=img)
 
 
-def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50 ):
+def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, subtract = False, **kwargs):
     """standard median stack-projection to obtain a background image followd by thresholding and filtering of small objects to get a clean mask."""
-    bg = np.median(frames[::bgWindow], axis=0)
-    #subtract bg from all frames
-    frames = subtractBG(frames, bg)
-    # get an overall threshold value and binarize images 
-    threshs = getThreshold(frames[::thresholdWindow])
-    thresh = np.median(threshs)
-    return preprocess(frames, minSize, threshold = thresh)
+    if subtract:
+        bg = np.median(frames[::bgWindow], axis=0)
+        #subtract bg from all frames
+        frames = subtractBG(frames, bg)
+    # get an overall threshold value and binarize images by using z-stack
+
+    thresh = getThreshold(np.max(frames[::thresholdWindow], axis=0))
+    #threshs = getThreshold(frames[::thresholdWindow])
+    #thresh = np.median(threshs)
+    return preprocess(frames, minSize, threshold = thresh, **kwargs)
 
 
 
-def runfeatureDetection(frames, masks):
+def runfeatureDetection(frames, masks, params):
     """detect objects in each image and use region props to extract features and store a local image."""
     features = pd.DataFrame()
     for num, img in enumerate(frames):
         label_image = skimage.measure.label(masks[num], background=0, connectivity = 2)
+        label_image = skimage.segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
         for region in skimage.measure.regionprops(label_image, intensity_image=img):
-            if region.area > 200:
+            if region.area > params['minSize'] and region.area < params['maxSize']:
+                # get a larger than bounding box image by padding some
+                p = int(params['pad'])
+                xmin, ymin, xmax, ymax  = region.bbox
+                sliced = slice(np.max([0, xmin-p]), xmax+p), slice(np.max([0, ymin-p]), ymax+p)
+                im = img[sliced]
                 # Store features which survived to the criterions
                 features = features.append([{'y': region.centroid[0],
                                              'x': region.centroid[1],
                                              'slice':region.slice,
                                              'frame': num,
                                              'area': region.area,
-                                             'image': region.intensity_image
+                                             'image': im,#region.intensity_image,
+                                             'yw': region.weighted_centroid[0],
+                                             'xw': region.weighted_centroid[1]
                                              },])
     return features
 
@@ -98,7 +110,7 @@ def linkParticles(df, searchRange, minimalDuration, **kwargs):
     **kwargs can be passed to the trackpy function link_df to modify tracking behavior."""
     traj = tp.link_df(df, searchRange)
     # filter short trajectories
-    tp.filter_stubs(traj, minimalDuration)
+    traj = tp.filter_stubs(traj, minimalDuration)
     # make a numerical index
-    traj.reset_index(inplace=True)
+    traj.set_index(np.arange(len(traj.index)), inplace = True)
     return traj

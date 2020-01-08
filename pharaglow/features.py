@@ -4,7 +4,6 @@
 
 import numpy as np
 from numpy.linalg import norm
-import matplotlib.pyplot as plt
 from skimage.filters import threshold_li
 from skimage.morphology import skeletonize, watershed, disk
 from skimage import img_as_float, img_as_ubyte
@@ -176,7 +175,7 @@ def scalarWidth(widths):
     return np.sqrt(np.sum(np.diff(widths, axis =1)**2, axis =-1))
 
 
-def straightenPharynx(im, xstart, xend, poptX, poptY, width, nPts = 50):
+def straightenPharynx(im, xstart, xend, poptX, poptY, width, nPts = 100):
     """Based on centerline, straighten the animal."""
     # use linescans to generate straightened animal
     xn = np.linspace(xstart,xend, nPts)
@@ -199,3 +198,6 @@ def gradientPharynx(im):
     denoised = rank.median(im, disk(2))
     gradient = rank.gradient(denoised, disk(2))
     return gradient
+
+
+
