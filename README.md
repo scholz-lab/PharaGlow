@@ -5,6 +5,35 @@ Package to track and analyze C. elegans pharynx from movies. Tracking is based o
 ### Installation
 5. Install pharaglow
 python setup.py install --user
+
+### Pharaglow parameter file
+Pharaglow uses a json parameter file to expose parameters that are allowed to be changed to you.
+These parameters are:
+{"searchRange": 60,
+"minimalDuration": 100,
+"memory": 30,
+"minSize":800,
+"maxSize":1200,
+"watershed": 100,
+"widthStraight":5,
+"pad":5,
+"nPts":100
+}
+#### Parameters for detection
+* minSize (px) - remove all objects smaller than this
+* maxSize (px) - remove all objects larger than this (but a caveat here is when we have worm collisions where we allow the resulting segmentation to be a bit bigger)
+* watershed (px) - when two or more worms touch, how large is an individual approximately
+
+#### Parameters for tracking
+* searchrange (px) describes how much we expect a worm to move frame-to-frame when we link particles together during tracking. This can be a bit bigger to allow for loosing the worm for a bit.
+* memory (frames) - when we loose a worm for a few frames, how long can gaps be until we call it a 'new' worm
+* minimalDuration (frames)- filters out worm trajectories that are shorter than this. 
+
+#### Parameters for pharynx feature extraction
+ * widthStraight - how wide is a worm for the straightened image
+ * pad - crops a boundary around a worm for image analysis. this helps when the mask is a bit too small.
+ * nPts - how many points along the centerline are we measuring. This should relate to the typical length of a worm
+
 ### Running pharaglow on labelled pharynx movies
 #### Tracking worms with PharaGlow
 This code generates a pandas dataframe that contains the particles that were tracked.
@@ -208,3 +237,4 @@ plt.legend();
 ```python
 
 ```
+
