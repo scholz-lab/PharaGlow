@@ -14,6 +14,7 @@ import pharaglow.tracking as pgt
 
 def runPharaglowSkel(im):
     # preprocessing image
+    im = np.array(im)
     mask = pg.thresholdPharynx(im)
     skel = pg.skeletonPharynx(mask)
     order = pg.sortSkeleton(skel)
@@ -49,6 +50,7 @@ def runPharaglowCL(mask, ptsX, ptsY, nPts = 100):
 
 
 def runPharaglowKymo(im, cl, widths, **kwargs):
+    im = np.array(im)
     kymo = pg.intensityAlongCenterline(im, cl, **kwargs)
     kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))[:,0]
     return kymo, kymoWeighted
@@ -56,6 +58,7 @@ def runPharaglowKymo(im, cl, widths, **kwargs):
 
 def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts):
     # make sure image is float
+    im = np.array(im)
     im = util.img_as_float64(im)
     #local derivative, can enhance contrast
     gradientImage = pg.gradientPharynx(im)
@@ -72,7 +75,7 @@ def pharynxorientation(df):
     df['Similarity'] = False
     for particleID in df['particle'].unique():
         mask = df['particle']==particleID
-        sample = df[mask]['StraightKymo'].iloc[30]
+        sample = df[mask]['StraightKymo'].iloc[0]
         # let's make sure the sample is anterior to posterior
         #if np.mean(sample[:len(sample//2)])<np.mean(sample[len(sample//2):]):
         #    sample = sample[::-1]
