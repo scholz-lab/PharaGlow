@@ -20,6 +20,10 @@ These parameters are:
 "nPts":100
 }
 #### Parameters for detection
+* bgWindow (frames) - calculate a static background on every nth image of the movie. If this is too short, you get a memory error. It can be as large as 500 frames for a full 18000 frame movie.
+* subtract (0 or 1) - subtract the background from the movie for detecion. Helps particularly with the higher resolution movies.
+* thresholdWindow (frames) - to get a threshold for binarization, use every nth frame of the movie.
+* smooth (integer 0 - inf px) - should the image be smoothed. This helps to avoid breaking up the pharynx into two parts. 
 * minSize (px) - remove all objects smaller than this
 * maxSize (px) - remove all objects larger than this (but a caveat here is when we have worm collisions where we allow the resulting segmentation to be a bit bigger)
 * watershed (px) - when two or more worms touch, how large is an individual approximately
