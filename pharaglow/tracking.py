@@ -105,7 +105,7 @@ def objectDetection( mask, img, params, frame):
             image = mask[region.slice]
             labeled = refine(image, size = params['watershed'])
             for part in skimage.measure.regionprops(labeled, intensity_image=img[region.slice]):
-                if part.area > params['minSize'] and part.area < 1.1*params['maxSize']:
+                if part.area > params['minSize'] and part.area < 1.5*params['maxSize']:
                     # get a larger than bounding box image by padding some
                     p = int(params['pad'])
                     xmin, ymin, xmax, ymax  = part.bbox
