@@ -47,7 +47,7 @@ def preprocess(img, minSize = 800, threshold = None, smooth = 0):
     #mask = filters.rank.threshold(img, morphology.square(3), out=None, mask=None, shift_x=False, shift_y=False)
     mask = img >= threshold
     # dilations
-    mask = morphology.remove_small_holes(mask, area_threshold=4, connectivity=1, in_place=True)
+    mask = morphology.remove_small_holes(mask, area_threshold=12, connectivity=1, in_place=True)
     #mask = ndimage.binary_dilation(mask)
     #mask = morphology.remove_small_objects(mask, min_size=minSize, connectivity=1, in_place=True)
     return mask
