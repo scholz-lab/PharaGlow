@@ -59,9 +59,10 @@ def runPharaglowKymo(im, cl, widths, **kwargs):
 def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts):
     # make sure image is float
     im = np.array(im)
-    im = util.img_as_float64(im)
+    #im = util.img_as_float64(im)
     #local derivative, can enhance contrast
     gradientImage = pg.gradientPharynx(im)
+    print(gradientImage.dtype)
     # straightened image
     straightIm = pg.straightenPharynx(im, xstart, xend, poptX, poptY, width=width, nPts = npts)
     return gradientImage, straightIm
