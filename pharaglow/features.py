@@ -16,11 +16,12 @@ from skimage.filters import rank
 from skimage.measure import find_contours, profile_line
 
 
-def find Lawn(image):
+def findLawn(image):
     thresh = threshold_li(image)
     binary = image > thresh
     binary = ndimage.binary_fill_holes(binary).astype(int)
     return binary
+
 
 def thresholdPharynx(im):
     """use li threshold to obtain mask of pharynx.
