@@ -6,7 +6,7 @@ import numpy as np
 from numpy.linalg import norm
 from skimage import util
 from skimage.filters import threshold_li
-from skimage.morphology import skeletonize, watershed, disk
+from skimage.morphology import skeletonize, watershed, disk, remove_small_holes
 from skimage import img_as_float, img_as_ubyte
 from skimage.segmentation import morphological_chan_vese, inverse_gaussian_gradient,checkerboard_level_set
 from skimage.transform import rescale
@@ -16,10 +16,11 @@ from skimage.filters import rank
 from skimage.measure import find_contours, profile_line
 
 
+
 def findLawn(image):
     thresh = threshold_li(image)
     binary = image > thresh
-    binary = ndimage.binary_fill_holes(binary).astype(int)
+    binary = remove_small_holes(binary, area_threshold=64, connectivity=1, in_place=False)
     return binary
 
 
