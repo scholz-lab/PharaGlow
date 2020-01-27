@@ -12,6 +12,9 @@ import pharaglow.features as pg
 import pharaglow.tracking as pgt
 
 
+
+
+
 def runPharaglowSkel(im):
     # preprocessing image
     im = np.array(im)
@@ -62,7 +65,7 @@ def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts):
     #im = util.img_as_float64(im)
     #local derivative, can enhance contrast
     gradientImage = pg.gradientPharynx(im)
-    print(gradientImage.dtype)
+
     # straightened image
     straightIm = pg.straightenPharynx(im, xstart, xend, poptX, poptY, width=width, nPts = npts)
     return gradientImage, straightIm
