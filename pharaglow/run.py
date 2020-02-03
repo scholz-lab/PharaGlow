@@ -10,23 +10,24 @@ import pandas as pd
 
 import pharaglow.features as pg
 import pharaglow.tracking as pgt
+import pharaglow.util as pgu
 
 
-
-
-
-def runPharaglowSkel(im):
+def runPharaglowSkel(im, length):
     # preprocessing image
+    im = pgu.unravelImages(im, length)
     im = np.array(im)
     mask = pg.thresholdPharynx(im)
     skel = pg.skeletonPharynx(mask)
     order = pg.sortSkeleton(skel)
     ptsX, ptsY = np.where(skel)
     ptsX, ptsY = ptsX[order], ptsY[order]
-    return mask, ptsX, ptsY
+    return mask.ravel(), ptsX, ptsY
 
 
-def runPharaglowCL(mask, ptsX, ptsY, nPts = 100):
+def runPharaglowCL(mask, ptsX, ptsY, length, nPts = 100):
+    # mask reshaping from linear
+    mask = pgu.unravelImages(mask, length)
     # getting centerline and widths along midline
     poptX, poptY = pg.fitSkeleton(ptsX, ptsY)
     contour = pg.morphologicalPharynxContour(mask, scale = 4, smoothing=2)
@@ -52,15 +53,17 @@ def runPharaglowCL(mask, ptsX, ptsY, nPts = 100):
     return poptX, poptY, xstart, xend, cl, dCl, widths, contour
 
 
-def runPharaglowKymo(im, cl, widths, **kwargs):
+def runPharaglowKymo(im, cl, widths, length, **kwargs):
+    im = pgu.unravelImages(im, length)
     im = np.array(im)
     kymo = pg.intensityAlongCenterline(im, cl, **kwargs)
     kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))[:,0]
     return kymo, kymoWeighted
 
 
-def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts):
+def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts, length):
     # make sure image is float
+    im = pgu.unravelImages(im, length)
     im = np.array(im)
     #im = util.img_as_float64(im)
     #local derivative, can enhance contrast
@@ -103,21 +106,21 @@ def runPharaglowOnStack(df, param):
     """runs the whole pharaglow toolset on a dataframe. Can be linked or unliked before. only the last step depends on having a particle ID."""
     # run image analysis on all rows of the dataframe
     df[['Mask', 'SkeletonX', 'SkeletonY']] = df.apply(\
-        lambda row: pd.Series(runPharaglowSkel(row['image'])), axis=1)
+        lambda row: pd.Series(runPharaglowSkel(row['image'], param['length'])), axis=1)
     # run centerline fitting
     df[['ParX', 'ParY', 'Xstart', 'Xend', 'Centerline', 'dCl', 'Widths', 'Contour']] = df.apply(\
-        lambda row: pd.Series(runPharaglowCL(row['Mask'],row['SkeletonX'], row['SkeletonY'])), axis=1)
+        lambda row: pd.Series(runPharaglowCL(row['Mask'],row['SkeletonX'], row['SkeletonY'], param['length'])), axis=1)
     # run image operations
     df[['Gradient', 'Straightened']] = df.apply(\
         lambda row: pd.Series(runPharaglowImg(row['image'], row['Xstart'], row['Xend'],\
                                               row['ParX'], row['ParY'], param['widthStraight'],\
-                                             param['nPts'])), axis=1)
+                                             param['nPts'], param['length'])), axis=1)
     # run kymographs
     df[['Kymo', 'WeightedKymo']] = df.apply(\
-        lambda row: pd.Series(runPharaglowKymo(row['image'], row['Centerline'], row['Widths'], linewidth = 2)), axis=1)
+        lambda row: pd.Series(runPharaglowKymo(row['image'], row['Centerline'], row['Widths'], params['length'],params['linewidth'])), axis=1)
     # run kymographs
     df[['KymoGrad', 'WeightedKymoGrad']] = df.apply(\
-        lambda row: pd.Series(runPharaglowKymo(row['Gradient'], row['Centerline'], row['Widths'], linewidth = 5)), axis=1)
+        lambda row: pd.Series(runPharaglowKymo(row['Gradient'], row['Centerline'], row['Widths'], params['length'], params['linewidth'])), axis=1)
     ## clean orientation
     df = pharynxorientation(df)
     return df
