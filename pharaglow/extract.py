@@ -7,13 +7,27 @@ from scipy.stats import skew
 
 import pharaglow.features as pg
 
+def alignKymos(ar):
+    sample = ar[0]
+    sample =sample - np.mean(sample)
+    ar2 = np.zeros(ar.shape)
+    #shifts = np.zeros(len(ar))
+    for ri, row in enumerate(ar):
+        row =row - np.mean(row)
+        row =row/np.std(row)
+        corr = np.correlate(sample,row,mode='full')
+        shift = int(np.argmax(corr))
+        ar2[ri] = np.roll(ar[ri], shift)
+    return ar2
+
+
 def extractKymo(df, key):
     """extract the difference of the kymo."""
     # need to get rid of none values and such
     kymo = [np.array(list(filter(None.__ne__,row))) for row in df[key].values]
     kymo = np.array([np.interp(np.linspace(0, len(row), 100), np.arange(len(row)), np.array(row)) \
-                      for row in kymo]).T
-    
+                      for row in kymo])
+    kymo = alignKymos(kymo).T
     return np.nansum(np.abs(np.diff(kymo[0:], axis = 0)), axis = 0)
     
 
