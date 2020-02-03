@@ -60,3 +60,8 @@ def smooth(x,window_len=11,window='hanning'):
 
     y=numpy.convolve(w/w.sum(),s,mode='valid')
     return y[(window_len//2-1):-(window_len//2)][:len(x)]
+
+
+def unravelImages(im, length):
+    """reshape images from linear to square."""
+    return im.reshape(length, length)
