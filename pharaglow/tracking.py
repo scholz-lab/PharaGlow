@@ -4,6 +4,7 @@
 
 import numpy as np
 import pandas as pd
+import warnings
 
 import pims
 import trackpy as tp
@@ -86,8 +87,21 @@ def extractImage(img, mask, length, cmsLocal):
     yc, xc = np.rint(cmsLocal).astype(np.int32)
     sy, sx = img.shape
     # check that the image will fit in the bounded region
+    if sx>=length:
+        warnings.warn('The object is larger than the bounding box. \
+            Try increasing the length parameter.', Warning)
+        img = img[:,xc - length//2:xc + length//2]
+        mask = mask[:,xc - length//2:xc + length//2]
+        xc = length//2
+    if sy>=length:
+        warnings.warn('The object is larger than the bounding box. \
+            Try increasing the length parameter.', Warning)
+        img = img[yc - length//2:yc + length//2]
+        mask = mask[yc - length//2:yc + length//2]
+        yc = length//2
+    sy, sx = img.shape
     assert sx<=length and sy<=length, "The size of the object is larger than the bounding box. \
-            Try increasing the length parameter. (object: {}, length: {})".format(np.max(sx,sy), length)
+            Try increasing the length parameter. (object: {}, length: {})".format(np.max([sx,sy]), length)
 
     yoff = length//2-yc
     xoff = length//2-xc
@@ -122,7 +136,7 @@ def objectDetection(mask, img, params, frame):
             image = mask[region.slice]
             labeled = refine(image, size = params['watershed'])
             for part in skimage.measure.regionprops(labeled, intensity_image=img[region.slice]):
-                if part.area > params['minSize'] and part.area < 1.5*params['maxSize']:
+                if part.area > params['minSize'] and part.area < 1.1*params['maxSize']:
                     # get the image of an object
                     im = extractImage(part.intensity_image, part.image, params['length'], part.local_centroid)
                     # Store features which survived to the criterions
@@ -177,8 +191,8 @@ def cropImagesAroundCMS(img, x, y, length, size):
     pady = [np.max([-ymin, 0]), np.max([ymax-img.shape[0], 0])]
     im = np.pad(im, [pady, padx] , mode='constant')
     # refine to a single animal if neccessary
-    mask = tracking.preprocess(im, minSize = 0, threshold = None, smooth = 0)
-    labeled = tracking.refine(mask, size)
+    mask = preprocess(im, minSize = 0, threshold = None, smooth = 0)
+    labeled = refine(mask, size)
     d = length//2
     if len(np.unique(labeled))>=2:
         for part in skimage.measure.regionprops(labeled):
