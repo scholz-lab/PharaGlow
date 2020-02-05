@@ -15,8 +15,8 @@ import pharaglow.util as pgu
 
 def runPharaglowSkel(im, length):
     # preprocessing image
-    im = pgu.unravelImages(im, length)
     im = np.array(im)
+    im = pgu.unravelImages(im, length)
     mask = pg.thresholdPharynx(im)
     skel = pg.skeletonPharynx(mask)
     order = pg.sortSkeleton(skel)
@@ -54,8 +54,8 @@ def runPharaglowCL(mask, ptsX, ptsY, length, nPts = 100):
 
 
 def runPharaglowKymo(im, cl, widths, length, **kwargs):
-    im = pgu.unravelImages(im, length)
     im = np.array(im)
+    im = pgu.unravelImages(im, length)
     kymo = pg.intensityAlongCenterline(im, cl, **kwargs)
     kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))[:,0]
     return kymo, kymoWeighted
@@ -63,8 +63,9 @@ def runPharaglowKymo(im, cl, widths, length, **kwargs):
 
 def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts, length):
     # make sure image is float
+    im = np.array(im, dtype = int)
     im = pgu.unravelImages(im, length)
-    im = np.array(im)
+    #im = np.array(im)
     #im = util.img_as_float64(im)
     #local derivative, can enhance contrast
     gradientImage = pg.gradientPharynx(im)
@@ -117,10 +118,10 @@ def runPharaglowOnStack(df, param):
                                              param['nPts'], param['length'])), axis=1)
     # run kymographs
     df[['Kymo', 'WeightedKymo']] = df.apply(\
-        lambda row: pd.Series(runPharaglowKymo(row['image'], row['Centerline'], row['Widths'], params['length'],params['linewidth'])), axis=1)
+        lambda row: pd.Series(runPharaglowKymo(row['image'], row['Centerline'], row['Widths'], param['length'],linewidth = param['linewidth'])), axis=1)
     # run kymographs
     df[['KymoGrad', 'WeightedKymoGrad']] = df.apply(\
-        lambda row: pd.Series(runPharaglowKymo(row['Gradient'], row['Centerline'], row['Widths'], params['length'], params['linewidth'])), axis=1)
+        lambda row: pd.Series(runPharaglowKymo(row['Gradient'], row['Centerline'], row['Widths'], param['length'], linewidth = param['linewidth'])), axis=1)
     ## clean orientation
     df = pharynxorientation(df)
     return df
