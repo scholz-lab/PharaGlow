@@ -35,7 +35,7 @@ def getThreshold(img):
 
 
 @pims.pipeline
-def preprocess(img, minSize = 800, threshold = None, smooth = 0):
+def preprocess(img, minSize = 800, threshold = None, smooth = 0, dilate = False):
     """
     Apply image processing functions to return a binary image. 
     """
@@ -48,8 +48,9 @@ def preprocess(img, minSize = 800, threshold = None, smooth = 0):
     #mask = filters.rank.threshold(img, morphology.square(3), out=None, mask=None, shift_x=False, shift_y=False)
     mask = img >= threshold
     # dilations
-    mask = morphology.remove_small_holes(mask, area_threshold=12, connectivity=1, in_place=True)
-    mask = ndi.binary_dilation(mask)
+    #mask = morphology.remove_small_holes(mask, area_threshold=12, connectivity=1, in_place=True)
+    if dilate:
+        mask = ndi.binary_dilation(mask)
     #mask = morphology.remove_small_objects(mask, min_size=minSize, connectivity=1, in_place=True)
     return mask
 
@@ -64,15 +65,19 @@ def refine(img, size):
     return watershed(-distance, markers, mask=img)
 
 
-def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, subtract = False, **kwargs):
+def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, subtract = False, smooth = 0, **kwargs):
     """standard median stack-projection to obtain a background image followd by thresholding and filtering of small objects to get a clean mask."""
     if subtract:
         bg = np.median(frames[::bgWindow], axis=0)
         #subtract bg from all frames
         frames = subtractBG(frames, bg)
+    # image to determine threshold
+    tmp = np.max(frames[::thresholdWindow], axis=0)
+    # smooth
+    if smooth:
+        tmp = filters.gaussian(tmp, smooth, preserve_range = True)
     # get an overall threshold value and binarize images by using z-stack
-
-    thresh = getThreshold(np.max(frames[::thresholdWindow], axis=0))
+    thresh = getThreshold(tmp)
     #threshs = getThreshold(frames[::thresholdWindow])
     #thresh = np.median(threshs)
     return preprocess(frames, minSize, threshold = thresh, **kwargs)
@@ -87,28 +92,32 @@ def extractImage(img, mask, length, cmsLocal):
     yc, xc = np.rint(cmsLocal).astype(np.int32)
     sy, sx = img.shape
     # check that the image will fit in the bounded region
-    if sx>=length:
+    if sx-xc>=length//2:
         warnings.warn('The object is larger than the bounding box. \
             Try increasing the length parameter.', Warning)
         img = img[:,xc - length//2:xc + length//2]
         mask = mask[:,xc - length//2:xc + length//2]
         xc = length//2
-    if sy>=length:
+    if sy-yc>=length//2:
         warnings.warn('The object is larger than the bounding box. \
             Try increasing the length parameter.', Warning)
         img = img[yc - length//2:yc + length//2]
         mask = mask[yc - length//2:yc + length//2]
         yc = length//2
     sy, sx = img.shape
-    assert sx<=length and sy<=length, "The size of the object is larger than the bounding box. \
-            Try increasing the length parameter. (object: {}, length: {})".format(np.max([sx,sy]), length)
-
     yoff = length//2-yc
     xoff = length//2-xc
-    # check that the image will fit in the bounded region
-    assert yoff>=0 and xoff>=0, "The size of the object is larger than the bounding box. \
-            Try increasing the length parameter."
-    im[yoff:yoff+sy, xoff:xoff+sx] = img*mask
+    if yoff<0 or xoff<0:
+        warnings.warn('The center of mass is severly off center in this image. The image might be cropped.', \
+                      Warning)
+    if yoff>=0 and xoff>=0:
+        im[yoff:yoff+sy, xoff:xoff+sx] = img*mask
+    if yoff<0 and xoff>=0:
+        im[0:yoff+sy, xoff:sx+xoff] = (img*mask)[-yoff:]
+    elif xoff<0 and yoff>=0:
+        im[yoff:yoff+sy, :sx+xoff] = (img*mask)[:,-xoff:]
+    else:
+        im[0:yoff+sy, :sx+xoff] = (img*mask)[-yoff:,-xoff:]
     return im
 
 
@@ -194,12 +203,13 @@ def cropImagesAroundCMS(img, x, y, length, size):
     mask = preprocess(im, minSize = 0, threshold = None, smooth = 0)
     labeled = refine(mask, size)
     d = length//2
-    if len(np.unique(labeled))>=2:
+    if len(np.unique(labeled))>2:
         for part in skimage.measure.regionprops(labeled):
             d2 = np.sqrt((part.centroid[0]-length//2)**2+(part.centroid[1]-length//2)**2)
             if d2 < d:
                 mask = labeled==part.label
-    return (im*mask).ravel()
+            im = im*mask
+    return im.ravel()
 
 
 def fillMissingImages(imgs, frame, x, y, length, size):
