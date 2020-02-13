@@ -130,15 +130,17 @@ def extractImagePad(img, bbox, pad, mask):
     return img[sliced]
 
 
-def objectDetection(mask, img, params, frame):
+def objectDetection(mask, img, params, frame, nextImg):
     """label binary image and extract a region of interest around the object."""
     df = pd.DataFrame()
     label_image = skimage.measure.label(mask, background=0, connectivity = 1)
     label_image = skimage.segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
+    diffImage = nextImage - img
     for region in skimage.measure.regionprops(label_image, intensity_image=img):
         if region.area > params['minSize'] and region.area < params['maxSize']:
             # get the image of an object
             im = extractImage(region.intensity_image, region.image, params['length'], region.local_centroid)
+            diffIm = extractImage(diffImage[region.slice], region.image, params['length'], region.local_centroid)
             # Store features which survived to the criterions
             df = df.append([{'y': region.centroid[0],
                              'x': region.centroid[1],
@@ -147,7 +149,8 @@ def objectDetection(mask, img, params, frame):
                              'area': region.area,
                              'image': im.ravel(),
                              'yw': region.weighted_centroid[0],
-                             'xw': region.weighted_centroid[1]
+                             'xw': region.weighted_centroid[1],
+                             'diffI': diffIm
                              },])
         # do watershed to get crossing objects separated. 
         elif region.area > params['minSize']:
@@ -157,6 +160,7 @@ def objectDetection(mask, img, params, frame):
                 if part.area > params['minSize'] and part.area < 1.1*params['maxSize']:
                     # get the image of an object
                     im = extractImage(part.intensity_image, part.image, params['length'], part.local_centroid)
+                    diffIm = extractImage(diffImage[part.slice], part.image, params['length'], part.local_centroid)
                     # Store features which survived to the criterions
                     df = df.append([{'y': part.centroid[0],
                                      'x': part.centroid[1],
@@ -165,7 +169,8 @@ def objectDetection(mask, img, params, frame):
                                      'area': part.area,
                                      'image': im.ravel(),
                                      'yw': part.weighted_centroid[0],
-                                     'xw': part.weighted_centroid[1]
+                                     'xw': part.weighted_centroid[1],
+                                     'diffI': diffIm
                                      },])
     return df
 
@@ -173,8 +178,8 @@ def objectDetection(mask, img, params, frame):
 def runfeatureDetection(frames, masks, params, frameOffset):
     """detect objects in each image and use region props to extract features and store a local image."""
     feat = []
-    for num, img in enumerate(frames):
-        feat.append(objectDetection(masks[num], img, params, num+frameOffset))
+    for num, img in enumerate(frames[:-1]):
+        feat.append(objectDetection(masks[num], img, params, num+frameOffset, frames[num+frameOffset+1]))
     features = pd.concat(feat)
     return features
 
@@ -225,3 +230,12 @@ def fillMissingImages(imgs, frame, x, y, length, size):
     """run this on a dataframe to interpolate images from missing coordinates."""
     img = imgs[frame]
     return cropImagesAroundCMS(img, x, y, length, size)
+
+
+def fillMissingDifferenceImages(imgs, frame, x, y, length, size):
+    """run this on a dataframe to interpolate images from missing coordinates."""
+    if frame<len(imgs):
+        img = imgs[frame]-imgs[frame+1]
+        return cropImagesAroundCMS(img, x, y, length, size)
+    else:
+        return np.zeros(length*length)
