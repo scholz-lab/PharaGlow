@@ -31,7 +31,7 @@ def subtractBG(img, bg):
 @pims.pipeline
 def getThreshold(img):
     """"return a global threshold value"""
-    return filters.threshold_li(img)
+    return filters.threshold_li(img, initial_guess = lambda arr: np.quantile(arr, 0.15))
 
 
 @pims.pipeline
@@ -49,7 +49,7 @@ def preprocess(img, minSize = 800, threshold = None, smooth = 0, dilate = False)
     mask = img >= threshold
     # dilations
     #mask = morphology.remove_small_holes(mask, area_threshold=12, connectivity=1, in_place=True)
-    if dilate:
+    for i in range(dilate):
         mask = ndi.binary_dilation(mask)
     #mask = morphology.remove_small_objects(mask, min_size=minSize, connectivity=1, in_place=True)
     return mask
@@ -65,7 +65,7 @@ def refine(img, size):
     return watershed(-distance, markers, mask=img)
 
 
-def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, subtract = False, smooth = 0, **kwargs):
+def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, subtract = False, smooth = 0, tfactor = 1, **kwargs):
     """standard median stack-projection to obtain a background image followd by thresholding and filtering of small objects to get a clean mask."""
     if subtract:
         bg = np.median(frames[::bgWindow], axis=0)
@@ -77,7 +77,7 @@ def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, sub
     if smooth:
         tmp = filters.gaussian(tmp, smooth, preserve_range = True)
     # get an overall threshold value and binarize images by using z-stack
-    thresh = getThreshold(tmp)
+    thresh = getThreshold(tmp)*tfactor
     #threshs = getThreshold(frames[::thresholdWindow])
     #thresh = np.median(threshs)
     return preprocess(frames, minSize, threshold = thresh, **kwargs)
@@ -112,13 +112,22 @@ def extractImage(img, mask, length, cmsLocal):
                       Warning)
     if yoff>=0 and xoff>=0:
         im[yoff:yoff+sy, xoff:xoff+sx] = img*mask
-    if yoff<0 and xoff>=0:
+    elif yoff<0 and xoff>=0:
         im[0:yoff+sy, xoff:sx+xoff] = (img*mask)[-yoff:]
     elif xoff<0 and yoff>=0:
         im[yoff:yoff+sy, :sx+xoff] = (img*mask)[:,-xoff:]
     else:
+        print(sx, sy, xoff, yoff, xc, yc)
         im[0:yoff+sy, :sx+xoff] = (img*mask)[-yoff:,-xoff:]
     return im
+
+def extractImagePad(img, bbox, pad, mask):
+    # get a larger than bounding box image by padding some
+    xmin, ymin, xmax, ymax  = region.bbox
+    sliced = slice(np.max([0, xmin-pad]), xmax+pad), slice(np.max([0, ymin-pad]), ymax+pad)
+    if mask:
+        img[~mask] = 0
+    return img[sliced]
 
 
 def objectDetection(mask, img, params, frame):
