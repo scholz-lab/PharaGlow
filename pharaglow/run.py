@@ -57,8 +57,8 @@ def runPharaglowKymo(im, cl, widths, length, **kwargs):
     im = np.array(im)
     im = pgu.unravelImages(im, length)
     kymo = pg.intensityAlongCenterline(im, cl, **kwargs)
-    kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))[:,0]
-    return kymo, kymoWeighted
+    #kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))[:,0]
+    return kymo#, kymoWeighted
 
 
 def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts, length):
@@ -93,7 +93,7 @@ def pharynxorientation(df):
 
     # now flip the orientation where the sample is upside down
     for key in ['SkeletonX', 'SkeletonY', 'Centerline', 'dCl', 'Widths', 'Kymo',\
-           'WeightedKymo', 'StraightKymo', 'Straightened', 'KymoGrad', 'WeightedKymoGrad']:
+           'StraightKymo', 'Straightened', 'KymoGrad']:
         df[key] = df.apply(lambda row: row[key] if row['Similarity'] else row[key][::-1], axis=1)
     # Flip the start coordinates
     #df.update(df.loc[df['Similarity']].rename({'Xstart': 'Xend', 'Xend': 'Xstart'}, axis=1))
@@ -117,10 +117,10 @@ def runPharaglowOnStack(df, param):
                                               row['ParX'], row['ParY'], param['widthStraight'],\
                                              param['nPts'], param['length'])), axis=1)
     # run kymographs
-    df[['Kymo', 'WeightedKymo']] = df.apply(\
+    df[['Kymo']] = df.apply(\
         lambda row: pd.Series(runPharaglowKymo(row['image'], row['Centerline'], row['Widths'], param['length'],linewidth = param['linewidth'])), axis=1)
     # run kymographs
-    df[['KymoGrad', 'WeightedKymoGrad']] = df.apply(\
+    df[['KymoGrad']] = df.apply(\
         lambda row: pd.Series(runPharaglowKymo(row['Gradient'], row['Centerline'], row['Widths'], param['length'], linewidth = param['linewidth'])), axis=1)
     ## clean orientation
     df = pharynxorientation(df)
