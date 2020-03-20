@@ -56,9 +56,8 @@ def runPharaglowCL(mask, ptsX, ptsY, length, nPts = 100):
 def runPharaglowKymo(im, cl, widths, length, **kwargs):
     im = np.array(im)
     im = pgu.unravelImages(im, length)
-    kymo = pg.intensityAlongCenterline(im, cl, **kwargs)
     #kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))[:,0]
-    return kymo#, kymoWeighted
+    return [pg.intensityAlongCenterline(im, cl, **kwargs)]
 
 
 def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts, length):
