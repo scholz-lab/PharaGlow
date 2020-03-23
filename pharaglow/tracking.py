@@ -56,7 +56,7 @@ def preprocess(img, minSize = 800, threshold = None, smooth = 0, dilate = False)
 
 
 @pims.pipeline
-def refine(img, size):
+def refineWatershed(img, size):
     """Refine segmentation using watershed."""
     distance = ndi.distance_transform_edt(img)
     local_maxi = peak_local_max(distance, indices=False, footprint=np.ones((size, size)),\
@@ -122,7 +122,7 @@ def extractImage(img, mask, length, cmsLocal):
 
 def extractImagePad(img, bbox, pad, mask):
     # get a larger than bounding box image by padding some
-    xmin, ymin, xmax, ymax  = region.bbox
+    xmin, ymin, xmax, ymax  = bbox
     sliced = slice(np.max([0, xmin-pad]), xmax+pad), slice(np.max([0, ymin-pad]), ymax+pad)
     if mask:
         img[~mask] = 0
@@ -141,8 +141,8 @@ def objectDetection(mask, img, params, frame, nextImg):
             #im = extractImage(region.intensity_image, region.image, params['length'], region.local_centroid)
             #diffIm = extractImage(diffImage[region.slice], region.image, params['length'], region.local_centroid)
             # go back to smaller images
-            im = extractImagePad(img, region.slice, params['pad'], mask=None)
-            diffIm = extractImagePad(diffImage, region.slice, params['pad'], mask=None)
+            im = extractImagePad(img, region.bbox, params['pad'], mask=None)
+            diffIm = extractImagePad(diffImage, region.bbox, params['pad'], mask=None)
             # Store features which survived to the criterions
             df = df.append([{'y': region.centroid[0],
                              'x': region.centroid[1],
@@ -153,20 +153,21 @@ def objectDetection(mask, img, params, frame, nextImg):
                              'yw': region.weighted_centroid[0],
                              'xw': region.weighted_centroid[1],
                              'diffI': diffIm.ravel(),
-                             'shape': im.shape,
+                             'shapeY': im.shape[0],
+                             'shapeX': im.shape[1],
                              },])
         # do watershed to get crossing objects separated. 
         elif region.area > params['minSize']:
             image = mask[region.slice]
-            labeled = refine(image, size = params['watershed'])
+            labeled = refineWatershed(image, size = params['watershed'])
             for part in skimage.measure.regionprops(labeled, intensity_image=img[region.slice]):
                 if part.area > params['minSize'] and part.area < 1.1*params['maxSize']:
                     # get the image of an object
                     #im = extractImage(part.intensity_image, part.image, params['length'], part.local_centroid)
                     #diffIm = extractImage(diffImage[part.slice], part.image, params['length'], part.local_centroid)
                     # go back to smaller images
-                    im = extractImagePad(img, part.slice, params['pad'], mask=image)
-                    diffIm = extractImagePad(diffImage, part.slice, params['pad'], mask=image)
+                    im = extractImagePad(img, part.bbox, params['pad'], mask=image)
+                    diffIm = extractImagePad(diffImage, part.bbox, params['pad'], mask=image)
                     # Store features which survived to the criterions
                     df = df.append([{'y': part.centroid[0],
                                      'x': part.centroid[1],
@@ -177,8 +178,11 @@ def objectDetection(mask, img, params, frame, nextImg):
                                      'yw': part.weighted_centroid[0],
                                      'xw': part.weighted_centroid[1],
                                      'diffI': diffIm.ravel(),
-                                     'shape':im.shape,
+                                     'shapeY':im.shape[0],
+                                     'shapeX': im.shape[1],
                                      },])
+    df['shapeX'] = df['shapeX'].astype(int)
+    df['shapeY'] = df['shapeY'].astype(int)
     return df
 
 
@@ -211,10 +215,10 @@ def interpolateTrajectories(traj):
     return traj.interpolate()
 
 
-def cropImagesAroundCMS(img, x, y, length, size, refine = False):
+def cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine = False):
     """Using the interpolated center of mass coordindates (x,y), fill in missing images. img is a full size frame."""
-    xmin, xmax = int(x - length//2), int(x + length//2)
-    ymin, ymax = int(y-length//2), int(y+length//2)
+    xmin, xmax = int(x - lengthX//2), int(x + lengthX//2)
+    ymin, ymax = int(y-lengthY//2), int(y+lengthY//2)
     sliced = slice(np.max([0, ymin]), ymax), slice(np.max([0, xmin]), xmax)
     im = img[sliced]
     padx = [np.max([-xmin, 0]), np.max([xmax-img.shape[1], 0])]
@@ -223,27 +227,27 @@ def cropImagesAroundCMS(img, x, y, length, size, refine = False):
     # refine to a single animal if neccessary
     if refine:
         mask = preprocess(im, minSize = 0, threshold = None, smooth = 0)
-        labeled = refine(mask, size)
-        d = length//2
+        labeled = refineWatershed(mask, size)
+        d = np.sqrt(lengthX**2+lengthY**2)//2
         if len(np.unique(labeled))>2:
             for part in skimage.measure.regionprops(labeled):
-                d2 = np.sqrt((part.centroid[0]-length//2)**2+(part.centroid[1]-length//2)**2)
+                d2 = np.sqrt((part.centroid[0]-lengthY//2)**2+(part.centroid[1]-lengthX//2)**2)
                 if d2 < d:
                     mask = labeled==part.label
             im = im*mask
     return im.ravel()
 
 
-def fillMissingImages(imgs, frame, x, y, length, size, refine = True):
+def fillMissingImages(imgs, frame, x, y, lengthX, lengthY, size, refine = True):
     """run this on a dataframe to interpolate images from missing coordinates."""
     img = imgs[frame]
-    return cropImagesAroundCMS(img, x, y, length, size, refine)
+    return cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
 
 
-def fillMissingDifferenceImages(imgs, frame, x, y, length, size, refine = False):
+def fillMissingDifferenceImages(imgs, frame, x, y, lengthX, lengthY, size, refine = False):
     """run this on a dataframe to interpolate images from missing coordinates."""
     if frame<len(imgs):
         img = util.img_as_float(imgs[frame])-util.img_as_float(imgs[frame+1])
-        return cropImagesAroundCMS(img, x, y, length, size)
+        return cropImagesAroundCMS(img, x, y, lengthX, lengthY, size)
     else:
-        return np.zeros(length*length)
+        return np.zeros(lengthX*lengthY)
