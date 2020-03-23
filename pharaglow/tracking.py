@@ -152,7 +152,8 @@ def objectDetection(mask, img, params, frame, nextImg):
                              'image': im.ravel(),
                              'yw': region.weighted_centroid[0],
                              'xw': region.weighted_centroid[1],
-                             'diffI': diffIm.ravel()
+                             'diffI': diffIm.ravel(),
+                             'shape': im.shape,
                              },])
         # do watershed to get crossing objects separated. 
         elif region.area > params['minSize']:
@@ -175,7 +176,8 @@ def objectDetection(mask, img, params, frame, nextImg):
                                      'image': im.ravel(),
                                      'yw': part.weighted_centroid[0],
                                      'xw': part.weighted_centroid[1],
-                                     'diffI': diffIm.ravel()
+                                     'diffI': diffIm.ravel(),
+                                     'shape':im.shape,
                                      },])
     return df
 

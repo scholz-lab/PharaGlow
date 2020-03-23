@@ -106,21 +106,21 @@ def runPharaglowOnStack(df, param):
     """runs the whole pharaglow toolset on a dataframe. Can be linked or unliked before. only the last step depends on having a particle ID."""
     # run image analysis on all rows of the dataframe
     df[['Mask', 'SkeletonX', 'SkeletonY']] = df.apply(\
-        lambda row: pd.Series(runPharaglowSkel(row['image'], param['length'])), axis=1)
+        lambda row: pd.Series(runPharaglowSkel(row['image'], row['shape'])), axis=1)
     # run centerline fitting
     df[['ParX', 'ParY', 'Xstart', 'Xend', 'Centerline', 'dCl', 'Widths', 'Contour']] = df.apply(\
-        lambda row: pd.Series(runPharaglowCL(row['Mask'],row['SkeletonX'], row['SkeletonY'], param['length'])), axis=1)
+        lambda row: pd.Series(runPharaglowCL(row['Mask'],row['SkeletonX'], row['SkeletonY'], row['shape'])), axis=1)
     # run image operations
     df[['Gradient', 'Straightened']] = df.apply(\
         lambda row: pd.Series(runPharaglowImg(row['image'], row['Xstart'], row['Xend'],\
                                               row['ParX'], row['ParY'], param['widthStraight'],\
-                                             param['nPts'], param['length'])), axis=1)
+                                             param['nPts'], row['shape'])), axis=1)
     # run kymographs
     df[['Kymo']] = df.apply(\
-        lambda row: pd.Series(runPharaglowKymo(row['image'], row['Centerline'], row['Widths'], param['length'],linewidth = param['linewidth'])), axis=1)
+        lambda row: pd.Series(runPharaglowKymo(row['image'], row['Centerline'], row['Widths'], row['shape'],linewidth = param['linewidth'])), axis=1)
     # run kymographs
     df[['KymoGrad']] = df.apply(\
-        lambda row: pd.Series(runPharaglowKymo(row['Gradient'], row['Centerline'], row['Widths'], param['length'], linewidth = param['linewidth'])), axis=1)
+        lambda row: pd.Series(runPharaglowKymo(row['Gradient'], row['Centerline'], row['Widths'], row['shape'], linewidth = param['linewidth'])), axis=1)
     ## clean orientation
     df = pharynxorientation(df)
     return df
