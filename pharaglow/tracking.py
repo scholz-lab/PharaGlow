@@ -181,7 +181,7 @@ def objectDetection(mask, img, params, frame, nextImg):
                                      'shapeY':im.shape[0],
                                      'shapeX': im.shape[1],
                                      },])
-    if ~df.empty:
+    if not df.empty:
         df['shapeX'] = df['shapeX'].astype(int)
         df['shapeY'] = df['shapeY'].astype(int)
     return df
