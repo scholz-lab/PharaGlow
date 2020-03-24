@@ -120,11 +120,11 @@ def extractImage(img, mask, length, cmsLocal):
         im[0:yoff+sy, :sx+xoff] = (img*mask)[-yoff:,-xoff:]
     return im
 
-def extractImagePad(img, bbox, pad, mask):
+def extractImagePad(img, bbox, pad, mask=None):
     # get a larger than bounding box image by padding some
     xmin, ymin, xmax, ymax  = bbox
     sliced = slice(np.max([0, xmin-pad]), xmax+pad), slice(np.max([0, ymin-pad]), ymax+pad)
-    if mask:
+    if mask is not None:
         img[~mask] = 0
     return img[sliced]
 
@@ -166,8 +166,8 @@ def objectDetection(mask, img, params, frame, nextImg):
                     #im = extractImage(part.intensity_image, part.image, params['length'], part.local_centroid)
                     #diffIm = extractImage(diffImage[part.slice], part.image, params['length'], part.local_centroid)
                     # go back to smaller images
-                    im = extractImagePad(img, part.bbox, params['pad'], mask=image)
-                    diffIm = extractImagePad(diffImage, part.bbox, params['pad'], mask=image)
+                    im = extractImagePad(img, part.bbox, params['pad'], mask=labeled==part.label)
+                    diffIm = extractImagePad(diffImage, part.bbox, params['pad'], mask=labeled==part.label)
                     # Store features which survived to the criterions
                     df = df.append([{'y': part.centroid[0],
                                      'x': part.centroid[1],
@@ -181,8 +181,9 @@ def objectDetection(mask, img, params, frame, nextImg):
                                      'shapeY':im.shape[0],
                                      'shapeX': im.shape[1],
                                      },])
-    df['shapeX'] = df['shapeX'].astype(int)
-    df['shapeY'] = df['shapeY'].astype(int)
+    if ~df.empty:
+        df['shapeX'] = df['shapeX'].astype(int)
+        df['shapeY'] = df['shapeY'].astype(int)
     return df
 
 
