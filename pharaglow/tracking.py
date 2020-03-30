@@ -166,8 +166,11 @@ def objectDetection(mask, img, params, frame, nextImg):
                     #im = extractImage(part.intensity_image, part.image, params['length'], part.local_centroid)
                     #diffIm = extractImage(diffImage[part.slice], part.image, params['length'], part.local_centroid)
                     # go back to smaller images
-                    im = extractImagePad(img, part.bbox, params['pad'], mask=labeled==part.label)
-                    diffIm = extractImagePad(diffImage, part.bbox, params['pad'], mask=labeled==part.label)
+                    tmpMask = np.zeros(img.shape)
+                    tmpMask[region.slice] = (labeled==part.label)
+                    tmpMask = tmpMask.astype(bool)
+                    im = extractImagePad(img, part.bbox, params['pad'], mask=tmpMask)
+                    diffIm = extractImagePad(diffImage, part.bbox, params['pad'], mask=tmpMask)
                     # Store features which survived to the criterions
                     df = df.append([{'y': part.centroid[0],
                                      'x': part.centroid[1],
