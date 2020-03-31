@@ -58,11 +58,12 @@ def preprocess(img, minSize = 800, threshold = None, smooth = 0, dilate = False)
 @pims.pipeline
 def refineWatershed(img, size):
     """Refine segmentation using watershed."""
-    distance = ndi.distance_transform_edt(img)
+    mask = img>filters.threshold_li(img)
+    distance = ndi.distance_transform_edt(mask)
     local_maxi = peak_local_max(distance, indices=False, footprint=np.ones((size, size)),\
-                                labels=img)
+                                labels=mask)
     markers = ndi.label(local_maxi)[0]
-    return watershed(-distance, markers, mask=img)
+    return watershed(-distance, markers, mask=mask)
 
 
 def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, subtract = False, smooth = 0, tfactor = 1, **kwargs):
@@ -125,7 +126,7 @@ def extractImagePad(img, bbox, pad, mask=None):
     xmin, ymin, xmax, ymax  = bbox
     sliced = slice(np.max([0, xmin-pad]), xmax+pad), slice(np.max([0, ymin-pad]), ymax+pad)
     if mask is not None:
-        img[~mask] = 0
+        img = img*mask
     return img[sliced]
 
 
@@ -146,7 +147,7 @@ def objectDetection(mask, img, params, frame, nextImg):
             # Store features which survived to the criterions
             df = df.append([{'y': region.centroid[0],
                              'x': region.centroid[1],
-                             'slice':region.slice,
+                             'slice':list(region.bbox),
                              'frame': frame,
                              'area': region.area,
                              'image': im.ravel(),
@@ -159,27 +160,29 @@ def objectDetection(mask, img, params, frame, nextImg):
         # do watershed to get crossing objects separated. 
         elif region.area > params['minSize']:
             image = mask[region.slice]
-            labeled = refineWatershed(image, size = params['watershed'])
+            labeled = refineWatershed(img[region.slice], size = params['watershed'])
             for part in skimage.measure.regionprops(labeled, intensity_image=img[region.slice]):
-                if part.area > params['minSize'] and part.area < 1.1*params['maxSize']:
+                if part.area > params['minSize']*0.5 and part.area < params['maxSize']:
                     # get the image of an object
                     #im = extractImage(part.intensity_image, part.image, params['length'], part.local_centroid)
                     #diffIm = extractImage(diffImage[part.slice], part.image, params['length'], part.local_centroid)
+                    # account for the offset from the region
+                    yo, xo,_,_ = region.bbox
                     # go back to smaller images
                     tmpMask = np.zeros(img.shape)
-                    tmpMask[region.slice] = (labeled==part.label)
-                    tmpMask = tmpMask.astype(bool)
+                    tmpMask[part.slice] = part.image
+                    tmpMask = tmpMask.astype(int)
                     im = extractImagePad(img, part.bbox, params['pad'], mask=tmpMask)
                     diffIm = extractImagePad(diffImage, part.bbox, params['pad'], mask=tmpMask)
                     # Store features which survived to the criterions
-                    df = df.append([{'y': part.centroid[0],
-                                     'x': part.centroid[1],
-                                     'slice':part.slice,
+                    df = df.append([{'y': part.centroid[0]+yo,
+                                     'x': part.centroid[1]+xo,
+                                     'slice':list(part.bbox)+[xo,yo,xo,yo],
                                      'frame': frame,
                                      'area': part.area,
                                      'image': im.ravel(),
-                                     'yw': part.weighted_centroid[0],
-                                     'xw': part.weighted_centroid[1],
+                                     'yw': part.weighted_centroid[0]+xo,
+                                     'xw': part.weighted_centroid[1]+yo,
                                      'diffI': diffIm.ravel(),
                                      'shapeY':im.shape[0],
                                      'shapeX': im.shape[1],
