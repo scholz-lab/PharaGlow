@@ -4,6 +4,7 @@
 import pandas as pd
 import numpy as np
 from scipy.stats import skew
+from skimage.util import view_as_windows
 
 import pharaglow.features as pg
 
@@ -93,3 +94,124 @@ def pumpingMetrics(traj, params):
                              'maxDiff': pwarpmax
                              },])
     return df
+
+
+
+def nanOutliers(data, window_size, n_sigmas=3):
+    """using a Hampel filter to detect outliers and replace them with nans. 
+    The algorithm assuems the underlying series should be gaussian. this could be changed by changing the k parameter.
+    Data can contain nans, these will be ignored for median calculation.
+    data: (M, N) array of M timeseries with N samples each. 
+    windowsize: integer. This is half of the typical implementation.
+    n_sigmas: float or integer
+    """
+    # deal with N = 1 timeseries to conform to (M=1,N) shape
+    if len(data.shape)<2:
+        data = np.reshape(data, (1,-1))
+    k = 1.4826 # scale factor for Gaussian distribution
+    M, N = data.shape # store data shape for quick use below
+    # pad array to achieve at least the same size as original
+    paddata = np.pad(data.copy(), pad_width= [(0,0),(window_size//2,window_size//2)], \
+                     constant_values=(np.median(data)), mode = 'constant')
+    # we use strides to create rolling windows. Not nice in memory, but good in performance.
+    # because its meant for images, it creates some empty axes of size 1.
+    tmpdata = view_as_windows(paddata, (1,window_size))
+    # crop data to center 
+    tmpdata = tmpdata[:M, :N]
+    x0N = np.nanmedian(tmpdata, axis = (-1, -2))
+    s0N =k * np.nanmedian(np.abs(tmpdata - x0N[:,:,np.newaxis, np.newaxis]), axis = (-1,-2))
+    # hampel condition
+    hampel = (np.abs(data-x0N) - (n_sigmas*s0N))
+    indices = np.where(hampel>0)
+    #cast to float to allow nans in output data
+    newData = np.array(data, dtype=float)
+    newData[indices] = x0N[indices]
+    return newData, indices
+
+def pumps(data):
+    straightIms = np.array([im for im in data['Straightened'].values])
+    print(straightIms.shape)
+    k = -np.max(np.std(straightIms, axis =2), axis =1)#-np.mean(straightIms, axis =2)
+    #k = -np.max(np.median(straightIms, axis =2), axis =1)
+    #k = np.min(np.mean(straightIms[:,150:,], axis =2), axis =1)
+    return np.ravel(k)
+
+def manAutoComp(time0, pump0, v, manp, inside):
+    # crop automatic and manual to the same time frame
+    mi, ma = int(np.nanmax([manp.min(), np.nanmin(time0)]))-5, int(np.nanmin([manp.max(), np.nanmax(time0)]))
+    #print(mi,ma)
+    manp = manp[(manp>=mi)&(manp<=ma)]
+    time = time0[(time0>=mi)&(time0<=ma)]
+    pump = pump0[(time0>=mi)&(time0<=ma)]
+    v = v[(time0>=mi)&(time0<=ma)]
+    inside = inside[(time0>=mi)&(time0<=ma)]
+    # extract outliers and remove trends
+    #pump = pump- util.smooth(pump, 600)
+    
+    pump, ind = nanOutliers(pump.values, window_size = 300, n_sigmas=3)
+    pump, ind = pump[0], ind[1]
+    pump = pump - util.smooth(pump, 30)
+    pump = pd.Series(pump)
+    
+    # rescale to percentile
+    pump -= np.mean(pump)
+    pump/= np.percentile(pump, [0.5])#/2#/5
+    return time, pump, manp, v, inside
+
+### ROC curve for peak detection
+def rocPeaks(pump, pars):
+    ps, roc = [], []
+    w = 2
+    for p in pars:
+        peaks = find_peaks(pump, height=None, threshold=None, distance=5, prominence=(p,100),\
+                    width=(0,4), wlen=30, rel_height=0.1, plateau_size=None)[0]
+        meanPeak = np.array([pump[peak-w:peak+w+1] for peak in peaks if (peak +w <len(pump)) and peak-w>0]).T
+        ps.append(peaks)
+        roc.append(meanPeak)
+    return ps, roc
+
+def bestMatchPeaks(time, pump, manp = None, show=1):
+    ### define best match
+    nt = 50
+    prs = np.linspace(0.1,0.95,nt)
+    ps, roc = rocPeaks(pump, pars = prs)
+    # evaluation
+    npeaks = [len(p) for p in ps]
+    metric = [np.mean(np.std(r, axis =1))/len(r) for r in roc]
+    if manp is None:
+        manp = pd.Series(ps[np.argmin(metric)])+time.iloc[0]
+    if show:
+        # plot the roc curve
+        plt.figure('Analysis', figsize=(12,8))
+        plt.subplot(221)
+        plt.plot(prs, [len(p) for p in ps])
+        plt.axhline(manp.count(), color = 'r', linestyle='--')
+        plt.ylabel('Number of peaks')
+        plt.xlabel('peak prominence parameter')
+        plt.subplot(222)
+        for ind, i in enumerate([0,nt//2, nt-1]):
+            plt.text(time.iloc[0], pump[0] + 3*ind+1.2, 'prominence = {:.2}'.format(prs[i]))
+            plt.plot(time, pump + 3*ind, color ='navy', lw = 0.25)
+            plt.plot(time.iloc[ps[i]], pump[ps[i]] + 3*ind,'r.')
+        plt.ylim(-2, 8)
+        plt.yticks([])
+        plt.xlabel('Time (frames)')
+        plt.subplot(223)
+        for ind, i in enumerate(range(0,nt,5)):
+            plt.plot(ps[i]+time.iloc[0], np.arange(len(ps[i])), color ='k', alpha=0.2+0.8*i/len(prs), lw=0.75)
+        plt.axhline(manp.count(), color = 'k', linestyle='--')
+        plt.plot(manp, manp.index, color = 'r', lw = 2)
+        plt.plot(ps[np.argmin(metric)]+time.iloc[0], np.arange(len(ps[np.argmin(metric)])), lw = 2, color='g')
+        plt.ylabel('Cumulative peaks found')
+        plt.xlabel('Time (frames)')
+        plt.subplot(224)
+        plt.plot(npeaks, metric)
+        plt.plot(npeaks[np.argmin(metric)], np.min(metric), 'ro')
+        plt.axvline(manp.count(), color='r', linestyle = '--')
+        print(len(ps[np.argmin(metric)]))
+        plt.xlabel('Number of peaks')
+        plt.ylabel('peak similarity')
+        #[plt.plot(np.std(r, axis =1)) for r in roc]
+        plt.tight_layout()
+        #plt.savefig('/home/scholz_la/Desktop/worm2_automated_peak_detection.pdf')
+    return pd.Series(ps[np.argmin(metric)])+time.iloc[0]
