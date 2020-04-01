@@ -15,7 +15,7 @@ from skimage.measure import label
 from skimage import morphology, util, filters, segmentation
 from scipy import ndimage as ndi
 from skimage.morphology import watershed
-from skimage.feature import peak_local_max
+from skimage.feature import peak_local_max, canny
 
 @pims.pipeline
 def subtractBG(img, bg):
@@ -57,13 +57,11 @@ def preprocess(img, minSize = 800, threshold = None, smooth = 0, dilate = False)
 
 @pims.pipeline
 def refineWatershed(img, size):
-    """Refine segmentation using watershed."""
-    mask = img>filters.threshold_li(img)
-    distance = ndi.distance_transform_edt(mask)
-    local_maxi = peak_local_max(distance, indices=False, footprint=np.ones((size, size)),\
-                                labels=mask)
-    markers = ndi.label(local_maxi)[0]
-    return watershed(-distance, markers, mask=mask)
+    """Refine segmentation using canny edge detection."""
+    mask = img>filters.threshold_yen(img)
+    edges = canny(mask)
+    filled = ndi.binary_fill_holes(edges)
+    return label(filled, background=0, connectivity = 1)
 
 
 def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, subtract = False, smooth = 0, tfactor = 1, **kwargs):
