@@ -121,6 +121,9 @@ def runPharaglowOnStack(df, param):
     # run kymographs
     df[['KymoGrad']] = df.apply(\
         lambda row: pd.Series(runPharaglowKymo(row['Gradient'], row['Centerline'], row['Widths'], row['shapeX'], linewidth = param['linewidth'])), axis=1)
+    # extract pumping metric
+    df[['pumps']] = df.apply(\
+        lambda row: pd.Series(pg.extractPump(row['Straightened'])), axis=1)
     ## clean orientation
     df = pharynxorientation(df)
     return df

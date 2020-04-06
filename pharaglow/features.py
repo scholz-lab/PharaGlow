@@ -13,7 +13,7 @@ from skimage.transform import rescale
 from scipy.cluster.hierarchy import linkage, leaves_list
 from scipy.optimize import curve_fit
 from skimage.filters import rank
-from skimage.measure import find_contours, profile_line
+from skimage.measure import find_contours, profile_line, regionprops, label
 
 
 
@@ -30,7 +30,15 @@ def thresholdPharynx(im):
         input: image of shape (N,M) 
         output: binary image (N,M).
     """
-    return im>threshold_li(im)
+    mask = im>threshold_li(im)
+    labeled = label(mask)
+    # keep only the largest item
+    area = 0
+    for region in regionprops(labeled):
+        if area <= region.area:
+            mask = labeled==region.label
+            area = region.area
+    return mask
 
 
 def skeletonPharynx(mask):
@@ -212,4 +220,7 @@ def gradientPharynx(im):
     return util.img_as_ubyte(gradient)
 
 
+def extractPump(straightIm):
+    """use pumping metric to get measure of bulb contraction."""
+    return -np.max(np.std(straightIm, axis =1), axis =0)
 
