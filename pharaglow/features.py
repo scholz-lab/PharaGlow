@@ -18,6 +18,7 @@ from skimage.measure import find_contours, profile_line, regionprops, label
 
 
 def findLawn(image):
+    """binarize the image of the bacterial lawn."""
     image = gaussian(image, 5, preserve_range = True)
     thresh = threshold_li(image)
     binary = image > thresh
@@ -223,4 +224,16 @@ def gradientPharynx(im):
 def extractPump(straightIm):
     """use pumping metric to get measure of bulb contraction."""
     return -np.max(np.std(straightIm, axis =1), axis =0)
+
+
+def headLocationLawn(cl,slice, binLawn):
+    """use the first coordinate of the centerline to check if the worm touches the lawn."""
+    y,x = cl[0][0], cl[0][1]
+    yo, xo = slice[0], slice[1]
+    return binLawn[int(y+yo), int(x+xo)]
+
+
+def inside(x,y,binLawn):
+    """calculate if the animal is inside the lawn."""
+    return binLawn[int(y), int(x)]
 
