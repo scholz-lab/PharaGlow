@@ -6,8 +6,9 @@ import numpy as np
 from scipy.stats import skew
 from scipy.signal import find_peaks
 from skimage.util import view_as_windows
-
+import matplotlib.pylab as plt
 import pharaglow.features as pg
+from pharaglow import util
 
 def alignKymos(ar):
     sample = ar[0]
@@ -132,7 +133,7 @@ def nanOutliers(data, window_size, n_sigmas=3):
 def pumps(data):
     straightIms = np.array([im for im in data['Straightened'].values])
     print(straightIms.shape)
-    k = -np.max(np.std(straightIms, axis =2), axis =1)#-np.mean(straightIms, axis =2)
+    k = np.max(np.std(straightIms, axis =2), axis =1)#-np.mean(straightIms, axis =2)
     #k = -np.max(np.median(straightIms, axis =2), axis =1)
     #k = np.min(np.mean(straightIms[:,150:,], axis =2), axis =1)
     return np.ravel(k)
@@ -165,54 +166,30 @@ def rocPeaks(pump, pars):
     w = 2
     for p in pars:
         peaks = find_peaks(pump, height=None, threshold=None, distance=5, prominence=(p,100),\
-                    width=(0,4), wlen=30, rel_height=0.1, plateau_size=None)[0]
+                    width=(0,2), wlen=30, rel_height=0.1, plateau_size=None)[0]
         meanPeak = np.array([pump[peak-w:peak+w+1] for peak in peaks if (peak +w <len(pump)) and peak-w>0]).T
         ps.append(peaks)
         roc.append(meanPeak)
     return ps, roc
 
-def bestMatchPeaks(time, pump, manp = None, show=1):
+def preprocess(pump, ws):
+    pump, ind = nanOutliers(pump.values, window_size = 300, n_sigmas=3)
+    pump, ind = pump[0], ind[1]
+    pump = pump - util.smooth(pump, ws)
+    pump = pd.Series(pump)
+    
+    # rescale to percentile
+    pump -= np.mean(pump)
+    pump/= np.percentile(pump, [0.5])#/2#/5
+    return pump
+
+
+def bestMatchPeaks(pump, ws = 30, prs = np.linspace(0.1,0.95,50)):
     ### define best match
-    nt = 50
-    prs = np.linspace(0.1,0.95,nt)
+    #prs = np.linspace(0.1,0.95,nt)
+    pump = preprocess(pump, ws)
     ps, roc = rocPeaks(pump, pars = prs)
     # evaluation
     npeaks = [len(p) for p in ps]
     metric = [np.mean(np.std(r, axis =1))/len(r) for r in roc]
-    if manp is None:
-        manp = pd.Series(ps[np.argmin(metric)])+time.iloc[0]
-    if show:
-        # plot the roc curve
-        plt.figure('Analysis', figsize=(12,8))
-        plt.subplot(221)
-        plt.plot(prs, [len(p) for p in ps])
-        plt.axhline(manp.count(), color = 'r', linestyle='--')
-        plt.ylabel('Number of peaks')
-        plt.xlabel('peak prominence parameter')
-        plt.subplot(222)
-        for ind, i in enumerate([0,nt//2, nt-1]):
-            plt.text(time.iloc[0], pump[0] + 3*ind+1.2, 'prominence = {:.2}'.format(prs[i]))
-            plt.plot(time, pump + 3*ind, color ='navy', lw = 0.25)
-            plt.plot(time.iloc[ps[i]], pump[ps[i]] + 3*ind,'r.')
-        plt.ylim(-2, 8)
-        plt.yticks([])
-        plt.xlabel('Time (frames)')
-        plt.subplot(223)
-        for ind, i in enumerate(range(0,nt,5)):
-            plt.plot(ps[i]+time.iloc[0], np.arange(len(ps[i])), color ='k', alpha=0.2+0.8*i/len(prs), lw=0.75)
-        plt.axhline(manp.count(), color = 'k', linestyle='--')
-        plt.plot(manp, manp.index, color = 'r', lw = 2)
-        plt.plot(ps[np.argmin(metric)]+time.iloc[0], np.arange(len(ps[np.argmin(metric)])), lw = 2, color='g')
-        plt.ylabel('Cumulative peaks found')
-        plt.xlabel('Time (frames)')
-        plt.subplot(224)
-        plt.plot(npeaks, metric)
-        plt.plot(npeaks[np.argmin(metric)], np.min(metric), 'ro')
-        plt.axvline(manp.count(), color='r', linestyle = '--')
-        print(len(ps[np.argmin(metric)]))
-        plt.xlabel('Number of peaks')
-        plt.ylabel('peak similarity')
-        #[plt.plot(np.std(r, axis =1)) for r in roc]
-        plt.tight_layout()
-        #plt.savefig('/home/scholz_la/Desktop/worm2_automated_peak_detection.pdf')
-    return pd.Series(ps[np.argmin(metric)])+time.iloc[0]
+    return pd.Series(ps[np.argmin(metric)]), pump, ps, roc
