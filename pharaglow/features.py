@@ -6,23 +6,24 @@ import numpy as np
 from numpy.linalg import norm
 from skimage import util
 from skimage.filters import threshold_li, gaussian
-from skimage.morphology import skeletonize, watershed, disk, remove_small_holes
+from skimage.morphology import skeletonize, watershed, disk, remove_small_holes, remove_small_objects
 from skimage import img_as_float, img_as_ubyte
 from skimage.segmentation import morphological_chan_vese, inverse_gaussian_gradient,checkerboard_level_set
 from skimage.transform import rescale
 from scipy.cluster.hierarchy import linkage, leaves_list
 from scipy.optimize import curve_fit
-from skimage.filters import rank
+from skimage.filters import rank, threshold_li, gaussian, threshold_otsu
 from skimage.measure import find_contours, profile_line, regionprops, label
 
 
 
-def findLawn(image):
+def findLawn(image, smooth = 1, areaHoles = 15000, areaSpots = 50000):
     """binarize the image of the bacterial lawn."""
-    image = gaussian(image, 5, preserve_range = True)
-    thresh = threshold_li(image)
+    image = gaussian(image, smooth, preserve_range = True)
+    thresh = threshold_otsu(image)
     binary = image > thresh
-    binary = remove_small_holes(binary, area_threshold=64, connectivity=1, in_place=False)
+    binary = remove_small_holes(binary, area_threshold=areaHoles, connectivity=1, in_place=False)
+    binary = remove_small_objects(binary, min_size=areaSpots, connectivity=8, in_place=False)
     return binary
 
 

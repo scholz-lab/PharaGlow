@@ -31,7 +31,7 @@ def subtractBG(img, bg):
 @pims.pipeline
 def getThreshold(img):
     """"return a global threshold value"""
-    return filters.threshold_li(img, initial_guess = lambda arr: np.quantile(arr, 0.15))
+    return filters.threshold_yen(img)#, initial_guess = lambda arr: np.quantile(arr, 0.5))
 
 
 @pims.pipeline
