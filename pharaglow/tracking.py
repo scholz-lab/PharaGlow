@@ -250,19 +250,23 @@ def cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine = False):
                 if d2 < d:
                     mask = labeled==part.label
             im = im*mask
-    return im.ravel()
+    # make bounding box from slice. Bounding box is [ymin, xmin, ymax, xmax]
+    bbox = [sliced[0].start, sliced[1].start, sliced[0].stop, sliced[1].stop]
+    return im.ravel(), bbox
 
 
 def fillMissingImages(imgs, frame, x, y, lengthX, lengthY, size, refine = False):
     """run this on a dataframe to interpolate images from missing coordinates."""
     img = imgs[frame]
-    return cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
+    im, sliced = cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
+    return im, sliced
 
 
 def fillMissingDifferenceImages(imgs, frame, x, y, lengthX, lengthY, size, refine = False):
     """run this on a dataframe to interpolate images from missing coordinates."""
     if frame<len(imgs):
         img = util.img_as_float(imgs[frame])-util.img_as_float(imgs[frame+1])
-        return cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
+        im, _  = cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
+        return im
     else:
         return np.zeros(lengthX*lengthY)
