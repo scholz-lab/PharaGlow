@@ -231,7 +231,9 @@ def headLocationLawn(cl,slice, binLawn):
     """use the first coordinate of the centerline to check if the worm touches the lawn."""
     y,x = cl[0][0], cl[0][1]
     yo, xo = slice[0], slice[1]
-    return binLawn[int(y+yo), int(x+xo)]
+    # make sure that rounding errors don't get you out of bounds
+    yn, xn = np.min([binLawn.shape[0], int(y+yo)]), np.min([binLawn.shape[1], int(x+xo)])
+    return binLawn[yn, xn]
 
 
 def inside(x,y,binLawn):
