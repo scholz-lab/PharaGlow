@@ -232,7 +232,7 @@ def headLocationLawn(cl,slice, binLawn):
     y,x = cl[0][0], cl[0][1]
     yo, xo = slice[0], slice[1]
     # make sure that rounding errors don't get you out of bounds
-    yn, xn = np.min([binLawn.shape[0], int(y+yo)]), np.min([binLawn.shape[1], int(x+xo)])
+    yn, xn = np.min([binLawn.shape[0]-1, int(y+yo)]), np.min([binLawn.shape[1]-1, int(x+xo)])
     return binLawn[yn, xn]
 
 
