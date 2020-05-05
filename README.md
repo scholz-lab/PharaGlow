@@ -38,6 +38,20 @@ These parameters are:
  * pad - crops a boundary around a worm for image analysis. this helps when the mask is a bit too small.
  * nPts - how many points along the centerline are we measuring. This should relate to the typical length of a worm
 
+### Batch running multiple files with the same parameters
+(Based on the module papermill for running jupyter notebooks with many parameters).
+* Edit the notebooks/runBatch,py to the appropriate locations and parameter files. It will analyze a dataFolder where multiple folders of tifffiles are located. eg.
+a dataFolder containing 3 movies in subfolder1, subfolder2, subfolder3
+* The code that will be run is called notebooks/BatchRunTemplate.ipynb. This is functionally  the same as the code in notebook/RunningPharaglowParallel.ipynb
+* run the batch processing in the commandline like this: 
+
+```bash
+python runBatch.py
+```
+* You should see a progress bar that indicates where the script is in processing the template jupyter notebook.
+* For each subfolder a notebook file with the plots will be generated! This makes it easy to check if tracking was successful.
+ 
+
 ### Running pharaglow on labelled pharynx movies
 #### Tracking worms with PharaGlow
 This code generates a pandas dataframe that contains the particles that were tracked.
