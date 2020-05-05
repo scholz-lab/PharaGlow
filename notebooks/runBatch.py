@@ -15,9 +15,9 @@ for subfolder in [f.path for f in os.scandir(dataFolder) if f.is_dir()]:
             'lawnPath': lawnPath,
             'movie': movie
     }
-
+    
     pm.execute_notebook(
        '/home/nzjacic/Desktop/Code/PharaGlow/notebooks/BatchRunTemplate.ipynb',
-       os.path.join(outPath, 'out_{movie}.ipynb'),
+       os.path.join(dataFolder, 'out_{movie}.ipynb'),
        parameters=pars
    )
