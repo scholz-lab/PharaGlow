@@ -13,7 +13,8 @@ for subfolder in [f.path for f in os.scandir(dataFolder) if f.is_dir()]:
             'inPath': subfolder,
             'outPath': dataFolder,
             'lawnPath': lawnPath,
-            'movie': movie
+            'movie': movie,
+            'nWorkers': 5,
     }
     
     pm.execute_notebook(
