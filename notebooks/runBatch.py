@@ -1,9 +1,9 @@
 import papermill as pm
 import os
 
-parameterfile = "/home/mscholz/Desktop/Code/TestDataPGlow/exampleParameterfile.json"
-lawnPath = None
-dataFolder = "/home/mscholz/Desktop/Code/TestDataPGlow"
+parameterfile = "/home/nzjacic/Desktop/pharaglow_parameters_mks.txt"
+lawnPath = "/media/scholz_la/hd2/Nicolina/Lawns"
+dataFolder = "/media/scholz_la/hd2/Nicolina/Raw_videos/10x_INF100_test"
 
 # create a dictionary of parameters
 for subfolder in [f.path for f in os.scandir(dataFolder) if f.is_dir()]:
@@ -17,7 +17,7 @@ for subfolder in [f.path for f in os.scandir(dataFolder) if f.is_dir()]:
     }
 
     pm.execute_notebook(
-       '/home/mscholz/Desktop/Code/PharaGlow/notebooks/BatchRunTemplate.ipynb',
-       '/home/mscholz/Desktop/Code/PharaGlow/notebooks/out_{movie}.ipynb',
+       '/home/nzjacic/Desktop/Code/PharaGlow/notebooks/BatchRunTemplate.ipynb',
+       os.path.join(outPath, 'out_{movie}.ipynb'),
        parameters=pars
    )
