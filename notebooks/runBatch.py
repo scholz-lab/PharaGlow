@@ -1,9 +1,9 @@
 import papermill as pm
 import os
 
-parameterfile = "/home/nzjacic/Desktop/pharaglow_parameters_mks.txt"
-lawnPath = "/media/scholz_la/hd2/Nicolina/Lawns"
-dataFolder = "/media/scholz_la/hd2/Nicolina/Raw_videos/10x_INF100_test"
+parameterfile = "D:/pharaglow_parameters_mks.txt"
+lawnPath = "D:/Lawns"
+dataFolder = "D:/10x_INF103"
 
 # create a dictionary of parameters
 for subfolder in [f.path for f in os.scandir(dataFolder) if f.is_dir()]:
