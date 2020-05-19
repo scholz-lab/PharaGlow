@@ -171,15 +171,6 @@ def objectDetection(mask, img, params, frame, nextImg):
                     tmpMask = np.zeros(img.shape)
                     tmpMask[region.slice] = labeled==part.label
                     tmpMask = tmpMask.astype(int)
-                    #import matplotlib.pylab as plt
-                    #plt.subplot(211)
-                    #plt.imshow(tmpMask*img)
-                    #plt.plot(offsetbbox)
-                    #plt.subplot(212)
-                    #pad = 10
-                    #xmin, ymin, xmax, ymax  = offsetbbox
-                    #sliced = slice(np.max([0, xmin-pad]), xmax+pad), slice(np.max([0, ymin-pad]), ymax+pad)
-                    #plt.imshow(tmpMask[sliced])
                     im = extractImagePad(img, offsetbbox, params['pad'], mask=tmpMask)
                     diffIm = extractImagePad(diffImage, offsetbbox, params['pad'], mask=tmpMask)
                     # Store features which survived to the criterions
@@ -234,39 +225,42 @@ def cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine = False):
     """Using the interpolated center of mass coordindates (x,y), fill in missing images. img is a full size frame."""
     xmin, xmax = int(x - lengthX//2), int(x + lengthX//2)
     ymin, ymax = int(y-lengthY//2), int(y+lengthY//2)
-    sliced = slice(np.max([0, ymin]), ymax), slice(np.max([0, xmin]), xmax)
+    sliced = slice(np.max([0, ymin]), np.min(ymax)), slice(np.max([0, xmin]), xmax)
     im = img[sliced]
-    padx = [np.max([-xmin, 0]), np.max([xmax-img.shape[1], 0])]
-    pady = [np.max([-ymin, 0]), np.max([ymax-img.shape[0], 0])]
-    im = np.pad(im, [pady, padx] , mode='constant')
+    # actual size in case we went out of bounds
+    ly, lx = im.shape
+    #padx = [np.max([-xmin, 0]), np.max([xmax-img.shape[1], 0])]
+    #pady = [np.max([-ymin, 0]), np.max([ymax-img.shape[0], 0])]
+    #im = np.pad(im, [pady, padx] , mode='constant')
     # refine to a single animal if neccessary
     if refine:
     #    #mask = preprocess(im, minSize = 0, threshold = None, smooth = 0)
         labeled = refineWatershed(im, size)
-        d = np.sqrt(lengthX**2+lengthY**2)//2
+        d = np.sqrt(lx**2+ly**2)
         if len(np.unique(labeled))>2:
             for part in skimage.measure.regionprops(labeled):
-                d2 = np.sqrt((part.centroid[0]-lengthY//2)**2+(part.centroid[1]-lengthX//2)**2)
+                d2 = np.sqrt((part.centroid[0]-ly//2)**2+(part.centroid[1]-lx//2)**2)
                 if d2 < d:
                     mask = labeled==part.label
+                    d = d2
             im = im*mask
     # make bounding box from slice. Bounding box is [ymin, xmin, ymax, xmax]
     bbox = [sliced[0].start, sliced[1].start, sliced[0].stop, sliced[1].stop]
-    return im.ravel(), bbox
+    return im.ravel(), bbox, ly, lx
 
 
 def fillMissingImages(imgs, frame, x, y, lengthX, lengthY, size, refine = False):
     """run this on a dataframe to interpolate images from missing coordinates."""
     img = imgs[frame]
-    im, sliced = cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
-    return im, sliced
+    im, sliced, ly, lx = cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
+    return im, sliced, ly, lx
 
 
 def fillMissingDifferenceImages(imgs, frame, x, y, lengthX, lengthY, size, refine = False):
     """run this on a dataframe to interpolate images from missing coordinates."""
     if frame<len(imgs):
         img = util.img_as_float(imgs[frame])-util.img_as_float(imgs[frame+1])
-        im, _  = cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
+        im, *_  = cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
         return im
     else:
         return np.zeros(lengthX*lengthY)
