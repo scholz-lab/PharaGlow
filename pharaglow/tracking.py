@@ -9,6 +9,7 @@ import warnings
 import pims
 import trackpy as tp
 import os
+import sys
 import skimage
 from skimage.measure import label
 # preprocessing the image for tracking. 
@@ -195,6 +196,8 @@ def objectDetection(mask, img, params, frame, nextImg):
 def runfeatureDetection(frames, masks, params, frameOffset):
     """detect objects in each image and use region props to extract features and store a local image."""
     feat = []
+    print(f'Analyzing frames {frameOffset} to {frameOffset+len(frames)}')
+    sys.stdout.flush()
     for num, img in enumerate(frames[:-1]):
         feat.append(objectDetection(masks[num], img, params, num+frameOffset, frames[num+1]))
     features = pd.concat(feat)
@@ -264,3 +267,9 @@ def fillMissingDifferenceImages(imgs, frame, x, y, lengthX, lengthY, size, refin
         return im
     else:
         return np.zeros(lengthX*lengthY)
+
+
+def parallelWorker(j):
+    """deine a worker function for parallelization."""
+    frames, masks, params, frameOffset = j
+    return runfeatureDetection(frames, masks, params, frameOffset)
