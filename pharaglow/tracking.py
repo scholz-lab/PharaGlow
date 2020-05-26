@@ -158,7 +158,7 @@ def objectDetection(mask, img, params, frame, nextImg):
                              },])
         # do watershed to get crossing objects separated. 
         elif region.area > params['minSize']:
-            image = mask[region.slice]
+            #image = mask[region.slice]
             labeled = refineWatershed(img[region.slice], size = params['watershed'])
             for part in skimage.measure.regionprops(labeled, intensity_image=img[region.slice]):
                 if part.area > params['minSize']*0.75 and part.area < params['maxSize']:
