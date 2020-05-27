@@ -4,6 +4,7 @@ import time
 from multiprocessing import Pool, Process
 import asyncio
 import platform
+import sys
 
 # this needn\t be changed unless using a different batch notebook
 notebookPath = 'D:/Code/PharaGlow/notebooks/BatchRunTemplate.ipynb'
