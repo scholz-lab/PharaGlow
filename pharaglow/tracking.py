@@ -69,8 +69,9 @@ def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, sub
     """standard median stack-projection to obtain a background image followd by thresholding and filtering of small objects to get a clean mask."""
     if subtract:
         bg = np.median(frames[::bgWindow], axis=0)
-        #subtract bg from all frames
-        frames = subtractBG(frames, bg)
+        if np.max(bg) > 0:
+            #subtract bg from all frames
+            frames = subtractBG(frames, bg)
     # image to determine threshold
     tmp = np.max(frames[::thresholdWindow], axis=0)
     # smooth
