@@ -3,6 +3,9 @@
 Package to track and analyze C. elegans pharynx from movies. Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v0.4.2/). The package can be used to simply track labelled pharynxes or as a simple center of mass tracker for brightfield, but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.
 
 ### Installation
+1. create an anaconda environment
+conda env create --file pumping,yml
+
 5. Install pharaglow
 python setup.py install --user
 
