@@ -163,33 +163,44 @@ def manAutoComp(time0, pump0, v, manp, inside):
 ### ROC curve for peak detection
 def rocPeaks(pump, pars):
     ps, roc = [], []
-    w = 2
+    w = 1
     for p in pars:
-        peaks = find_peaks(pump, height=None, threshold=None, distance=5, prominence=(p,100),\
-                    width=(0,2), wlen=30, rel_height=0.1, plateau_size=None)[0]
+        peaks = find_peaks(pump, height=(p, 1.75), threshold=None, distance=5, prominence=None,\
+                    width=None, wlen=10, rel_height=None, plateau_size=None)[0]
         meanPeak = np.array([pump[peak-w:peak+w+1] for peak in peaks if (peak +w <len(pump)) and peak-w>0]).T
         ps.append(peaks)
         roc.append(meanPeak)
     return ps, roc
-
-def preprocess(pump, ws):
-    pump, ind = nanOutliers(pump.values, window_size = 300, n_sigmas=3)
-    pump, ind = pump[0], ind[1]
-    pump = pump - util.smooth(pump, ws)
-    pump = pd.Series(pump)
     
-    # rescale to percentile
-    pump -= np.mean(pump)
-    pump/= np.percentile(pump, [0.5])#/2#/5
+
+def preprocess(pump, wsDetrend = 300 , wsOutlier = 300, wsDetrendLocal = 30):
+    # detrend one time
+    pump - util.smooth(pump, wsDetrend)
+     # filter outliers
+    pump, _ = nanOutliers(pump, window_size = wsOutlier, n_sigmas=3)
+    pump = pump[0]
+    # detrend local
+    pump = pump - util.smooth(pump, wsDetrendLocal)
+    # rescale by range
+    p5, p95 = np.percentile(pump, [5,95])
+    pump = (pump-p5) /(p95-p5)
+    # pump, ind = pump[0], ind[1]
+    # pump = pump - util.smooth(pump, ws)
+    # pump = pd.Series(pump)
+    
+    # # rescale to percentile
+    # pump -= np.mean(pump)
+    # pump/= np.percentile(pump, [0.5])#/2#/5
+
     return pump
 
 
-def bestMatchPeaks(pump, ws = 30, prs = np.linspace(0.1,0.95,50)):
+def bestMatchPeaks(pump, ws = 30, prs = np.linspace(0.1,1,50)):
     ### define best match
     #prs = np.linspace(0.1,0.95,nt)
     pump = preprocess(pump, ws)
     ps, roc = rocPeaks(pump, pars = prs)
     # evaluation
     npeaks = [len(p) for p in ps]
-    metric = [np.mean(np.std(r, axis =1))/len(r) for r in roc]
-    return pd.Series(ps[np.argmin(metric)]), pump, ps, roc
+    metric = [np.mean(np.std(r, axis =1)) for r in roc]
+    return pd.Series(ps[np.argmin(metric)]), pump, ps, roc, metric
