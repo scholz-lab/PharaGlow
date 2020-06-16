@@ -195,10 +195,10 @@ def preprocess(pump, wsDetrend = 300 , wsOutlier = 300, wsDetrendLocal = 30):
     return pump
 
 
-def bestMatchPeaks(pump, ws = 30, prs = np.linspace(0.1,1,50)):
+def bestMatchPeaks(pump, wsDetrend = 300 , wsOutlier = 300, wsDetrendLocal = 30, prs = np.linspace(0.1,1,50)):
     ### define best match
     #prs = np.linspace(0.1,0.95,nt)
-    pump = preprocess(pump, ws)
+    pump = preprocess(pump, wsDetrend = 300 , wsOutlier = 300, wsDetrendLocal = 30)
     ps, roc = rocPeaks(pump, pars = prs)
     # evaluation
     npeaks = [len(p) for p in ps]
