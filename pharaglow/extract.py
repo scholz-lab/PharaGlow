@@ -165,7 +165,7 @@ def rocPeaks(pump, pars):
     ps, roc = [], []
     w = 1
     for p in pars:
-        peaks = find_peaks(pump, height=(p, 1.75), threshold=None, distance=5, prominence=None,\
+        peaks = find_peaks(pump, height=(p, 3), threshold=None, distance=4, prominence=None,\
                     width=None, wlen=10, rel_height=None, plateau_size=None)[0]
         meanPeak = np.array([pump[peak-w:peak+w+1] for peak in peaks if (peak +w <len(pump)) and peak-w>0]).T
         ps.append(peaks)
@@ -173,9 +173,22 @@ def rocPeaks(pump, pars):
     return ps, roc
     
 
+# def rocPeaks(pump, pars):
+#     ps, roc = [], []
+#     w = 2
+#     for p in pars:
+#         peaks = find_peaks(pump, height=0.5, threshold=None, distance=5, prominence=(p),\
+#                     width=None, wlen=10, rel_height=None, plateau_size=None)[0]
+#         meanPeak = np.array([pump[peak-w:peak+w+1] for peak in peaks if (peak +w <len(pump)) and peak-w>0]).T
+#         ps.append(peaks)
+#         roc.append(meanPeak)
+#     return ps, roc
+    
+
+
 def preprocess(pump, wsDetrend = 300 , wsOutlier = 300, wsDetrendLocal = 30):
     # detrend one time
-    pump - util.smooth(pump, wsDetrend)
+    pump = pump - util.smooth(pump, wsDetrend)
      # filter outliers
     pump, _ = nanOutliers(pump, window_size = wsOutlier, n_sigmas=3)
     pump = pump[0]
@@ -202,5 +215,5 @@ def bestMatchPeaks(pump, wsDetrend = 300 , wsOutlier = 300, wsDetrendLocal = 30,
     ps, roc = rocPeaks(pump, pars = prs)
     # evaluation
     npeaks = [len(p) for p in ps]
-    metric = [np.mean(np.std(r, axis =1)) for r in roc]
+    metric = [np.median(np.std(r, axis =1)) for r in roc]
     return pd.Series(ps[np.argmin(metric)]), pump, ps, roc, metric
