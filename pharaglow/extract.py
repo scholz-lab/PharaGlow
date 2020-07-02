@@ -160,12 +160,12 @@ def manAutoComp(time0, pump0, v, manp, inside):
     pump/= np.percentile(pump, [0.5])#/2#/5
     return time, pump, manp, v, inside
 
-### ROC curve for peak detection
+## ROC curve for peak detection
 def rocPeaks(pump, pars):
     ps, roc = [], []
-    w = 1
+    w = 2
     for p in pars:
-        peaks = find_peaks(pump, height=(p, 3), threshold=None, distance=4, prominence=None,\
+        peaks = find_peaks(pump, height=(p, 1.75), threshold=None, distance=5, prominence=None,\
                     width=None, wlen=10, rel_height=None, plateau_size=None)[0]
         meanPeak = np.array([pump[peak-w:peak+w+1] for peak in peaks if (peak +w <len(pump)) and peak-w>0]).T
         ps.append(peaks)
@@ -215,5 +215,5 @@ def bestMatchPeaks(pump, wsDetrend = 300 , wsOutlier = 300, wsDetrendLocal = 30,
     ps, roc = rocPeaks(pump, pars = prs)
     # evaluation
     npeaks = [len(p) for p in ps]
-    metric = [np.median(np.std(r, axis =1)) for r in roc]
+    metric = [np.mean(np.std(r, axis =1)) for r in roc]
     return pd.Series(ps[np.argmin(metric)]), pump, ps, roc, metric
