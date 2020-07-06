@@ -24,8 +24,10 @@ def subtractBG(img, bg):
     Subtract a background from the image.
     """
     tmp = img-bg
-    tmp -= np.min(tmp)
-    tmp /=np.max(tmp)
+    mi, ma = np.min(tmp), np.max(tmp)
+    tmp -= mi
+    if ma != mi:
+        tmp /=(ma - mi)
     return util.img_as_float(tmp)
 
 
