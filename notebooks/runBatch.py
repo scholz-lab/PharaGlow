@@ -1,9 +1,10 @@
 import papermill as pm
 import os
 
-parameterfile = "/home/scholz_la/Desktop/pumping/PharaGlow/pharaglow_parameters_GRU101.txt"
-lawnPath = "/media/scholz_la/hd2/Nicolina/Lawns/"
-dataFolder = "/media/scholz_la/hd3/Nicolina/Raw_videos/GRU101/RFP_24h/10x/"
+parameterfile = "/home/nzjacic/Desktop/pharaglow_parameters_mks_batch.txt"
+lawnPath = "/opt/data/Lawns/"
+dataFolder = "/home/nzjacic/Desktop/Harddrive/10x_GRU101_nolawn/No_smell/Test/"
+batchFolder = "/home/nzjacic/Desktop/Harddrive/10x_GRU101_nolawn/No_smell/Test/"
 
 # create a dictionary of parameters
 for subfolder in [f.path for f in os.scandir(dataFolder) if f.is_dir()]:
@@ -11,14 +12,19 @@ for subfolder in [f.path for f in os.scandir(dataFolder) if f.is_dir()]:
     if not movie.startswith('.'):
         pars = { 'parameterfile': parameterfile,
             'inPath': subfolder,
-            'outPath': dataFolder,
+            'outPath': batchFolder,
             'lawnPath': lawnPath,
             'movie': movie,
             'nWorkers': 5,
         }
-        print('Analyzing {}. Output can be watched live in'.format(movie), os.path.join(dataFolder, 'out_{}.ipynb'.format(movie)))
-        pm.execute_notebook(
-           '/home/scholz_la/Desktop/pumping/PharaGlow/notebooks/BatchRunTemplate.ipynb',
-           os.path.join(dataFolder, 'out_{movie}.ipynb'),
-           parameters=pars
-       )
+        print('Analyzing {}. Output can be watched live in'.format(movie), os.path.join(batchFolder, 'out_{}.ipynb'.format(movie)))
+        try:
+            pm.execute_notebook(
+               '/home/nzjacic/Desktop/BatchRunTemplate-NZ.ipynb',
+               os.path.join(batchFolder, 'out_{movie}.ipynb'),
+               parameters=pars
+           )
+        # skips to next movie if error raised to streamline analysis process
+        except pm.exceptions.PapermillExecutionError:
+            print(movie, 'ERROR')
+            pass
