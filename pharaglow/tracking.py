@@ -63,7 +63,7 @@ def refineWatershed(img, size):
     """Refine segmentation using canny edge detection."""
     mask = img>filters.threshold_li(img)
     edges = canny(mask)
-    filled = ndi.binary_fill_holes(edges)
+    filled = morphology.remove_small_holes(mask, area_threshold=size, connectivity=1, in_place=True)
     return label(filled, background=0, connectivity = 1)
 
 
