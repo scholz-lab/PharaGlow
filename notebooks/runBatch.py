@@ -6,6 +6,7 @@ lawnPath = "/opt/data/Lawns/"
 dataFolder = "/home/nzjacic/Desktop/Harddrive/10x_GRU101_nolawn/No_smell/Test/"
 batchFolder = "/home/nzjacic/Desktop/Harddrive/10x_GRU101_nolawn/No_smell/Test/"
 
+templateNotebook = '/home/nzjacic/Desktop/BatchRunTemplate-NZ.ipynb'
 # create a dictionary of parameters
 for subfolder in [f.path for f in os.scandir(dataFolder) if f.is_dir()]:
     movie = subfolder.split('/')[-1]
@@ -20,7 +21,7 @@ for subfolder in [f.path for f in os.scandir(dataFolder) if f.is_dir()]:
         print('Analyzing {}. Output can be watched live in'.format(movie), os.path.join(batchFolder, 'out_{}.ipynb'.format(movie)))
         try:
             pm.execute_notebook(
-               '/home/nzjacic/Desktop/BatchRunTemplate-NZ.ipynb',
+               templateNotebook,
                os.path.join(batchFolder, 'out_{movie}.ipynb'),
                parameters=pars
            )
