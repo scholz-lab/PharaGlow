@@ -65,3 +65,10 @@ def smooth(x,window_len=11,window='hanning'):
 def unravelImages(im, lengthX):
     """reshape images from linear to square."""
     return im.reshape(-1, lengthX)
+    
+    
+def get_im(df, lengthX, lengthY):
+    """get an image from a dataframe of columns for each pixel."""
+    colnames = list(range(lengthX*lengthY))
+    return unravelImages(df[colnames].to_numpy(), lengthX)
+    

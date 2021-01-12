@@ -135,9 +135,10 @@ def extractImagePad(img, bbox, pad, mask=None):
 def objectDetection(mask, img, params, frame, nextImg):
     """label binary image and extract a region of interest around the object."""
     df = pd.DataFrame()
+    crop_images = pd.DataFrame()
     label_image = skimage.measure.label(mask, background=0, connectivity = 1)
     label_image = skimage.segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
-    diffImage = util.img_as_float(nextImg) - util.img_as_float(img)
+    #diffImage = util.img_as_float(nextImg) - util.img_as_float(img)
     for region in skimage.measure.regionprops(label_image, intensity_image=img):
         if region.area > params['minSize'] and region.area < params['maxSize']:
             # get the image of an object
@@ -145,23 +146,27 @@ def objectDetection(mask, img, params, frame, nextImg):
             #diffIm = extractImage(diffImage[region.slice], region.image, params['length'], region.local_centroid)
             # go back to smaller images
             im = extractImagePad(img, region.bbox, params['pad'], mask=label_image==region.label)
-            diffIm = extractImagePad(diffImage, region.bbox, params['pad'], mask=label_image==region.label)
+            #diffIm = extractImagePad(diffImage, region.bbox, params['pad'], mask=label_image==region.label)
+            # bbox is min_row, min_col, max_row, max_col
             # Store features which survived to the criterions
             df = df.append([{'y': region.centroid[0],
                              'x': region.centroid[1],
-                             'slice':list(region.bbox),
+                             'slice_x0':region.bbox[0],
+                             'slice_x1':region.bbox[2],
+                             'slice_y0':region.bbox[1],
+                             'slice_y1':region.bbox[3],
                              'frame': frame,
                              'area': region.area,
-                             'image': im.ravel(),
+                             #'image': im.ravel(),
                              'yw': region.weighted_centroid[0],
                              'xw': region.weighted_centroid[1],
-                             'diffI': diffIm.ravel(),
                              'shapeY': im.shape[0],
                              'shapeX': im.shape[1],
                              },])
+            # add the images to crop images
+            crop_images = crop_images.append([list(im.ravel())])
         # do watershed to get crossing objects separated. 
         elif region.area > params['minSize']:
-            #image = mask[region.slice]
             labeled = refineWatershed(img[region.slice], size = params['watershed'])
             for part in skimage.measure.regionprops(labeled, intensity_image=img[region.slice]):
                 if part.area > params['minSize']*0.75 and part.area < params['maxSize']:
@@ -176,35 +181,44 @@ def objectDetection(mask, img, params, frame, nextImg):
                     tmpMask[region.slice] = labeled==part.label
                     tmpMask = tmpMask.astype(int)
                     im = extractImagePad(img, offsetbbox, params['pad'], mask=tmpMask)
-                    diffIm = extractImagePad(diffImage, offsetbbox, params['pad'], mask=tmpMask)
+                    #diffIm = extractImagePad(diffImage, offsetbbox, params['pad'], mask=tmpMask)
                     # Store features which survived to the criterions
                     df = df.append([{'y': part.centroid[0]+yo,
                                      'x': part.centroid[1]+xo,
-                                     'slice':offsetbbox,
+                                     'slice_x0':offsetbbox[0],
+                                     'slice_x1':offsetbbox[2],
+                                     'slice_y0':offsetbbox[1],
+                                     'slice_y1':offsetbbox[3],
                                      'frame': frame,
                                      'area': part.area,
-                                     'image': im.ravel(),
+                                     #'image': im.ravel(),
                                      'yw': part.weighted_centroid[0]+yo,
                                      'xw': part.weighted_centroid[1]+xo,
-                                     'diffI': diffIm.ravel(),
                                      'shapeY':im.shape[0],
                                      'shapeX': im.shape[1],
                                      },])
+                    # add the images to crop images
+                    crop_images = crop_images.append([list(im.ravel())])
     if not df.empty:
         df['shapeX'] = df['shapeX'].astype(int)
         df['shapeY'] = df['shapeY'].astype(int)
-    return df
+    
+    return df, crop_images
 
 
 def runfeatureDetection(frames, masks, params, frameOffset):
     """detect objects in each image and use region props to extract features and store a local image."""
     feat = []
+    cropped_images = []
     print(f'Analyzing frames {frameOffset} to {frameOffset+len(frames)}')
     sys.stdout.flush()
     for num, img in enumerate(frames[:-1]):
-        feat.append(objectDetection(masks[num], img, params, num+frameOffset, frames[num+1]))
+        df, crop_ims = objectDetection(masks[num], img, params, num+frameOffset, frames[num+1])
+        feat.append(df)
+        cropped_images.append(crop_ims)
     features = pd.concat(feat)
-    return features
+    cropped_images = pd.concat(cropped_images)
+    return features, cropped_images
 
 
 def linkParticles(df, searchRange, minimalDuration, **kwargs):
@@ -259,7 +273,7 @@ def fillMissingImages(imgs, frame, x, y, lengthX, lengthY, size, refine = False)
     """run this on a dataframe to interpolate images from missing coordinates."""
     img = imgs[frame]
     im, sliced, ly, lx = cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
-    return im, sliced, ly, lx
+    return im, sliced[0],sliced[1],sliced[2],sliced[3], ly, lx
 
 
 def fillMissingDifferenceImages(imgs, frame, x, y, lengthX, lengthY, size, refine = False):
