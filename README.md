@@ -4,13 +4,32 @@ Package to track and analyze C. elegans pharynx from movies. Tracking is based o
 
 ### Installation
 1. create an anaconda environment
-conda env create --file pumping,yml
+conda env create --file environmentPumping.yml
 
-5. Install pharaglow
+2. Install pharaglow - clone the repo and navigate into the directory PharaGlow.
 python setup.py install --user
 
+3. (optional, for developers, replace myenv with the name of the environment, eg. environmentPumping):
+# create dedicated environment kernel
+conda activate myenv
+python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
+# remove notebook output before committing
+conda install -c conda-forge nbstripout
+
+### Quick Start
+Before analyzing your data, check  your installation and familarize yourself with the code. Obtain a copy of a testdataset with 1000 frames of 1x magnification, showing animals expressing myo-2::mCherry. (Lab Dropbox/Data).
+
+* Start a jupyter notebook server
+* open the notebook notebooks/RunningPharaGlowParallel.ipynb
+* alter the paths in the cell labelled 'input parameters' to point to the data and the output locations, as well as the AnalysisParameter file (see below)
+* run the notebook. The first few cells are pretty fast, but feature detection can take tens of minutes (depends on your computer and nWorkers. It takes 3 minutes on an Intel I9, 5 workers)
+The output of masks looks like this for frame 10 using the default AnalysisParameters.
+![png](examples/MS0006_frame10_mask.png)
+The resulting trajectories look like this before filtering by a minimal duration:
+![png](MS0006_trajectories.png)
+
 ### Pharaglow parameter file
-Pharaglow uses a json parameter file to expose parameters that are allowed to be changed to you.
+Pharaglow uses a json parameter file to expose parameters that are allowed to be changed by you. A default file comes with the repository, you can use it as a starting point (AnalysisParameters_1x)
 These parameters are:
 {
 "subtract":0,
@@ -40,7 +59,7 @@ These parameters are:
 * minSize (px) - remove all objects smaller than this
 * maxSize (px) - remove all objects larger than this (but a caveat here is when we have worm collisions where we allow the resulting segmentation to be a bit bigger)
 * watershed (px) - when two or more worms touch, how large is an individual approximately
-* tfactor (float, 0<tfactor<1) - use rarely. If you hav disparate sizes the automated threshold doesn't work well. This factor multiplies the threshold value for binarization. Eg. for an 8-bit image, if the threshold is 150 and tfactor is 0.5 the image would be thresholded at 150*0.5=75.
+* tfactor (float, 0<tfactor<1) - use rarely. If you have disparate sizes the automated threshold doesn't work well. This factor multiplies the threshold value for binarization. Eg. for an 8-bit image, if the threshold is 150 and tfactor is 0.5 the image would be thresholded at 150*0.5=75.
 
 #### Parameters for tracking
 * searchrange (px) describes how much we expect a worm to move frame-to-frame when we link particles together during tracking. This can be a bit bigger to allow for loosing the worm for a bit, but then you might get large perceived jumps in velocity.
