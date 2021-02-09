@@ -102,7 +102,7 @@ def pharynxorientation(df):
     return df
 
 
-def runPharaglowOnStack(df, param):
+def runPharaglowOnStack(df, param, run_all = True):
     """runs the whole pharaglow toolset on a dataframe. Can be linked or unliked before. only the last step depends on having a particle ID."""
     # run image analysis on all rows of the dataframe
     df[['Mask', 'SkeletonX', 'SkeletonY']] = df.apply(\
@@ -115,12 +115,13 @@ def runPharaglowOnStack(df, param):
         lambda row: pd.Series(runPharaglowImg(row['image'], row['Xstart'], row['Xend'],\
                                               row['ParX'], row['ParY'], param['widthStraight'],\
                                              param['nPts'], row['shapeX'])), axis=1)
-    # run kymographs
-    df[['Kymo']] = df.apply(\
-        lambda row: pd.Series(runPharaglowKymo(row['image'], row['Centerline'], row['Widths'], row['shapeX'],linewidth = param['linewidth'])), axis=1)
-    # run kymographs
-    df[['KymoGrad']] = df.apply(\
-        lambda row: pd.Series(runPharaglowKymo(row['Gradient'], row['Centerline'], row['Widths'], row['shapeX'], linewidth = param['linewidth'])), axis=1)
+    if run_all:
+        # run kymographs
+        df[['Kymo']] = df.apply(\
+            lambda row: pd.Series(runPharaglowKymo(row['image'], row['Centerline'], row['Widths'], row['shapeX'],linewidth = param['linewidth'])), axis=1)
+        # run kymographs
+        df[['KymoGrad']] = df.apply(\
+            lambda row: pd.Series(runPharaglowKymo(row['Gradient'], row['Centerline'], row['Widths'], row['shapeX'], linewidth = param['linewidth'])), axis=1)
     ## clean orientation
     df = pharynxorientation(df)
     # extract pumping metric

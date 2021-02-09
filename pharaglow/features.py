@@ -160,8 +160,8 @@ def intensityAlongCenterline(im, cl, **kwargs):
     if 'width' in kwargs:
         w = kwargs['width']
         kwargs.pop('width', None)
-        return np.concatenate([profile_line(im, cl[i], cl[i+1], linewidth = w[i], **kwargs) for i in range(len(cl)-1)])
-    return np.concatenate([profile_line(im, cl[i], cl[i+1], **kwargs) for i in range(len(cl)-1)])
+        return np.concatenate([profile_line(im, cl[i], cl[i+1], linewidth = w[i], mode = 'constant', **kwargs) for i in range(len(cl)-1)])
+    return np.concatenate([profile_line(im, cl[i], cl[i+1],mode = 'constant', **kwargs) for i in range(len(cl)-1)])
 
 
 def widthPharynx(cl, contour, dCl):
@@ -206,7 +206,7 @@ def straightenPharynx(im, xstart, xend, poptX, poptY, width, nPts = 100):
     # create lines intersection the pharynx orthogonal to midline
     widths = np.stack([clF+width*dCl, clF-width*dCl], axis=1)
     # get the intensity profile along these lines
-    kymo = [profile_line(im, pts[0], pts[1], linewidth=1, order=3) for pts in widths]
+    kymo = [profile_line(im, pts[0], pts[1], linewidth=1, order=3, mode = 'constant') for pts in widths]
     # interpolate to obtain straight image
     tmp = [np.interp(np.arange(-width, width), np.arange(-len(ky)/2, len(ky)/2), ky) for ky in kymo]
     return np.array(tmp)

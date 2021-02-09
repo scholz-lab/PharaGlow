@@ -67,8 +67,7 @@ def unravelImages(im, lengthX):
     return im.reshape(-1, lengthX)
     
     
-def get_im(df, lengthX, lengthY):
+def get_im(df, colnames, lengthX):
     """get an image from a dataframe of columns for each pixel."""
-    colnames = [str(x) for x in range(lengthX*lengthY)]
     return unravelImages(df[colnames].to_numpy(), lengthX)
     
