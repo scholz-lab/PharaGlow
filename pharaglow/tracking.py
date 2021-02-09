@@ -233,11 +233,15 @@ def linkParticles(df, searchRange, minimalDuration, **kwargs):
     return traj
 
 
-def interpolateTrajectories(traj):
+def interpolateTrajectories(traj, columns = None):
     """given a dataframe with a trajectory, interpolate missing frames.
     The interpolate function ignores non-pandas types, so no image interpolations."""
     idx = pd.Index(np.arange(traj['frame'].min(), traj['frame'].max()+1), name="frame")
     traj = traj.set_index("frame").reindex(idx).reset_index()
+    if columns is not None:
+        for c in columns:
+            traj[c] = traj[c].interpolate()
+        return traj
     return traj.interpolate()
 
 
