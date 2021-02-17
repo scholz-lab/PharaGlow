@@ -132,7 +132,7 @@ def extractImagePad(img, bbox, pad, mask=None):
     return img[sliced]
 
 
-def objectDetection(mask, img, params, frame, nextImg):
+def objectDetection(mask, img, params, frame):
     """label binary image and extract a region of interest around the object."""
     df = pd.DataFrame()
     crop_images = pd.DataFrame()
@@ -212,8 +212,8 @@ def runfeatureDetection(frames, masks, params, frameOffset):
     cropped_images = []
     print(f'Analyzing frames {frameOffset} to {frameOffset+len(frames)}')
     sys.stdout.flush()
-    for num, img in enumerate(frames[:-1]):
-        df, crop_ims = objectDetection(masks[num], img, params, num+frameOffset, frames[num+1])
+    for num, img in enumerate(frames):
+        df, crop_ims = objectDetection(masks[num], img, params, num+frameOffset)
         feat.append(df)
         cropped_images.append(crop_ims)
     features = pd.concat(feat)
