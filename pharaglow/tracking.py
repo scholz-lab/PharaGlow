@@ -59,12 +59,21 @@ def preprocess(img, minSize = 800, threshold = None, smooth = 0, dilate = False)
 
 
 @pims.pipeline
-def refineWatershed(img, size):
+def refineWatershed(img, size, filter_sizes = [3,4,5]):
     """Refine segmentation using canny edge detection."""
-    mask = img>filters.threshold_li(img)
-    edges = canny(mask)
-    filled = morphology.remove_small_holes(mask, area_threshold=size, connectivity=1, in_place=True)
-    return label(filled, background=0, connectivity = 1)
+    for s in filter_sizes:
+        bg = filters.gaussian(img, s, preserve_range = True)
+        img = filters.gaussian(img-bg, 1)
+        img[img<0] = 0
+        img = img.astype(int)
+        # mask 
+        mask = img>filters.threshold_li(img)
+        mask = ndi.binary_closing(mask)
+        mask = morphology.remove_small_objects(mask, min_size=50, connectivity=2, in_place=True)
+        labelled, num = label(mask, background=0, connectivity = 2,return_num=True)
+        if num ==2:
+            return labelled
+    return labelled
 
 
 def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, subtract = False, smooth = 0, tfactor = 1, **kwargs):
@@ -132,7 +141,7 @@ def extractImagePad(img, bbox, pad, mask=None):
     return img[sliced]
 
 
-def objectDetection(mask, img, params, frame, nextImg):
+def objectDetection(mask, img, params, frame):
     """label binary image and extract a region of interest around the object."""
     df = pd.DataFrame()
     crop_images = pd.DataFrame()
@@ -212,8 +221,8 @@ def runfeatureDetection(frames, masks, params, frameOffset):
     cropped_images = []
     print(f'Analyzing frames {frameOffset} to {frameOffset+len(frames)}')
     sys.stdout.flush()
-    for num, img in enumerate(frames[:-1]):
-        df, crop_ims = objectDetection(masks[num], img, params, num+frameOffset, frames[num+1])
+    for num, img in enumerate(frames):
+        df, crop_ims = objectDetection(masks[num], img, params, num+frameOffset)
         feat.append(df)
         cropped_images.append(crop_ims)
     features = pd.concat(feat)
