@@ -62,7 +62,7 @@ def runPharaglowKymo(im, cl, widths, length, **kwargs):
 
 def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts, length):
     # make sure image is float
-    im = np.array(im, dtype = int)
+    im = np.array(im, dtype = 'uint8')
     im = pgu.unravelImages(im, length)
     #im = np.array(im)
     #im = util.img_as_float64(im)
@@ -130,23 +130,3 @@ def runPharaglowOnStack(df, param, run_all = True):
     return df
 
 
-
-# def main():
-#     fname = "/home/scholz_la/Dropbox (Scholz Lab)/Scholz Lab's shared workspace/Nicolina ImageJ analysis/NZ_0007_croppedsample.tif"
-#     parameterfile = "/home/scholz_la/Dropbox (Scholz Lab)/Scholz Lab's shared workspace/Nicolina ImageJ analysis/pharaglow_parameters.txt"
-#     print('Starting pharaglow analysis...')
-#     rawframes = pims.open(fname)
-#     print('Analyzing', rawframes)
-#     print('Loading parameters from {}'.format(parameterfile))
-#     with open(parameterfile) as f:
-#         param = json.load(f)
-    
-#     print('Binarizing images')
-#     masks = pgt.calculateMasks(rawframes)
-#     print('Detecting features')
-#     features = pgt.runfeatureDetection(frames, masks)
-#     print('Linking trajectories')
-#     trajectories = pgt.linkParticles(features, param['searchRange'], param['minimalDuration'], **kwargs)
-#     print('Extracting pharynx data')
-#     trajectories = runPharaglowOnStack(trajectories)
-#     print('Done tracking. Successfully tracked {} frames with {} trajectories.'.format(len(frames), trajectories['particle'].nunique()))

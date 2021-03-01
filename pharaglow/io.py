@@ -4,6 +4,7 @@
 import numpy as np
 import pandas as pd
 import warnings
+import logging
 
 def load(fname, image_depth =8, maxcols = 10000, prefix = "im", **kwargs):
     """load a pharglow features, trajectories or results file.
@@ -14,3 +15,35 @@ def load(fname, image_depth =8, maxcols = 10000, prefix = "im", **kwargs):
         converter[f'im{i}']= 'uint8'
     
     return pd.read_json(fname, dtype = converter, **kwargs)
+    
+    
+    
+def log_setup(name, level, fname):
+    '''This function will setup a logger with the name and level you pass as input. 
+    Levels are 10 (debug), 20 (info), 30 (warning), 40 (error), 50 (critical)'''
+    
+    # start a logger
+    logger = logging.getLogger(name)
+    # set a formatter to manage the output format of our handler
+    formatter = logging.Formatter('%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
+    
+    # set the level passed as input, has to be logging.LEVEL not a string
+    # until we do so mylog doesn't have a level and inherits the root logger level:WARNING
+    logger.setLevel(level)
+
+    # add a handler to send INFO level messages to console
+    # console_handler = logging.StreamHandler()
+    # console_handler.setLevel(logging.INFO)
+    # logger.addHandler(console_handler)  
+    
+    # add a handler to send DEBUG level messages to file
+    # all you need is a file name I added the 'w' so each time a new file will be created
+    # without it the messagges will be appended to the same file
+    file_handler = logging.FileHandler(fname)
+    # file_handler = logging.FileHandler(fname,'w')
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    # return the logger object
+    return logger
