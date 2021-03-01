@@ -214,12 +214,10 @@ def straightenPharynx(im, xstart, xend, poptX, poptY, width, nPts = 100):
 
 def gradientPharynx(im):
     """apply a local gradient to the image."""
-    # denoise image
-    #print([np.min(im), np.max(im)])
-    #im = util.img_as_ubyte(im)
+    im = util.img_as_ubyte(im)
     denoised = rank.median(im, disk(1))
     gradient = rank.gradient(denoised, disk(1))
-    return util.img_as_ubyte(gradient)
+    return gradient#util.img_as_ubyte(gradient)
 
 
 def extractPump(straightIm):
