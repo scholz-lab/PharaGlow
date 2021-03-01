@@ -2,7 +2,23 @@
 
 """utl.py: useful general functions like filters and peak detection."""
 
-import numpy
+import numpy as np
+import pandas as pd
+from multiprocessing import Pool
+
+def parallelize_dataframe(df, func, params, n_cores):
+    """ split a dataframe to easily use multiprocessing."""
+    df_split = np.array_split(df, n_cores)
+    df_split = [d for d in df_split  if len(d)>0]
+    if len(df_split) <1:
+        return
+    # filter zero-size jobs
+    print([len(d) for d in df_split])
+    pool = Pool(n_cores)
+    df = pd.concat(pool.starmap(func, zip(df_split, np.repeat(params, len(df_split)))))
+    pool.close()
+    pool.join()
+    return df
 
 def smooth(x,window_len=11,window='hanning'):
     """smooth the data using a window with requested size.
@@ -51,14 +67,14 @@ def smooth(x,window_len=11,window='hanning'):
         raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
 
-    s=numpy.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
+    s=np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
     #print(len(s))
     if window == 'flat': #moving average
-        w=numpy.ones(window_len,'d')
+        w=np.ones(window_len,'d')
     else:
-        w=eval('numpy.'+window+'(window_len)')
+        w=eval('np.'+window+'(window_len)')
 
-    y=numpy.convolve(w/w.sum(),s,mode='valid')
+    y=np.convolve(w/w.sum(),s,mode='valid')
     return y[(window_len//2-1):-(window_len//2)][:len(x)]
 
 
