@@ -18,6 +18,10 @@ from scipy import ndimage as ndi
 from skimage.morphology import watershed
 from skimage.feature import peak_local_max, canny
 
+import time
+from multiprocessing import Pool
+import gc
+
 @pims.pipeline
 def subtractBG(img, bg):
     """
@@ -303,3 +307,68 @@ def parallelWorker(j):
     """deine a worker function for parallelization."""
     frames, masks, params, frameOffset = j
     return runfeatureDetection(frames, masks, params, frameOffset)
+    
+    
+def pool_init():
+    """deal with possible memory leak."""
+    gc.collect()
+
+
+def parallelDetection(rawframes, masks, param, nWorkers = 5, chunksize = 100):
+    """utility function to run pharaglow as parallel using multiprocessing. 
+    Chunks the images into smaller jobs and executes runfeatureDetection() for each job."""
+    L = len(rawframes)
+    # create chunks of analysis based on how many workers we use
+    #slice the movie into pieces to run
+    slices = zip((range(0,L, chunksize)), (range(chunksize,L+1, chunksize)))
+    jobs = []
+    for (a,b) in slices:
+#         print(a,b)
+        jobs.append([rawframes[a:b+1], masks[a:b+1], param, a])
+    # add the remainder job for things not divisible by chunksize
+    jobs.append([rawframes[b:], masks[b:], param, b])
+    # delete jobs of length 1
+    jobs = [j for j in jobs if len(j[0])>1]
+    # add last bit
+    #run the parallel feature detection.
+    features = []#
+    images = []
+    gc.collect()
+    p = Pool(processes = nWorkers, initializer=pool_init)
+    start = time.time()
+    for k, res in enumerate(p.imap_unordered(parallelWorker, jobs)):
+        features.append(res[0])
+        # replace nan values with 0 s and declare unit8 for images
+        images.append(res[1].fillna(0).astype('uint8'))
+        if k == nWorkers:
+            print('Expected time is approx. {} s'.format((L/chunksize-k)*(time.time()-start)/nWorkers))
+    
+    p.close()
+    p.join()
+    features = pd.concat(features)
+    images = pd.concat(images)
+    # change the image column names
+    images.columns = [f"im{s}" for s in images.columns]
+    # make one big dataframe
+    features = pd.concat([features, images], axis = 1)
+    features = features.reset_index(drop=True)
+    return features
+
+
+def interpolate_helper(rawframes, row, param):
+    """wrapper to make the code more readable. This interpolates all missing images in a trajectory.
+    check if image is all zeros - then we insert an image from the original movie
+    """
+    im_cols =  [f'im{i}' for i in range(int(row['shapeX'])*int(row['shapeY']))]
+    
+    if np.sum(row[im_cols])==0:
+        print('interpolating', row['frame'])
+        im, sx0,sx1,sy0, sy1, ly, lx = fillMissingImages(rawframes, int(row['frame']), row['x'], row['y'],\
+                                                   lengthX=row['shapeX'],lengthY=row['shapeY'], size=param['watershed'])
+        # make the image into a pandas format and return a whole row
+        im_cols =  [f'im{i}' for i in range(lx*ly)]
+        # other column names
+        [im_cols.append(x) for x in ['slice_x0','slice_x1','slice_y0','slice_y1', 'shapeY', 'shapeX']]
+        row[im_cols] = [*list(im.ravel()),  sx0,sx1,sy0, sy1, ly, lx]
+        
+    return row
