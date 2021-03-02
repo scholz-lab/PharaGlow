@@ -324,7 +324,7 @@ def parallelDetection(rawframes, masks, param, nWorkers = 5, chunksize = 100):
     jobs = []
     for (a,b) in slices:
 #         print(a,b)
-        jobs.append([rawframes[a:b+1], masks[a:b+1], param, a])
+        jobs.append([rawframes[a:b], masks[a:b], param, a])
     # add the remainder job for things not divisible by chunksize
     jobs.append([rawframes[b:], masks[b:], param, b])
     # delete jobs of length 1
