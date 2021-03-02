@@ -14,6 +14,15 @@ import pharaglow.util as pgu
 
 
 def runPharaglowSkel(im, length):
+    """create a centerline of the object in the image by binarizing, skeletonizing and sorting centerline points.
+        Inputs:
+            im: image, unraveled
+            length: length of one axis of the image
+        Outputs:
+            mask: binary of iage, unraveled
+            ptsX: coordinates of centerline along X
+            ptsY: coordinates of centerline along Y
+    """
     # preprocessing image
     im = np.array(im)
     im = pgu.unravelImages(im, length)
@@ -26,6 +35,18 @@ def runPharaglowSkel(im, length):
 
 
 def runPharaglowCL(mask, ptsX, ptsY, length, nPts = 100):
+    """Fit centerline points and detect object morphology.
+            mask: binary image, unraveled
+            ptsX: coordinates of centerline along X
+            ptsY: coordinates of centerline along Y
+            length: length of one axis of the image
+        Outputs:
+            poptX, poptY, xstart, xend: parameters describing a functon along the centerline
+            cl: (n,2) list of centerline coordinates in image space.
+            dCl: (n,2) array of unit vectors orthogonal to centerline. Same length as cl.
+            widths: (n,2) widths of the contour at each centerline point.
+            contour: (m,2) coordinates along the contour of the object
+    """
     # mask reshaping from linear
     mask = pgu.unravelImages(mask, length)
     # getting centerline and widths along midline
@@ -54,6 +75,15 @@ def runPharaglowCL(mask, ptsX, ptsY, length, nPts = 100):
 
 
 def runPharaglowKymo(im, cl, widths, length, **kwargs):
+    """Use the centerline to extract intensity along this line from an image.
+       Inputs:
+            im: image, unraveled
+            length: length of one axis of the image
+            cl: (n,2) list of centerline coordinates in image space.
+            widths: scalar width along centerline (n,2)
+        Outputs:
+            intensity (N,): array of pixel intensities
+    """
     im = np.array(im)
     im = pgu.unravelImages(im, length)
     #kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))[:,0]
@@ -61,6 +91,17 @@ def runPharaglowKymo(im, cl, widths, length, **kwargs):
 
 
 def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts, length):
+    """Obtain the straightened version and gradient of the input image.
+        Inputs:
+            im: an image
+            xstart, xend, poptX, poptY are the parameters of a curve/centerline describing the shape of the pharynx
+            width: how far to sample left and right of the centerline
+            npts: how any points to sample along the centerline
+        Outputs:
+            gradientimage: local derivative of image
+            straightIm:  (nPts, width) array of image intensity
+            
+    """
     # make sure image is float
     im = np.array(im, dtype = 'uint8')
     im = pgu.unravelImages(im, length)

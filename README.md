@@ -1,6 +1,19 @@
 # PharaGlow
 
 Package to track and analyze C. elegans pharynx from movies. Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v0.4.2/). The package can be used to simply track labelled pharynxes or as a simple center of mass tracker for brightfield, but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.
+Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.  It comprises three stages on analysis which can be done sequentially and are independent. Analyses can be interrupted at the end of each stage after saving the output dataframe. 
+
+**1. Step -  Basic object detection**
+    This step creates a "_features.json" file which contains a table of objects detected in each frame.
+    Beyond finding the center of mass of an object, no further image analysis is done here.
+    
+**2. Step - Linking objects into trajectories**
+    This results in individual files "_trajectory.json" for each tracked animal.
+    
+**3. Step - Analysing the details of object shapes**
+    This step is doing the heavy lifting: It extracts centerlines, widths, contours and other object descriptors from the objects
+
+All subsequent analyses steps add 'columns' to the data, and thus features is a subset of trajectories is a subset of results.
 
 ### Installation
 1. create an anaconda environment
@@ -10,6 +23,7 @@ conda env create --file environmentPumping.yml
 
 2. Install pharaglow - clone the repo and navigate into the directory PharaGlow.
 ```
+git clone [...]
 python setup.py install --user
 ```
 
@@ -27,7 +41,7 @@ conda install -c conda-forge nbstripout
 Before analyzing your data, check  your installation and familarize yourself with the code. Obtain a copy of a testdataset with 1000 frames of 1x magnification, showing animals expressing myo-2::mCherry. (Lab Dropbox/Data).
 
 * Start a jupyter notebook server
-* open the notebook notebooks/RunningPharaGlowParallel.ipynb
+* open the notebook notebooks/RunningPharaGlowMain.ipynb
 * alter the paths in the cell labelled 'input parameters' to point to the data and the output locations, as well as the AnalysisParameter file (see below)
 * run the notebook. The first few cells are pretty fast, but feature detection can take tens of minutes (depends on your computer and nWorkers. It takes 3 minutes on an Intel I9, 5 workers)
 The output of masks looks like this for frame 10 using the default AnalysisParameters.
