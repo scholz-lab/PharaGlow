@@ -24,7 +24,7 @@ def runPharaglowSkel(im, length):
             ptsY: coordinates of centerline along Y
     """
     # preprocessing image
-    im = np.array(im)
+    im = np.array(im, dtype=int)
     im = pgu.unravelImages(im, length)
     mask = pg.thresholdPharynx(im)
     skel = pg.skeletonPharynx(mask)
@@ -84,7 +84,7 @@ def runPharaglowKymo(im, cl, widths, length, **kwargs):
         Outputs:
             intensity (N,): array of pixel intensities
     """
-    im = np.array(im)
+    im = np.array(im, dtype = int)
     im = pgu.unravelImages(im, length)
     #kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))[:,0]
     return [pg.intensityAlongCenterline(im, cl, **kwargs)]
@@ -103,7 +103,7 @@ def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts, length):
             
     """
     # make sure image is float
-    im = np.array(im, dtype = 'uint8')
+    im = np.array(im, dtype = 'int')
     im = pgu.unravelImages(im, length)
     #im = np.array(im)
     #im = util.img_as_float64(im)
