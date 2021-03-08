@@ -53,7 +53,9 @@ def skeletonPharynx(mask):
 def sortSkeleton(skeleton):
     """Use hierarchical clustering with optimal ordering to get \
         the best path through the skeleton points.
-        input is a skeleton"""
+        input: skeletonized image
+        output: sorted points on skeleton.
+        """
     # coordinates of skeleton
     ptsX, ptsY = np.where(skeleton)
     # cluster
@@ -62,20 +64,24 @@ def sortSkeleton(skeleton):
 
 
 def pharynxFunc(x, *p, deriv = 0):
-    """cubic polynomial helper function"""
+    """defines a cubic polynomial helper function"""
     if deriv==1:
         return p[1] + 2*p[2]*x
     return p[0] + p[1]*x + p[2]*x**2
 
 
-def fitSkeleton(ptsX, ptsY):
+def fitSkeleton(ptsX, ptsY, func = pharynxFunc):
     """Fit a (cubic) polynomial spline to the centerline. The input should be sorted skeleton coordinates.
+        ptsX: sorted x coordinate
+        ptsY: sorted y coordinate
+        func: Fit function, by default a cubic polynomial.
+        output: optimal fit parameters of pharynxFunc
     """
     nP = len(ptsX)
     x = np.arange(nP)
     # fit each axis separately
-    poptX, pcov = curve_fit(pharynxFunc, x, ptsX, p0=(1,1,1))
-    poptY, pcov = curve_fit(pharynxFunc, x, ptsY, p0 = (1,1,1))
+    poptX, pcov = curve_fit(func, x, ptsX, p0=(1,1,1))
+    poptY, pcov = curve_fit(func, x, ptsY, p0 = (1,1,1))
     
     return poptX, poptY
 
@@ -125,7 +131,7 @@ def centerline(poptX, poptY, xs):
     """create a centerline from fitted function.
         Inputs: poptX, poptY optimal fit parameters describing pharynx shape/centerline.
         xs: array of coordinates to create centerline from _pharynxFunc(x, *p, deriv = 0).
-        output: (N,2) acenterline spanning the length of the pharynx.. Same length as xs.
+        output: (N,2) acenterline spanning the length of the pharynx. Same length as xs.
         """
     return np.c_[pharynxFunc(xs, *poptX), pharynxFunc(xs, *poptY)]
 
@@ -196,7 +202,14 @@ def scalarWidth(widths):
 
 
 def straightenPharynx(im, xstart, xend, poptX, poptY, width, nPts = 100):
-    """Based on centerline, straighten the animal."""
+    """Based on centerline, straighten the animal.
+    input: 
+    im: an image
+    xstart, xend, poptX, poptY are the parameters of a curve/centerline describing the shape of the pharynx
+    width: how far to sample left and right of the centerline
+    nPts: how any points to sample along the centerline
+    output: (nPts, width) array of image intensity
+    """
     # use linescans to generate straightened animal
     xn = np.linspace(xstart,xend, nPts)
     clF = centerline(poptX, poptY, xn)
@@ -213,7 +226,11 @@ def straightenPharynx(im, xstart, xend, poptX, poptY, width, nPts = 100):
 
 
 def gradientPharynx(im):
-    """apply a local gradient to the image."""
+    """apply a local gradient to the image.
+        input:
+            im: image (M,N)
+        output: gradient of image (M,N)
+    """
     im = util.img_as_ubyte(im)
     denoised = rank.median(im, disk(1))
     gradient = rank.gradient(denoised, disk(1))
@@ -221,12 +238,22 @@ def gradientPharynx(im):
 
 
 def extractPump(straightIm):
-    """use pumping metric to get measure of bulb contraction."""
+    """use pumping metric to get measure of bulb contraction. It calculates the inverse maximum standard deviation along the anteriorposterior axis.
+        input: straightened images of a pharynx (M,N,T)
+        output: pharyngeal metric (T,)
+    """
     return -np.max(np.std(straightIm, axis =1), axis =0)
 
 
-def headLocationLawn(cl,slice, binLawn):
-    """use the first coordinate of the centerline to check if the worm touches the lawn."""
+def headLocationLawn(cl, slice, binLawn):
+    """use the first coordinate of the centerline to check if the worm touches the lawn.
+        Inputs:
+            cl: (N,2) centerline spanning the length of the pharynx.
+            slice: (yo, xo) offset between cl and full image
+            binLawn: image of a lawn or other background
+        Outputs:
+            Intensity at first point of cl (should be nose tip)
+    """
     y,x = cl[0][0], cl[0][1]
     yo, xo = slice[0], slice[1]
     # make sure that rounding errors don't get you out of bounds
@@ -235,6 +262,12 @@ def headLocationLawn(cl,slice, binLawn):
 
 
 def inside(x,y,binLawn):
-    """calculate if the animal is inside the lawn."""
+    """Extract intensity of an image at coordinate (x,y).
+        Inputs:
+            x,y: location in px
+            binLawn: image of a lawn or other background
+        Outputs:
+            Intensity at coordinate
+    """
     return binLawn[int(y), int(x)]
 
