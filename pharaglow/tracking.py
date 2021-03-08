@@ -64,7 +64,7 @@ def preprocess(img, minSize = 800, threshold = None, smooth = 0, dilate = False)
 
 @pims.pipeline
 def refineWatershed(img, size, filter_sizes = [3,4,5]):
-    """Refine segmentation using canny edge detection."""
+    """Refine segmentation using refined thresholding."""
     for s in filter_sizes:
         bg = filters.gaussian(img, s, preserve_range = True)
         img = filters.gaussian(img-bg, 1)
@@ -137,7 +137,11 @@ def extractImage(img, mask, length, cmsLocal):
     return im
 
 def extractImagePad(img, bbox, pad, mask=None):
-    # get a larger than bounding box image by padding some
+    """ get a larger than bounding box image by padding around the detected object.
+        returns two pandas dataframes:
+        one with each row containing a detected object, its (x,y) location in px and additional properties.
+        The second with unraveled images of each object.
+    """
     ymin, xmin, ymax, xmax  = bbox
     sliced = slice(np.max([0, ymin-pad]), ymax+pad), slice(np.max([0, xmin-pad]), xmax+pad)
     if mask is not None:
