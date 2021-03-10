@@ -65,19 +65,26 @@ def preprocess(img, minSize = 800, threshold = None, smooth = 0, dilate = False)
 @pims.pipeline
 def refineWatershed(img, size, filter_sizes = [3,4,5]):
     """Refine segmentation using refined thresholding."""
+    min_mask = np.zeros(img.shape)
+    current_no = np.inf
     for s in filter_sizes:
         bg = filters.gaussian(img, s, preserve_range = True)
         img = filters.gaussian(img-bg, 1)
         img[img<0] = 0
         img = img.astype(int)
         # mask 
-        mask = img>filters.threshold_li(img)
+        mask = img>filters.threshold_li(img, initial_guess = np.min)
         mask = ndi.binary_closing(mask)
-        mask = morphology.remove_small_objects(mask, min_size=50, connectivity=2, in_place=True)
+        mask = morphology.remove_small_objects(mask, min_size=size, connectivity=2, in_place=True)
         labelled, num = label(mask, background=0, connectivity = 2,return_num=True)
+        print(num)
         if num ==2:
             return labelled
-    return labelled
+        if num<current_no and num>0:
+            min_mask = labelled
+            current_no = num
+    return min_mask
+
 
 
 def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, subtract = False, smooth = 0, tfactor = 1, **kwargs):
