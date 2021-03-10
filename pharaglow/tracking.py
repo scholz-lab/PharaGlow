@@ -77,7 +77,6 @@ def refineWatershed(img, size, filter_sizes = [3,4,5]):
         mask = ndi.binary_closing(mask)
         mask = morphology.remove_small_objects(mask, min_size=size, connectivity=2, in_place=True)
         labelled, num = label(mask, background=0, connectivity = 2,return_num=True)
-        print(num)
         if num ==2:
             return labelled
         if num<current_no and num>0:
