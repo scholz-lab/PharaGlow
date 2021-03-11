@@ -119,27 +119,30 @@ def pharynxorientation(df):
     """get the orientation from the minimal trajectory of the start and end points."""
     df.loc[:,'StraightKymo'] = df.apply(
     lambda row: np.mean(row['Straightened'], axis = 1), axis=1)
-
     df['Similarity'] = False
     for particleID in df['particle'].unique():
+
         mask = df['particle']==particleID
-        sample = df[mask]['StraightKymo'].iloc[0]
+        sample = df[mask]['StraightKymo'].mean()
+       
         # let's make sure the sample is anterior to posterior
         #if np.mean(sample[:len(sample//2)])<np.mean(sample[len(sample//2):]):
         #    sample = sample[::-1]
+        # this uses the intenisty profile - sometimes goes wrong
         df['Similarity'] = np.where(mask, df.apply(\
           lambda row: np.sum((row['StraightKymo']-sample)**2)<np.sum((row['StraightKymo']-sample[::-1])**2), axis=1)\
                                     , df['Similarity'])
-
     # now flip the orientation where the sample is upside down
     for key in ['SkeletonX', 'SkeletonY', 'Centerline', 'dCl', 'Widths', 'Kymo',\
            'StraightKymo', 'Straightened', 'KymoGrad']:
-        df[key] = df.apply(lambda row: row[key] if row['Similarity'] else row[key][::-1], axis=1)
+        if key in df.columns:
+            df[key] = df.apply(lambda row: row[key] if row['Similarity'] else row[key][::-1], axis=1)
     # Flip the start coordinates
-    #df.update(df.loc[df['Similarity']].rename({'Xstart': 'Xend', 'Xend': 'Xstart'}, axis=1))
-    df['Xtmp'] = df['Xstart']
-    df['Xstart'] = df.apply(lambda row: row['Xstart'] if row['Similarity'] else row['Xend'], axis=1)
-    df['Xend'] = df.apply(lambda row: row['Xend'] if row['Similarity'] else row['Xtmp'], axis=1)
+    
+    if set(['Xstart', 'Xend']).issubset(df.columns):
+        df['Xtmp'] = df['Xstart']
+        df['Xstart'] = df.apply(lambda row: row['Xstart'] if row['Similarity'] else row['Xend'], axis=1)
+        df['Xend'] = df.apply(lambda row: row['Xend'] if row['Similarity'] else row['Xtmp'], axis=1)
     return df
 
 
