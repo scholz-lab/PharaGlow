@@ -116,7 +116,7 @@ def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts, length):
 
 
 def pharynxorientation(df):
-    """get the orientation from the minimal trajectory of the start and end points. V2."""
+    """A Get the orientation from the minimal trajectory of the start and end points..."""
     df.loc[:,'StraightKymo'] = df.apply(
     lambda row: np.mean(row['Straightened'], axis = 1), axis=1)
     df['Similarity'] = False
@@ -166,9 +166,6 @@ def runPharaglowOnStack(df, param, run_all = True):
         # run kymographs
         df[['KymoGrad']] = df.apply(\
             lambda row: pd.Series(runPharaglowKymo(row['Gradient'], row['Centerline'], row['Widths'], row['shapeX'], linewidth = param['linewidth'])), axis=1)
-    ## clean orientation - run twice because we rely on a mean sample
-    #df = pharynxorientation(df)
-    #df = pharynxorientation(df)
     # extract pumping metric
     df[['pumps']] = df.apply(\
         lambda row: pd.Series(pg.extractPump(row['Straightened'])), axis=1)
