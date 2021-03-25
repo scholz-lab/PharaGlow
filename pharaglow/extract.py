@@ -174,7 +174,7 @@ def rocPeaks(pump, pars):
     
 
 
-def preprocess(p, w_bg, w_sm):
+def preprocess(p, w_bg=10, w_sm=2):
     bg = p.rolling(w_bg, min_periods=1, center=True, win_type='hamming').mean()
     return (p - bg).rolling(w_sm, min_periods=1, center=True, win_type='parzen').mean(), bg
 
