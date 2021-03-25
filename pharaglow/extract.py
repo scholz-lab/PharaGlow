@@ -173,47 +173,47 @@ def rocPeaks(pump, pars):
     return ps, roc
     
 
-# def rocPeaks(pump, pars):
-#     ps, roc = [], []
-#     w = 2
-#     for p in pars:
-#         peaks = find_peaks(pump, height=0.5, threshold=None, distance=5, prominence=(p),\
-#                     width=None, wlen=10, rel_height=None, plateau_size=None)[0]
-#         meanPeak = np.array([pump[peak-w:peak+w+1] for peak in peaks if (peak +w <len(pump)) and peak-w>0]).T
-#         ps.append(peaks)
-#         roc.append(meanPeak)
-#     return ps, roc
-    
+
+def preprocess(p, w_bg, w_sm):
+    bg = p.rolling(w_bg, min_periods=1, center=True, win_type='hamming').mean()
+    return (p - bg).rolling(w_sm, min_periods=1, center=True, win_type='parzen').mean(), bg
 
 
-def preprocess(pump, wsDetrend = 300 , wsOutlier = 300, wsDetrendLocal = 30):
-    # detrend one time
-    pump = pump - util.smooth(pump, wsDetrend)
-     # filter outliers
-    pump, _ = nanOutliers(pump, window_size = wsOutlier, n_sigmas=3)
-    pump = pump[0]
-    # detrend local
-    pump = pump - util.smooth(pump, wsDetrendLocal)
-    # rescale by range
-    p5, p95 = np.percentile(pump, [5,95])
-    pump = (pump-p5) /(p95-p5)
-    # pump, ind = pump[0], ind[1]
-    # pump = pump - util.smooth(pump, ws)
-    # pump = pd.Series(pump)
-    
-    # # rescale to percentile
-    # pump -= np.mean(pump)
-    # pump/= np.percentile(pump, [0.5])#/2#/5
+def find_pumps(p, heights = np.arange(0.01, 5, 0.1), min_distance = 5, sensitivity = 0.99):
+    """peak detection in a background subtracted trace assuming real 
+        peaks have to be at least min_distance samples apart."""
+    tmp = []
+    all_peaks = []
+    # find peaks at different heights
+    for h in heights:
+        peaks = find_peaks(p, height = h,threshold =0.0)[0]
+        tmp.append([len(peaks), np.mean(np.diff(peaks)>=min_distance)])
+        all_peaks.append(peaks)
+    tmp = np.array(tmp)
+    # set the valid peaks score to zero if no peaks are present
+    tmp[:,1][~np.isfinite(tmp[:,1])]= 0
+    # calculate random distribution of peaks in a series of length l (actually we know the intervals will be exponential)
+    null = []
+    l = len(p)
+    for npeaks in tmp[:,0]:
+        locs = np.random.randint(0,l,(500, int(npeaks)))
+        # calculate the random error rate - and its stdev
+        null.append([np.mean(np.diff(np.sort(locs), axis =1)>=min_distance), np.std(np.mean(np.diff(np.sort(locs), axis =1)>=5, axis =1))])
+    null = np.array(null)
+    # now find the best peak level - larger than random, with high accuracy
+    # subtract random level plus 1 std:
+    metric_random = tmp[:,1] - (null[:,0]+null[:,1])
+    # check where this is still positive and where the valid intervals are 1 or some large value
+    valid = np.where((metric_random>0)*(tmp[:,1]>=sensitivity))[0]
+    if len(valid)>0:
+        peaks = all_peaks[valid[np.argmax(tmp[:,0][valid])]]
+    else:
+        return [], tmp, null
+    return peaks, tmp, null
 
-    return pump
 
-
-def bestMatchPeaks(pump, wsDetrend = 300 , wsOutlier = 300, wsDetrendLocal = 30, prs = np.linspace(0.1,1,50)):
+def bestMatchPeaks(pump, wsDetrend = 10 , wsOutlier = 2, wsDetrendLocal = 2, prs = np.linspace(0.1,5,50)):
+    """DEPRECATED: now calls new find_pumps function."""
     ### define best match
-    #prs = np.linspace(0.1,0.95,nt)
-    pump = preprocess(pump, wsDetrend , wsOutlier, wsDetrendLocal)
-    ps, roc = rocPeaks(pump, pars = prs)
-    # evaluation
-    npeaks = [len(p) for p in ps]
-    metric = [np.mean(np.std(r, axis =1)) for r in roc]
-    return pd.Series(ps[np.argmin(metric)]), pump, ps, roc, metric
+    pump = preprocess(pump, wsDetrend, wsDetrendLocal)
+    return find_pumps(pump, heights = prs, min_distance = 5, sensitivity = 0.95)
