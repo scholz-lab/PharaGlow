@@ -111,9 +111,9 @@ def hampel(vals_orig, k=7, t0=3):
     
     #Hampel Filter
     L = 1.4826
-    rolling_median = vals.rolling(window=k, center=True).median()
+    rolling_median = vals.rolling(window=k, center=True, min_periods = 1).median()
     MAD = lambda x: np.median(np.abs(x - np.median(x)))
-    rolling_MAD = vals.rolling(window=k, center=True).apply(MAD)
+    rolling_MAD = vals.rolling(window=k, center=True, min_periods=1).apply(MAD)
     threshold = t0 * L * rolling_MAD
     difference = np.abs(vals - rolling_median)
     outlier_idx = difference > threshold
