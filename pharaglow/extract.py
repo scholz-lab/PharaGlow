@@ -173,13 +173,12 @@ def rocPeaks(pump, pars):
     return ps, roc
     
 
-
-def preprocess(p, w_bg=10, w_sm=2):
+def preprocess(p, w_bg, w_sm, **kwargs):
     bg = p.rolling(w_bg, min_periods=1, center=True, win_type='hamming').mean()
     return (p - bg).rolling(w_sm, min_periods=1, center=True, win_type='parzen').mean(), bg
 
 
-def find_pumps(p, heights = np.arange(0.01, 5, 0.1), min_distance = 5, sensitivity = 0.99):
+def find_pumps(p, heights = np.arange(0.01, 5, 0.1), min_distance = 5, sensitivity = 0.99, **kwargs):
     """peak detection in a background subtracted trace assuming real 
         peaks have to be at least min_distance samples apart."""
     tmp = []
