@@ -99,36 +99,27 @@ def pumpingMetrics(traj, params):
 
 
 
-def nanOutliers(data, window_size, n_sigmas=3):
-    """using a Hampel filter to detect outliers and replace them with nans. 
-    The algorithm assuems the underlying series should be gaussian. this could be changed by changing the k parameter.
-    Data can contain nans, these will be ignored for median calculation.
-    data: (M, N) array of M timeseries with N samples each. 
-    windowsize: integer. This is half of the typical implementation.
-    n_sigmas: float or integer
-    """
-    # deal with N = 1 timeseries to conform to (M=1,N) shape
-    if len(data.shape)<2:
-        data = np.reshape(data, (1,-1))
-    k = 1.4826 # scale factor for Gaussian distribution
-    M, N = data.shape # store data shape for quick use below
-    # pad array to achieve at least the same size as original
-    paddata = np.pad(data.copy(), pad_width= [(0,0),(window_size//2,window_size//2)], \
-                     constant_values=(np.median(data)), mode = 'constant')
-    # we use strides to create rolling windows. Not nice in memory, but good in performance.
-    # because its meant for images, it creates some empty axes of size 1.
-    tmpdata = view_as_windows(paddata, (1,window_size))
-    # crop data to center 
-    tmpdata = tmpdata[:M, :N]
-    x0N = np.nanmedian(tmpdata, axis = (-1, -2))
-    s0N =k * np.nanmedian(np.abs(tmpdata - x0N[:,:,np.newaxis, np.newaxis]), axis = (-1,-2))
-    # hampel condition
-    hampel = (np.abs(data-x0N) - (n_sigmas*s0N))
-    indices = np.where(hampel>0)
-    #cast to float to allow nans in output data
-    newData = np.array(data, dtype=float)
-    newData[indices] = x0N[indices]
-    return newData, indices
+def hampel(vals_orig, k=7, t0=3):
+    '''
+    vals: pandas series of values from which to remove outliers
+    k: size of window (including the sample; 7 is equal to 3 on either side of value)
+    t0: how many sigma away to call it an outlier
+    '''
+    
+    #Make copy so original not edited
+    vals = vals_orig.copy()
+    
+    #Hampel Filter
+    L = 1.4826
+    rolling_median = vals.rolling(window=k, center=True).median()
+    MAD = lambda x: np.median(np.abs(x - np.median(x)))
+    rolling_MAD = vals.rolling(window=k, center=True).apply(MAD)
+    threshold = t0 * L * rolling_MAD
+    difference = np.abs(vals - rolling_median)
+    outlier_idx = difference > threshold
+    vals[outlier_idx] = rolling_median[outlier_idx] 
+    return(vals)
+    
 
 def pumps(data):
     straightIms = np.array([im for im in data['Straightened'].values])
