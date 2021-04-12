@@ -152,7 +152,7 @@ def extractImagePad(img, bbox, pad, mask=None):
     sliced = slice(np.max([0, ymin-pad]), ymax+pad), slice(np.max([0, xmin-pad]), xmax+pad)
     if mask is not None:
         img = img*mask
-    return img[sliced]
+    return img[sliced], sliced
 
 
 def objectDetection(mask, img, params, frame):
@@ -168,16 +168,17 @@ def objectDetection(mask, img, params, frame):
             #im = extractImage(region.intensity_image, region.image, params['length'], region.local_centroid)
             #diffIm = extractImage(diffImage[region.slice], region.image, params['length'], region.local_centroid)
             # go back to smaller images
-            im = extractImagePad(img, region.bbox, params['pad'], mask=label_image==region.label)
+            im, sliced = extractImagePad(img, region.bbox, params['pad'], mask=label_image==region.label)
+            bbox = [sliced[0].start, sliced[1].start, sliced[0].stop, sliced[1].stop]
             #diffIm = extractImagePad(diffImage, region.bbox, params['pad'], mask=label_image==region.label)
             # bbox is min_row, min_col, max_row, max_col
             # Store features which survived to the criterions
             df = df.append([{'y': region.centroid[0],
                              'x': region.centroid[1],
-                             'slice_x0':region.bbox[0],
-                             'slice_x1':region.bbox[2],
-                             'slice_y0':region.bbox[1],
-                             'slice_y1':region.bbox[3],
+                             'slice_y0':bbox[0],
+                             'slice_y1':bbox[2],
+                             'slice_x0':bbox[1],
+                             'slice_x1':bbox[3],
                              'frame': frame,
                              'area': region.area,
                              #'image': im.ravel(),
@@ -203,15 +204,16 @@ def objectDetection(mask, img, params, frame):
                     tmpMask = np.zeros(img.shape)
                     tmpMask[region.slice] = labeled==part.label
                     tmpMask = tmpMask.astype(int)
-                    im = extractImagePad(img, offsetbbox, params['pad'], mask=tmpMask)
+                    im, sliced = extractImagePad(img, offsetbbox, params['pad'], mask=tmpMask)
+                    bbox = [sliced[0].start, sliced[1].start, sliced[0].stop, sliced[1].stop]
                     #diffIm = extractImagePad(diffImage, offsetbbox, params['pad'], mask=tmpMask)
                     # Store features which survived to the criterions
                     df = df.append([{'y': part.centroid[0]+yo,
                                      'x': part.centroid[1]+xo,
-                                     'slice_x0':offsetbbox[0],
-                                     'slice_x1':offsetbbox[2],
-                                     'slice_y0':offsetbbox[1],
-                                     'slice_y1':offsetbbox[3],
+                                     'slice_y0':bbox[0],
+                                     'slice_y1':bbox[2],
+                                     'slice_x0':bbox[1],
+                                     'slice_x1':bbox[3],
                                      'frame': frame,
                                      'area': part.area,
                                      #'image': im.ravel(),
@@ -373,12 +375,12 @@ def interpolate_helper(rawframes, row, param):
     
     if np.sum(row[im_cols])==0:
         print('interpolating', row['frame'])
-        im, sx0,sx1,sy0, sy1, ly, lx = fillMissingImages(rawframes, int(row['frame']), row['x'], row['y'],\
+        im, sy0, sx0, sy1, sx1, ly, lx = fillMissingImages(rawframes, int(row['frame']), row['x'], row['y'],\
                                                    lengthX=row['shapeX'],lengthY=row['shapeY'], size=param['watershed'])
         # make the image into a pandas format and return a whole row
         im_cols =  [f'im{i}' for i in range(lx*ly)]
         # other column names
         [im_cols.append(x) for x in ['slice_x0','slice_x1','slice_y0','slice_y1', 'shapeY', 'shapeX']]
-        row[im_cols] = [*list(im.ravel()),  sx0,sx1,sy0, sy1, ly, lx]
+        row[im_cols] = [*list(im.ravel()),  sx0, sx1, sy0, sy1, ly, lx]
         
     return row
