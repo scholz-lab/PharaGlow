@@ -17,10 +17,11 @@ from skimage import morphology, util, filters, segmentation
 from scipy import ndimage as ndi
 from skimage.morphology import watershed
 from skimage.feature import peak_local_max, canny
-
+from functools import partial
 import time
 from multiprocessing import Pool
 import gc
+from .util import pad_images 
 
 @pims.pipeline
 def subtractBG(img, bg):
@@ -155,10 +156,10 @@ def extractImagePad(img, bbox, pad, mask=None):
     return img[sliced], sliced
 
 
-def objectDetection(mask, img, params, frame):
+def objectDetection(mask, img, frame, params):
     """label binary image and extract a region of interest around the object."""
     df = pd.DataFrame()
-    crop_images = pd.DataFrame()
+    crop_images = []
     label_image = skimage.measure.label(mask, background=0, connectivity = 1)
     label_image = skimage.segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
     #diffImage = util.img_as_float(nextImg) - util.img_as_float(img)
@@ -188,7 +189,7 @@ def objectDetection(mask, img, params, frame):
                              'shapeX': im.shape[1],
                              },])
             # add the images to crop images
-            crop_images = crop_images.append([list(im.ravel())])
+            crop_images.append(list(im.ravel()))
         # do watershed to get crossing objects separated. 
         elif region.area > params['minSize']:
             labeled = refineWatershed(img[region.slice], size = params['watershed'])
@@ -223,7 +224,7 @@ def objectDetection(mask, img, params, frame):
                                      'shapeX': im.shape[1],
                                      },])
                     # add the images to crop images
-                    crop_images = crop_images.append([list(im.ravel())])
+                    crop_images.append(list(im.ravel()))
     if not df.empty:
         df['shapeX'] = df['shapeX'].astype(int)
         df['shapeY'] = df['shapeY'].astype(int)
@@ -231,19 +232,24 @@ def objectDetection(mask, img, params, frame):
     return df, crop_images
 
 
-def runfeatureDetection(frames, masks, params, frameOffset):
-    """detect objects in each image and use region props to extract features and store a local image."""
-    feat = []
-    cropped_images = []
-    print(f'Analyzing frames {frameOffset} to {frameOffset+len(frames)}')
-    sys.stdout.flush()
-    for num, img in enumerate(frames):
-        df, crop_ims = objectDetection(masks[num], img, params, num+frameOffset)
-        feat.append(df)
-        cropped_images.append(crop_ims)
-    features = pd.concat(feat)
-    cropped_images = pd.concat(cropped_images)
-    return features, cropped_images
+# def runfeatureDetection(frames, masks, frameIndex, params):
+#     """detect objects in each image and use region props to extract features and store a local image.
+#         frames: contains the image stack
+#         masks: matching binary stack
+#         frameIndex: indicates a time corresponding to each image e.g. integers or timestamps.
+#         params: analysis parameters passed to objectDetection()
+#     """
+#     feat = []
+#     cropped_images = []
+#     print(f'Analyzing frames {frameIndex[0]} to {frameIndex[-1]}')
+#     sys.stdout.flush()
+#     for num, img in enumerate(frames):
+#         df, crop_ims = objectDetection(masks[num], img, frameIndex[num], params)
+#         feat.append(df)
+#         cropped_images+= crop_ims
+#     features = pd.concat(feat)
+#     features = features.reset_index()
+#     return features, cropped_images
 
 
 def linkParticles(df, searchRange, minimalDuration, **kwargs):
@@ -267,7 +273,7 @@ def interpolateTrajectories(traj, columns = None):
         for c in columns:
             traj[c] = traj[c].interpolate()
         return traj
-    return traj.interpolate()
+    return traj.interpolate(axis = 1)
 
 
 def cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine = False):
@@ -305,82 +311,94 @@ def fillMissingImages(imgs, frame, x, y, lengthX, lengthY, size, refine = False)
     return im, sliced[0],sliced[1],sliced[2],sliced[3], ly, lx
 
 
-def fillMissingDifferenceImages(imgs, frame, x, y, lengthX, lengthY, size, refine = False):
-    """run this on a dataframe to interpolate images from missing coordinates."""
-    if frame<len(imgs):
-        img = util.img_as_float(imgs[frame])-util.img_as_float(imgs[frame+1])
-        im, *_  = cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
-        return im
-    else:
-        return np.zeros(lengthX*lengthY)
+
+def parallelWorker(args, **kwargs):
+    return objectDetection(*args, **kwargs)
 
 
-def parallelWorker(j):
-    """deine a worker function for parallelization."""
-    frames, masks, params, frameOffset = j
-    return runfeatureDetection(frames, masks, params, frameOffset)
+def parallel_imageanalysis(frames, masks, param, framenumbers = None, parallelWorker= parallelWorker, nWorkers = 5, output= None):
+    """use multiptocessing to speed up image analysis. This is inspired by the trackpy.batch function.
     
+    frames: array or other iterable of images
+    masks: the binary of the frames, same length
+    param: parameters given to all jobs
     
-def pool_init():
-    """deal with possible memory leak."""
-    gc.collect()
-
-
-def parallelDetection(rawframes, masks, param, nWorkers = 5, chunksize = 100):
-    """utility function to run pharaglow as parallel using multiprocessing. 
-    Chunks the images into smaller jobs and executes runfeatureDetection() for each job."""
-    L = len(rawframes)
-    # create chunks of analysis based on how many workers we use
-    #slice the movie into pieces to run
-    slices = zip((range(0,L, chunksize)), (range(chunksize,L+1, chunksize)))
-    jobs = []
-    for (a,b) in slices:
-#         print(a,b)
-        jobs.append([rawframes[a:b], masks[a:b], param, a])
-    # add the remainder job for things not divisible by chunksize
-    jobs.append([rawframes[b:], masks[b:], param, b])
-    # delete jobs of length 1
-    jobs = [j for j in jobs if len(j[0])>1]
-    # add last bit
-    #run the parallel feature detection.
-    features = []#
-    images = []
-    gc.collect()
-    p = Pool(processes = nWorkers, initializer=pool_init)
-    start = time.time()
-    for k, res in enumerate(p.imap_unordered(parallelWorker, jobs)):
-        features.append(res[0])
-        # replace nan values with 0 s and declare unit8 for images
-        images.append(res[1].fillna(0).astype('uint8'))
-        if k == nWorkers:
-            print('Expected time is approx. {} s'.format((L/chunksize-k)*(time.time()-start)/nWorkers))
-    
-    p.close()
-    p.join()
-    features = pd.concat(features)
-    images = pd.concat(images)
-    # change the image column names
-    images.columns = [f"im{s}" for s in images.columns]
-    # make one big dataframe
-    features = pd.concat([features, images], axis = 1)
-    features = features.reset_index(drop=True)
-    return features
-
-
-def interpolate_helper(rawframes, row, param):
-    """wrapper to make the code more readable. This interpolates all missing images in a trajectory.
-    check if image is all zeros - then we insert an image from the original movie
+    output : {None, trackpy.PandasHDFStore, SomeCustomClass}
+        If None, return all results as one big DataFrame. Otherwise, pass
+        results from each frame, one at a time, to the put() method
+        of whatever class is specified here.
     """
-    im_cols =  [f'im{i}' for i in range(int(row['shapeX'])*int(row['shapeY']))]
+    assert len(frames) == len(masks), "unequal length of images and binary masks."
+    if framenumbers is None:
+        framenumbers = np.arange(len(frames))
+    # Prepare wrapped function for mapping to `frames`
     
-    if np.sum(row[im_cols])==0:
-        print('interpolating', row['frame'])
-        im, sy0, sx0, sy1, sx1, ly, lx = fillMissingImages(rawframes, int(row['frame']), row['x'], row['y'],\
-                                                   lengthX=row['shapeX'],lengthY=row['shapeY'], size=param['watershed'])
-        # make the image into a pandas format and return a whole row
-        im_cols =  [f'im{i}' for i in range(lx*ly)]
-        # other column names
-        [im_cols.append(x) for x in ['slice_x0','slice_x1','slice_y0','slice_y1', 'shapeY', 'shapeX']]
-        row[im_cols] = [*list(im.ravel()),  sx0, sx1, sy0, sy1, ly, lx]
+    detection_func = partial(parallelWorker, params = param)
+    if nWorkers ==1:
+        func = map
+        pool = None
+    else:
+        # prepare imap pool
+        pool = Pool(processes=nWorkers)
+        func = pool.imap
         
-    return row
+    objects = []
+    images = []
+    try:
+        for i, res in enumerate(func(detection_func, zip( masks,frames, framenumbers))):
+            # allow alternate frame numbers
+            if len(res[0]) > 0:
+                # Store if features were found
+                if output is None:
+                    objects.append(res[0])
+                    images += res[1]
+                else:
+                    # here we keep images within the dataframe
+                    res[0]['images'] = res[1]
+                    output.put(res[0])
+    finally:
+        if pool:
+            # Ensure correct termination of Pool
+            pool.terminate()
+    
+    if output is None:
+        
+        if len(objects) > 0:
+            objects = pd.concat(objects).reset_index(drop=True)
+            images = np.array([pad_images(im, shape, param['length']) for im,shape in zip(images, objects['shapeX'])])
+            images = np.array(images).astype(np.uint8)
+            return objects, images
+        else:  # return empty DataFrame
+            warnings.warn("No objects found in any frame.")
+            return pd.DataFrame(columns=list(features.columns) + ['frame']), images
+    else:
+        return output
+
+
+def interpolate_helper(rawframes, ims, tmp, param):
+    """wrapper to make the code more readable. This interpolates all missing images in a trajectory.
+    check if image is all zeros - then we insert an small image from the original movie around the interpolated coordinates.
+    """
+    # create a new column keeping track if this row is interpolated or already in the image stack
+    tmp.insert(0, 'has_image', 1)
+    # generate an interpolated trajectory where all frames are accounted for
+    traj_interp = interpolateTrajectories(tmp, columns = ['x', 'y', 'shapeX', 'shapeY', 'particle'])
+    # make sure we have a range index
+    traj_interp.reset_index()
+    # iterate through the dataframe and if the image is all nan, attempt to fill it
+    images = []
+    for idx, row in traj_interp.iterrows():
+        images.append(ims[idx])
+        if np.isnan(row['has_image']):
+            images.append()
+            # get the image
+            im, sy0, sx0, sy1, sx1, ly, lx = fillMissingImages(rawframes, int(row['frame']), row['x'], row['y'],\
+                                                   lengthX=row['shapeX'],lengthY=row['shapeY'], size=param['watershed'])
+            # pad the image
+            im = pad_images(im, lx, param['length'])
+            # insert it into the array at the correct position
+            images.append(im)
+            # update the slice and shape information
+            cols = ['slice_y0','slice_x0','slice_y1','slice_x1', 'shapeY', 'shapeX']
+            traj_interp.loc[idx, cols] = sy0, sx0, sy1, sx1, ly, lx        
+    return traj_interp, np.array(images)

@@ -1,0 +1,11 @@
+version 0.9
+============
+notebook changes: 
+- unified function for running n=1 workers or more
+- separate dataframe and images
+- save images for each worm separately
+
+main module changes: 
+- unified parallelization to one function util. for feature detection and the full pharaglow extraction
+- remove now-redundant functions in tracking code
+- rewrite runPharaglowOnStack to avoid using apply

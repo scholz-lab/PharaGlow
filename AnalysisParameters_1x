@@ -4,7 +4,7 @@
 "tfactor": 1,
 "thresholdWindow": 120,
 "bgWindow": 100,
-"length":2,
+"length":100,
 "searchRange": 10,
 "minimalDuration": 600,
 "memory": 30,
