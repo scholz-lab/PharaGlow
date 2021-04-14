@@ -10,7 +10,7 @@ Typical use is by interacting through the notebook which contains the whole pipe
 **2. Step - Linking objects into trajectories**
     This results in individual files "_trajectory.json" for each tracked animal.
     
-**3. Step - Analysing the details of object shapes**
+**3. Step - Analyzing the details of object shapes**
     This step is doing the heavy lifting: It extracts centerlines, widths, contours and other object descriptors from the objects
 
 All subsequent analyses steps add 'columns' to the data, and thus features is a subset of trajectories is a subset of results.
@@ -40,11 +40,11 @@ python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
 conda install -c conda-forge nbstripout
 ```
 ### Quick Start
-Before analyzing your data, check  your installation and familarize yourself with the code. Obtain a copy of a testdataset with 1000 frames of 1x magnification, showing animals expressing myo-2::mCherry. (Lab Dropbox/Data).
+Before analyzing your data, check  your installation and familiarize yourself with the code. Obtain a copy of a test dataset with 1000 frames of 1x magnification, showing animals expressing myo-2::mCherry. (Lab Dropbox/Data).
 
 * Start a jupyter notebook server
 * open the notebook notebooks/RunningPharaGlowMain.ipynb
-* alter the paths in the cell labelled 'input parameters' to point to the data and the output locations, as well as the AnalysisParameter file (see below)
+* alter the paths in the cell labeled 'input parameters' to point to the data and the output locations, as well as the AnalysisParameter file (see below)
 * run the notebook. The first few cells are pretty fast, but feature detection can take tens of minutes (depends on your computer and nWorkers. It takes 3 minutes on an Intel I9, 5 workers)
 The output of masks looks like this for frame 10 using the default AnalysisParameters.
 ![png](examples/MS0006_frame10_mask.png)
@@ -75,7 +75,7 @@ These parameters are:
 }
 #### Parameters for detection
 * bgWindow (frames) - calculate a static background on every nth image of the movie. If this is too short, you get a memory error. It can be as large as 500 frames for a full 18000 frame movie.
-* subtract (0 or 1) - subtract the background from the movie for detecion. Helps particularly with the higher resolution movies.
+* subtract (0 or 1) - subtract the background from the movie for detection. Helps particularly with the higher resolution movies.
 * thresholdWindow (frames) - to get a threshold for binarization, use every nth frame of the movie.
 * smooth (integer 0 - inf px) - should the image be smoothed. This helps to avoid breaking up the pharynx into two parts. 
 * dilate (integer, >=1) - binary dilation of the image. Can help to connect the worm if its broken up into two pieces.
@@ -83,6 +83,7 @@ These parameters are:
 * maxSize (px) - remove all objects larger than this (but a caveat here is when we have worm collisions where we allow the resulting segmentation to be a bit bigger)
 * watershed (px) - when two or more worms touch, how large is an individual approximately
 * tfactor (float, positive, smaller than 1) - use rarely. If you have disparate sizes the automated threshold doesn't work well. This factor multiplies the threshold value for binarization. Eg. for an 8-bit image, if the threshold is 150 and tfactor is 0.5 the image would be thresholded at 150*0.5=75.
+* length (px) - this sets the size of the extracted images around the center of the worm. It should be at least as large as the largest expected worm length
 
 #### Parameters for tracking
 * searchrange (px) describes how much we expect a worm to move frame-to-frame when we link particles together during tracking. This can be a bit bigger to allow for loosing the worm for a bit, but then you might get large perceived jumps in velocity.
@@ -108,7 +109,7 @@ python runBatchParallel.py
 ```
 
 * For each subfolder a notebook file with the plots will be generated! This makes it easy to check if tracking was successful.
-* This script runs multiple notebooks in parallel. This works better eg. for windows than parallelization within the notebook (Option 2)
+* This script runs multiple notebooks in parallel. This works better in windows OS than parallelization within the notebook (Option 2)
 
 #### Batch running multiple files with the same parameters (Option 2)
 * run the batch processing in the commandline like this: 
