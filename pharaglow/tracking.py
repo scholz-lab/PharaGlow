@@ -31,8 +31,8 @@ def subtractBG(img, bg):
     tmp = img-bg
     mi, ma = np.min(tmp), np.max(tmp)
     tmp -= mi
-    if ma != mi:
-        tmp /=(ma - mi)
+    #if ma != mi:
+    #    tmp /=(ma - mi)
     return util.img_as_float(tmp)
 
 
