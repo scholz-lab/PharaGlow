@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """features.py: image analysis of pharynx. Uses skimage to provide image functionality."""
-
+import pims
 import numpy as np
 from numpy.linalg import norm
 from skimage import util
@@ -26,7 +26,7 @@ def findLawn(image, smooth = 1, areaHoles = 15000, areaSpots = 50000):
     binary = remove_small_objects(binary, min_size=areaSpots, connectivity=8, in_place=False)
     return binary
 
-
+@pims.pipeline
 def thresholdPharynx(im):
     """use li threshold to obtain mask of pharynx.
         input: image of shape (N,M) 
@@ -49,7 +49,7 @@ def skeletonPharynx(mask):
         output: skeleton (N,M)"""
     return skeletonize(mask)
 
-
+@pims.pipeline
 def sortSkeleton(skeleton):
     """Use hierarchical clustering with optimal ordering to get \
         the best path through the skeleton points.
