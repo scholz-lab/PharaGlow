@@ -23,7 +23,7 @@ def runPharaglowSkel(im):
             ptsX: coordinates of centerline along X
             ptsY: coordinates of centerline along Y
     """
-    
+
     mask = pg.thresholdPharynx(im)
     skel = pg.skeletonPharynx(mask)
     order = pg.sortSkeleton(skel)
@@ -81,7 +81,7 @@ def runPharaglowKymo(im, cl, widths, **kwargs):
         Outputs:
             intensity (N,): array of pixel intensities
     """
-    
+
     #kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))[:,0]
     return [pg.intensityAlongCenterline(im, cl, **kwargs)]
 
@@ -98,7 +98,6 @@ def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts):
             straightIm:  (nPts, width) array of image intensity
             
     """
-    
     #local derivative, can enhance contrast
     gradientImage = pg.gradientPharynx(im)
     # straightened image
@@ -161,29 +160,7 @@ def runPharaglowOnImage(image, framenumber, params, **kwargs):
     df = pd.DataFrame([data], dtype = 'object')
     df['frame'] = framenumber
     return df, 
-
-
-# def runPharaglowOnStack(image, index, param, run_all = True):
-#     """runs the whole pharaglow toolset on an image stack."""
-#     colnames = ['Mask', 'SkeletonX', 'SkeletonY','ParX', 'ParY', 'Xstart', 'Xend', 'Centerline', 'dCl', 'Widths', \
-#         'Contour','Gradient', 'Straightened', 'Kymo', 'KymoGrad']
-#     data = []
-#     df = pd.DataFrame(dtype = 'object')
-#     for idx in index:
-#         image = images[idx]
-#         if np.sum(image)==0:
-#             df.drop(idx)
-#             data.append(runPharaglowOnImage(image, param, run_all))
-#     if run_all:
-#         df[[colnames]] = data
-#     else:
-#         df[[colnames[:-2]]] = data
-#     df.index = index
-#     # extract pumping metric
-#     df[['pumps']] = df.apply(\
-#         lambda row: pd.Series(pg.extractPump(row['Straightened'])), axis=1)
-#     return df, images
-
+  
 
 def parallel_pharaglow_run(args, **kwargs):
     """define a worker function for parallelization."""
