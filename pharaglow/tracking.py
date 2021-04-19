@@ -381,6 +381,7 @@ def interpolate_helper(rawframes, ims, tmp, param):
     """
     # create a new column keeping track if this row is interpolated or already in the image stack
     tmp.insert(0, 'has_image', 1)
+    tmp.insert(0, 'image_index', np.arange(len(ims)))
     # generate an interpolated trajectory where all frames are accounted for
     traj_interp = interpolateTrajectories(tmp, columns = ['x', 'y', 'shapeX', 'shapeY', 'particle'])
     # make sure we have a range index
@@ -388,9 +389,7 @@ def interpolate_helper(rawframes, ims, tmp, param):
     # iterate through the dataframe and if the image is all nan, attempt to fill it
     images = []
     for idx, row in traj_interp.iterrows():
-        images.append(ims[idx])
         if np.isnan(row['has_image']):
-            images.append()
             # get the image
             im, sy0, sx0, sy1, sx1, ly, lx = fillMissingImages(rawframes, int(row['frame']), row['x'], row['y'],\
                                                    lengthX=row['shapeX'],lengthY=row['shapeY'], size=param['watershed'])
@@ -400,5 +399,7 @@ def interpolate_helper(rawframes, ims, tmp, param):
             images.append(im)
             # update the slice and shape information
             cols = ['slice_y0','slice_x0','slice_y1','slice_x1', 'shapeY', 'shapeX']
-            traj_interp.loc[idx, cols] = sy0, sx0, sy1, sx1, ly, lx        
+            traj_interp.loc[idx, cols] = sy0, sx0, sy1, sx1, ly, lx
+        else:
+            images.append(ims[int(row['image_index'])])
     return traj_interp, np.array(images)
