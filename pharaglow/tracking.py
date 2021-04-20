@@ -83,7 +83,7 @@ def refineWatershed(img, size, filter_sizes = [3,4,5]):
         if num<current_no and num>0:
             min_mask = labelled
             current_no = num
-    return min_mask
+    return min_mask.astype(int)
 
 
 
