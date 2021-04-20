@@ -75,17 +75,17 @@ def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorker
         if pool:
             # Ensure correct termination of Pool
             pool.terminate()
-    
+
     if output is None:
         if len(objects) > 0:
             objects = pd.concat(objects).reset_index(drop=True)
             if len(images)>0:
-                images = np.array([pad_images(im, shape, param['length']) for im,shape in zip(images, objects['shapeX'])])
+                images = np.array([pad_images(im, shape, param['length'], reshape = False) for im,shape in zip(images, objects['shapeX'])])
                 images = np.array(images).astype(np.uint8)
             return objects, images
         else:  # return empty DataFrame
             warnings.warn("No objects found in any frame.")
-            return pd.DataFrame(columns=list(features.columns) + ['frame']), images
+            return pd.DataFrame(columns=list(objects.columns) + ['frame']), images
     else:
         return output
 
@@ -169,13 +169,13 @@ def pad_images(im, shape, size, reshape = True):
         warnings.warn(f'Image {sy, sx} larger than pad size {size}. Cropping')
         cropy, cropx = math.ceil(max([0, sy-size])/2), math.ceil(max([0, sx-size])/2)
         im = im[cropy:sy-cropy, cropx:sx-cropx]
-        return pad_images(im, shape, size, reshape = reshape)
+        return pad_images(im, shape, size, reshape = False)
     # how much to add around each side
     py, px = (size-sy)//2, (size-sx)//2
     # add back the possible rounding error
     oy, ox = (size-sy)%2, (size-sx)%2
     newIm = np.pad(im, [(py, py+oy), (px, px+ox)], mode='constant', constant_values= 0)
     if newIm.shape !=(size, size):
-        warnings.warn(f'Rerunning with larger size {2*size}')
-        return pad_images(im, shape, size*2, reshape = reshape)
+        warnings.warn(f'Rerunning to correct size {size}')
+        return pad_images(im, shape, size, reshape = False)
     return newIm
