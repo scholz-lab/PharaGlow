@@ -7,6 +7,7 @@ import pandas as pd
 from multiprocessing import Pool
 from functools import partial
 import gc
+import math
 
 def parallelize_dataframe(df, func, params, n_cores):
     """ split a dataframe to easily use multiprocessing."""
@@ -155,7 +156,7 @@ def unravelImages(im, lengthX):
 def get_im(df, colnames, lengthX):
     """get an image from a dataframe of columns for each pixel."""
     return unravelImages(df[colnames].to_numpy(), lengthX)
-    
+
 
 def pad_images(im, shape, size, reshape = True):
     # make image from list
@@ -165,8 +166,10 @@ def pad_images(im, shape, size, reshape = True):
     # pad an image to square
     sy, sx = im.shape
     if sy > size or sx > size:
-        warnings.warn(f'Rerunning with larger size {2*size}')
-        return pad_images(im, shape, size*2, reshape = reshape)
+        warnings.warn(f'Image {sy, sx} larger than pad size {size}. Cropping')
+        cropy, cropx = math.ceil(max([0, sy-size])/2), math.ceil(max([0, sx-size])/2)
+        im = im[cropy:sy-cropy, cropx:sx-cropx]
+        return pad_images(im, shape, size, reshape = reshape)
     # how much to add around each side
     py, px = (size-sy)//2, (size-sx)//2
     # add back the possible rounding error
