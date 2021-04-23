@@ -80,7 +80,7 @@ def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorker
         if len(objects) > 0:
             objects = pd.concat(objects).reset_index(drop=True)
             if len(images)>0:
-                images = np.array([pad_images(im, shape, param['length'], reshape = False) for im,shape in zip(images, objects['shapeX'])])
+                images = np.array([pad_images(im, shape, param['length'], reshape = True) for im,shape in zip(images, objects['shapeX'])])
                 images = np.array(images).astype(np.uint8)
             return objects, images
         else:  # return empty DataFrame
