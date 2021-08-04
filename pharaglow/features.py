@@ -5,7 +5,7 @@ import pims
 import numpy as np
 from numpy.linalg import norm
 from skimage import util
-from skimage.filters import threshold_li, gaussian
+from skimage.filters import threshold_li, threshold_yen, gaussian
 from skimage.morphology import skeletonize, watershed, disk, remove_small_holes, remove_small_objects
 from skimage import img_as_float, img_as_ubyte
 from skimage.segmentation import morphological_chan_vese, inverse_gaussian_gradient,checkerboard_level_set
@@ -32,7 +32,7 @@ def thresholdPharynx(im):
         input: image of shape (N,M) 
         output: binary image (N,M).
     """
-    mask = im>threshold_li(im)
+    mask = im>threshold_yen(im)
     labeled = label(mask)
     # keep only the largest item
     area = 0
@@ -80,8 +80,8 @@ def fitSkeleton(ptsX, ptsY, func = pharynxFunc):
     nP = len(ptsX)
     x = np.arange(nP)
     # fit each axis separately
-    poptX, pcov = curve_fit(func, x, ptsX, p0=(1,1,1))
-    poptY, pcov = curve_fit(func, x, ptsY, p0 = (1,1,1))
+    poptX, pcov = curve_fit(func, x, ptsX, p0=(np.mean(ptsX),1,1))
+    poptY, pcov = curve_fit(func, x, ptsY, p0 = (np.mean(ptsY),1,1))
     
     return poptX, poptY
 
@@ -231,7 +231,7 @@ def gradientPharynx(im):
             im: image (M,N)
         output: gradient of image (M,N)
     """
-    im = util.img_as_ubyte(im)
+    #im = util.img_as_ubyte(im)
     denoised = rank.median(im, disk(1))
     gradient = rank.gradient(denoised, disk(1))
     return gradient#util.img_as_ubyte(gradient)

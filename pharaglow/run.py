@@ -26,6 +26,8 @@ def runPharaglowSkel(im):
 
     mask = pg.thresholdPharynx(im)
     skel = pg.skeletonPharynx(mask)
+    if np.sum(mask) == 0:
+        return mask.ravel(), np.nan, np.nan
     order = pg.sortSkeleton(skel)
     ptsX, ptsY = np.where(skel)
     ptsX, ptsY = ptsX[order], ptsY[order]
@@ -138,27 +140,30 @@ def runPharaglowOnImage(image, framenumber, params, **kwargs):
         run_all = False
     colnames = ['Mask', 'SkeletonX', 'SkeletonY','ParX', 'ParY', 'Xstart', 'Xend', 'Centerline', 'dCl', 'Widths', \
         'Contour','Gradient', 'Straightened', 'Kymo', 'KymoGrad']
-    
     # skeletonize
     mask, skelX, skelY = runPharaglowSkel(image)
-    #centerline fit
-    parX, parY, xstart, xend, cl, dCl, widths, contour = runPharaglowCL(mask,skelX, skelY, params['length'])
-    # image transformation operations
-    grad, straightened = runPharaglowImg(image, xstart,xend,\
+    if np.sum(mask) == 0:
+        results = np.ones(len(colnames))
+    else:
+        #centerline fit
+        parX, parY, xstart, xend, cl, dCl, widths, contour = runPharaglowCL(mask,skelX, skelY, params['length'])
+        # image transformation operations
+        grad, straightened = runPharaglowImg(image, xstart,xend,\
                                             parX, parY, params['widthStraight'],\
                                             params['nPts'])
-    results = [mask, skelX, skelY, parX, parY, xstart, xend, cl, dCl, widths, contour, grad, straightened]
-    if run_all:
-        # run kymographs
-        kymo= runPharaglowKymo(image, cl, widths, linewidth = params['linewidth'])
-        # run kymographs
-        kymograd = runPharaglowKymo(grad, cl, widths, linewidth = params['linewidth'])
-        results.append(kymo, kymograd)
+        results = [mask, skelX, skelY, parX, parY, xstart, xend, cl, dCl, widths, contour, grad, straightened]
+        if run_all:
+            # run kymographs
+            kymo= runPharaglowKymo(image, cl, widths, linewidth = params['linewidth'])
+            # run kymographs
+            kymograd = runPharaglowKymo(grad, cl, widths, linewidth = params['linewidth'])
+            results.append(kymo, kymograd)
     data = {}
     for col, res in zip(colnames,results):
         data[col] = res
     df = pd.DataFrame([data], dtype = 'object')
     df['frame'] = framenumber
+    print('Done', framenumber)
     return df, 
   
 
