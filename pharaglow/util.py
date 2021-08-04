@@ -58,7 +58,7 @@ def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorker
     images = []
     try:
         for i, res in enumerate(func(detection_func, zip(*args, framenumbers))):
-            if i%30 ==0:
+            if i%10 ==0:
                 print(f'Analyzing image {i} of {len(args[0])}')
             if len(res[0]) > 0:
                 # Store if features were found
@@ -160,7 +160,7 @@ def get_im(df, colnames, lengthX):
 
 def pad_images(im, shape, size, reshape = True):
     # make image from list
-    im = np.array(im, dtype = int)
+    im = np.array(im, dtype = uint16)
     if reshape:
         im = im.reshape(-1, shape)
     # pad an image to square
