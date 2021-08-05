@@ -26,7 +26,8 @@ def runPharaglowSkel(im):
 
     mask = pg.thresholdPharynx(im)
     skel = pg.skeletonPharynx(mask)
-    if np.sum(mask) == 0:
+    # if the image is empty or nearly empty
+    if np.sum(mask) == 0 or np.sum(skel)<6:
         return mask.ravel(), np.nan, np.nan
     order = pg.sortSkeleton(skel)
     ptsX, ptsY = np.where(skel)
@@ -142,8 +143,8 @@ def runPharaglowOnImage(image, framenumber, params, **kwargs):
         'Contour','Gradient', 'Straightened', 'Kymo', 'KymoGrad']
     # skeletonize
     mask, skelX, skelY = runPharaglowSkel(image)
-    if np.sum(mask) == 0:
-        results = np.ones(len(colnames))
+    if np.sum(mask) == 0 or np.any(np.isnan(skelX)) or np.any(np.isnan(skelY)):
+        results = np.ones(len(colnames))*np.nan
     else:
         #centerline fit
         parX, parY, xstart, xend, cl, dCl, widths, contour = runPharaglowCL(mask,skelX, skelY, params['length'])
@@ -163,7 +164,7 @@ def runPharaglowOnImage(image, framenumber, params, **kwargs):
         data[col] = res
     df = pd.DataFrame([data], dtype = 'object')
     df['frame'] = framenumber
-    print('Done', framenumber)
+    #print('Done', framenumber)
     return df, 
   
 
