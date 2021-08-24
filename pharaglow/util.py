@@ -80,7 +80,7 @@ def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorker
         if len(objects) > 0:
             objects = pd.concat(objects).reset_index(drop=True)
             if len(images)>0:
-                images = np.array([pad_images(im, shape, param['length'], reshape = True) for im,shape in zip(images, objects['shapeX'])])
+                images = np.array([pad_images(im, shape, param['length'], reshape = True, depth=depth) for im,shape in zip(images, objects['shapeX'])])
                 images = np.array(images).astype(depth)
             return objects, images
         else:  # return empty DataFrame
@@ -158,9 +158,9 @@ def get_im(df, colnames, lengthX):
     return unravelImages(df[colnames].to_numpy(), lengthX)
 
 
-def pad_images(im, shape, size, reshape = True):
+def pad_images(im, shape, size, reshape = True, depth = 'uint8'):
     # make image from list
-    im = np.array(im, dtype = uint16)
+    im = np.array(im, dtype = depth)
     if reshape:
         im = im.reshape(-1, shape)
     # pad an image to square
