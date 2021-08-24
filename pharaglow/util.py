@@ -58,7 +58,7 @@ def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorker
     images = []
     try:
         for i, res in enumerate(func(detection_func, zip(*args, framenumbers))):
-            if i%10 ==0:
+            if i%1000 ==0:
                 print(f'Analyzing image {i} of {len(args[0])}')
             if len(res[0]) > 0:
                 # Store if features were found
