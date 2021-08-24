@@ -24,7 +24,7 @@ def parallelize_dataframe(df, func, params, n_cores):
     return df
 
 
-def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorkers = 5, output= None):
+def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorkers = 5, output= None, depth = 'uint8', **kwargs):
     """use multiprocessing to speed up image analysis. This is inspired by the trackpy.batch function.
     arg:s contains iterables eg. (frames, masks) or just frames that will be iterated through.
     param: parameters given to all jobs
@@ -81,7 +81,7 @@ def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorker
             objects = pd.concat(objects).reset_index(drop=True)
             if len(images)>0:
                 images = np.array([pad_images(im, shape, param['length'], reshape = True) for im,shape in zip(images, objects['shapeX'])])
-                images = np.array(images).astype(np.uint8)
+                images = np.array(images).astype(depth)
             return objects, images
         else:  # return empty DataFrame
             warnings.warn("No objects found in any frame.")
