@@ -35,7 +35,7 @@ def runPharaglowSkel(im):
     return mask.ravel(), ptsX, ptsY
 
 
-def runPharaglowCL(mask, ptsX, ptsY, length, nPts = 100):
+def runPharaglowCL(mask, ptsX, ptsY, length, **kwargs):
     """Fit centerline points and detect object morphology.
             mask: binary image, unraveled
             ptsX: coordinates of centerline along X
@@ -52,16 +52,11 @@ def runPharaglowCL(mask, ptsX, ptsY, length, nPts = 100):
     mask = pgu.unravelImages(mask, length)
     # getting centerline and widths along midline
     poptX, poptY = pg.fitSkeleton(ptsX, ptsY)
-    contour = pg.morphologicalPharynxContour(mask, scale = 4, smoothing=2)
-    xstart, xend = pg.cropcenterline(poptX, poptY, contour, nP = len(ptsX))
-    # extend a bit to include all bulbs
-    #l = np.abs(xstart-xend)
-    #xstart -= 0.05*l
-    #xend += 0.05*l
-    # make sure centerline isn't too short if something goes wrong
-    if np.abs(xstart-xend) < 0.5*len(ptsX):
-        xstart, xend = 0, len(ptsX)
-    xs = np.linspace(xstart, xend, nPts)
+    scale=  kwargs.pop('scale', 4)
+    contour = pg.morphologicalPharynxContour(mask, scale)
+    xstart, xend = pg.cropcenterline(poptX, poptY, contour)
+    # create uniform spacing along line
+    xs = np.linspace(xstart, xend, 100)
     cl = pg.centerline(poptX, poptY, xs)
     dCl = pg.normalVecCl(poptX, poptY, xs)
     widths = pg.widthPharynx(cl, contour, dCl)
@@ -135,6 +130,7 @@ def pharynxorientation(df):
 
 def runPharaglowOnImage(image, framenumber, params, **kwargs):
     """"run pharaglow-specific image analysis on a single image."""
+    
     if 'run_all' in kwargs.keys():
         run_all = kwargs['run_all']
     else:
@@ -147,7 +143,8 @@ def runPharaglowOnImage(image, framenumber, params, **kwargs):
         results = np.ones(len(colnames))*np.nan
     else:
         #centerline fit
-        parX, parY, xstart, xend, cl, dCl, widths, contour = runPharaglowCL(mask,skelX, skelY, params['length'])
+        scale = params.pop('scale', 4)
+        parX, parY, xstart, xend, cl, dCl, widths, contour = runPharaglowCL(mask,skelX, skelY, params['length'], scale = scale)
         # image transformation operations
         grad, straightened = runPharaglowImg(image, xstart,xend,\
                                             parX, parY, params['widthStraight'],\

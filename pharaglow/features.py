@@ -6,11 +6,12 @@ import numpy as np
 from numpy.linalg import norm
 from skimage import util
 from skimage.filters import threshold_li, threshold_yen, gaussian
-from skimage.morphology import skeletonize, watershed, disk, remove_small_holes, remove_small_objects
+from skimage.morphology import skeletonize, watershed, disk, remove_small_holes, remove_small_objects, binary_closing, binary_opening
 from skimage import img_as_float, img_as_ubyte
 from skimage.segmentation import morphological_chan_vese, inverse_gaussian_gradient,checkerboard_level_set
 from skimage.transform import rescale
 from scipy.cluster.hierarchy import linkage, leaves_list
+from scipy.interpolate import CubicSpline
 from scipy.optimize import curve_fit
 from skimage.filters import rank, threshold_li, gaussian, threshold_otsu
 from skimage.measure import find_contours, profile_line, regionprops, label
@@ -33,6 +34,8 @@ def thresholdPharynx(im):
         output: binary image (N,M).
     """
     mask = im>threshold_yen(im)
+    mask = binary_opening(mask)
+    mask = binary_closing(mask)
     labeled = label(mask)
     # keep only the largest item
     area = 0
@@ -66,8 +69,9 @@ def sortSkeleton(skeleton):
 def pharynxFunc(x, *p, deriv = 0):
     """defines a cubic polynomial helper function"""
     if deriv==1:
-        return p[1] + 2*p[2]*x
-    return p[0] + p[1]*x + p[2]*x**2
+        return p[1] + 2*p[2]*x + 3*p[3]*x**2 #+ 4*p[4]*x**4
+    return p[0] + p[1]*x + p[2]*x**2 + p[3]*x**3 #+ p[4]*x**5
+
 
 
 def fitSkeleton(ptsX, ptsY, func = pharynxFunc):
@@ -78,10 +82,10 @@ def fitSkeleton(ptsX, ptsY, func = pharynxFunc):
         output: optimal fit parameters of pharynxFunc
     """
     nP = len(ptsX)
-    x = np.arange(nP)
+    x = np.linspace(0, 100, nP)
     # fit each axis separately
-    poptX, pcov = curve_fit(func, x, ptsX, p0=(np.mean(ptsX),1,1))
-    poptY, pcov = curve_fit(func, x, ptsY, p0 = (np.mean(ptsY),1,1))
+    poptX, pcov = curve_fit(func, x, ptsX, p0=(np.mean(ptsX),1,1,0.1,0.1))
+    poptY, pcov = curve_fit(func, x, ptsY, p0 = (np.mean(ptsY),1,1,0.1,0.1))
     
     return poptX, poptY
 
@@ -108,23 +112,26 @@ def morphologicalPharynxContour(mask, scale = 4, **kwargs):
     return contour
 
 
-def cropcenterline(poptX, poptY, contour, nP):
+def cropcenterline(poptX, poptY, contour):
     """Define start and end point of centerline by crossing of contour. 
     Inputs: poptX, poptY optimal fit parameters describing pharynx shape/centerline.
             contour: (N,2) array of points describing the pharynx outline.
-            nP: number of points in original skeleton.
+            
     output: start and end coordinate to apply to _pharynxFunc(x) to create a centerline 
     spanning the length of the pharynx.."""
-    xs = np.linspace(-0.25*nP,1.25*nP, 100)
+    xs = np.linspace(-25,125, 150)
     tmpcl = np.c_[pharynxFunc(xs, *poptX), pharynxFunc(xs, *poptY)]
     # update centerline based on crossing the contour
     # we are looking for two crossing points
     distClC = np.sum((tmpcl-contour[:,np.newaxis])**2, axis =-1)
     start, end = np.argsort(np.min(distClC, axis = 0))[:2]
-
-    # update centerline length
+     # update centerline length
     xstart, xend = xs[start],xs[end]
-    return xs[start],xs[end]
+    # check if length makes sense, otherwise retain original
+    if np.abs(start-end) < 50:
+        xstart, xend = 0, 100
+    
+    return xstart, xend
 
 
 def centerline(poptX, poptY, xs):
