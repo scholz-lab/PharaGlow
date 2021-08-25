@@ -4,7 +4,8 @@
 import warnings
 import numpy as np
 import pandas as pd
-from multiprocessing import Pool
+from concurrent.futures import ProcessPoolExecutor
+import multiprocessing as mp
 from functools import partial
 import gc
 import math
@@ -51,14 +52,14 @@ def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorker
         pool = None
     else:
         # prepare imap pool
-        pool = Pool(processes=nWorkers)
-        func = pool.imap
+        pool = ProcessPoolExecutor(max_workers=nWorkers, mp_context=mp.get_context("spawn"))
+        func = pool.map
         
     objects = []
     images = []
     try:
         for i, res in enumerate(func(detection_func, zip(*args, framenumbers))):
-            if i%1000 ==0:
+            if i%100 ==0:
                 print(f'Analyzing image {i} of {len(args[0])}')
             if len(res[0]) > 0:
                 # Store if features were found
@@ -74,7 +75,7 @@ def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorker
     finally:
         if pool:
             # Ensure correct termination of Pool
-            pool.terminate()
+            pool.shutdown()
 
     if output is None:
         if len(objects) > 0:
