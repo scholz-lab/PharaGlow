@@ -65,7 +65,7 @@ def main(parfile, nworkers=1, mock = False, single = False):
     # analysis via papermill
     if mock:
         for j in jobs:
-            sys.stdout(f"{j['inPath']}\n")
+            sys.stdout.write(f"{j['inPath']}\n")
         sys.stdout.write(f'Created {len(jobs)} jobs for analysis. Mock run only, no analysis.\n')
         sys.exit()
 
