@@ -60,10 +60,12 @@ def main(parfile, nworkers=1, mock = False, single = False):
             if not movie.startswith('.'):
                 pars['inPath'] = subfolder
                 pars['movie'] = movie
-                jobs.append(pars)
+                jobs.append(pars.copy())
 
     # analysis via papermill
     if mock:
+        for j in jobs:
+            sys.stdout(f"{j['inPath']}\n")
         sys.stdout.write(f'Created {len(jobs)} jobs for analysis. Mock run only, no analysis.\n')
         sys.exit()
 
@@ -71,7 +73,7 @@ def main(parfile, nworkers=1, mock = False, single = False):
         # run multiple
         p = Pool(processes = nworkers)
         for i, _ in enumerate(p.imap_unordered(work, jobs)):
-            sys.stdout.write('\rdone {0:%}'.format(i/len(jobs)))
+            sys.stdout.write('\rdone {0:%}\n'.format(i/len(jobs)))
         p.close()
         p.join()
     else:
