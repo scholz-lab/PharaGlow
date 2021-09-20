@@ -119,7 +119,7 @@ def cropcenterline(poptX, poptY, contour):
             
     output: start and end coordinate to apply to _pharynxFunc(x) to create a centerline 
     spanning the length of the pharynx.."""
-    xs = np.linspace(-25,125, 150)
+    xs = np.linspace(-25,125, 200)
     tmpcl = np.c_[pharynxFunc(xs, *poptX), pharynxFunc(xs, *poptY)]
     # update centerline based on crossing the contour
     # we are looking for two crossing points
