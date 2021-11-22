@@ -97,4 +97,3 @@ if __name__=='__main__':
                         help="Analyze a single directory.")
     args = parser.parse_args()
     main(args.parfile, args.nworkers, args.mock, args.single)
-   
