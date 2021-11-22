@@ -51,8 +51,10 @@ def main(parfile, nworkers=1, mock = False, single = False):
 
     # create a dictionary of parameters
     if single:
+        if pars['batchPath'].endswith('/'):
+            pars['batchPath'] = pars['batchPath'][:-1]
         pars['inPath'] = pars['batchPath']
-        pars['movie'] = movie = pars['inPath'].split('/')[-1]
+        pars['movie'] = os.path.basename(pars['batchPath'])
         jobs.append(pars)
     else:
         for subfolder in [f.path for f in os.scandir(pars['batchPath']) if f.is_dir()]:
@@ -65,7 +67,7 @@ def main(parfile, nworkers=1, mock = False, single = False):
     # analysis via papermill
     if mock:
         for j in jobs:
-            sys.stdout.write(f"{j['inPath']}\n")
+            sys.stdout.write(f"{j['movie']}:{j['inPath']}\n")
         sys.stdout.write(f'Created {len(jobs)} jobs for analysis. Mock run only, no analysis.\n')
         sys.exit()
 

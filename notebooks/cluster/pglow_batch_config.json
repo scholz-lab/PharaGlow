@@ -1,5 +1,5 @@
 {"parameterfile": "/gpfs/soma_fs/home/scholz/Code/PPa_params_1x.txt",
-    "inPath" : "/gpfs/soma_fs/scratch/mscholz/guniz_raw/210813/",
+    "inPath" : "/gpfs/soma_fs/scratch/mscholz/guniz_raw/210813/GGE0023c",
     "outPath" : "/gpfs/soma_fs/scratch/mscholz/guniz_analyzed/",
     "templateNotebook" : "/gpfs/soma_fs/home/scholz/Code/PharaGlow/notebooks/PharaGlowMain.ipynb",
     "nWorkers": 40,
