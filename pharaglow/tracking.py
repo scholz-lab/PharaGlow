@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""tracking.py: trackpy based worm tracking."""
+"""tracking.py: Detection of worms and trackpy-based worm tracking."""
 
 import numpy as np
 import pandas as pd
@@ -25,47 +25,68 @@ from .util import pad_images
 
 @pims.pipeline
 def subtractBG(img, bg):
-    """
-    Subtract a background from the image.
-    """
+    """Subtract a background from the image.
+
+    Args:
+        img (array or pims.Frame): input image
+        bg (array or pims.Frame): second image with background
+
+    Returns:
+        array: background subtracted image
+    """    
     tmp = img-bg
     mi, ma = np.min(tmp), np.max(tmp)
     tmp -= mi
-    #if ma != mi:
-    #    tmp /=(ma - mi)
     return util.img_as_float(tmp)
 
 
 @pims.pipeline
 def getThreshold(img):
-    """"return a global threshold value"""
+    """"return a global threshold value for an image using yen's method.
+    Returns:
+        float: theshold value
+    """    
     return filters.threshold_yen(img)#, initial_guess = lambda arr: np.quantile(arr, 0.5))
 
 
 @pims.pipeline
-def preprocess(img, minSize = 800, threshold = None, smooth = 0, dilate = False):
+def preprocess(img, threshold = None, smooth = 0, dilate = False):
     """
     Apply image processing functions to return a binary image. 
+
+    Args:
+        img (array or pims.Frame): input image
+        smooth (int): apply a gaussian filter to img with width=smooth 
+        threshold (float): threshold value to apply after smoothing (default: None)
+        dilate (int): apply a binary dilation n = dilate times (default = False)
+
+    Returns:
+        array: binary (masked) image 
     """
     # smooth
     if smooth:
         img = filters.gaussian(img, smooth, preserve_range = True)
     # Apply thresholds
     if threshold ==None:
-        threshold = filters.threshold_yen(img)#, initial_guess=skimage.filters.threshold_otsu)
-    #mask = filters.rank.threshold(img, morphology.square(3), out=None, mask=None, shift_x=False, shift_y=False)
+        threshold = filters.threshold_yen(img)
     mask = img >= threshold
     # dilations
-    #mask = morphology.remove_small_holes(mask, area_threshold=12, connectivity=1, in_place=True)
     for i in range(dilate):
         mask = ndi.binary_dilation(mask)
-    #mask = morphology.remove_small_objects(mask, min_size=minSize, connectivity=1, in_place=True)
     return mask
 
 
 @pims.pipeline
-def refineWatershed(img, size, filter_sizes = [3,4,5]):
-    """Refine segmentation using refined thresholding."""
+def refineWatershed(img, min_size, filter_sizes = [3,4,5]):
+    """"Refine segmentation using thresholding with different filtered images. Favors detection of two objects.
+    Args:
+        img (array or pims.Frame): input image
+        min_size (int, float): minimal size of objects to retain as labels
+        filter_sizes (list, optional): filter sizes to try until objects are separated. Defaults to [3,4,5].
+
+    Returns:
+        array: labelled image array 
+    """    
     min_mask = np.zeros(img.shape)
     current_no = np.inf
     for s in filter_sizes:
@@ -76,7 +97,7 @@ def refineWatershed(img, size, filter_sizes = [3,4,5]):
         # mask 
         mask = img>filters.threshold_li(img, initial_guess = np.min)
         mask = ndi.binary_closing(mask)
-        mask = morphology.remove_small_objects(mask, min_size=size, connectivity=2, in_place=True)
+        mask = morphology.remove_small_objects(mask, min_size=min_size, connectivity=2, in_place=True)
         labelled, num = label(mask, background=0, connectivity = 2,return_num=True)
         if num ==2:
             return labelled
@@ -86,9 +107,21 @@ def refineWatershed(img, size, filter_sizes = [3,4,5]):
     return min_mask.astype(int)
 
 
+def calculateMask(frames, bgWindow = 30 , thresholdWindow = 30, subtract = False, smooth = 0, tfactor = 1, **kwargs):
+    """standard median stack-projection to obtain a background image followd by thresholding and filtering of small objects to get a clean mask.
 
-def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, subtract = False, smooth = 0, tfactor = 1, **kwargs):
-    """standard median stack-projection to obtain a background image followd by thresholding and filtering of small objects to get a clean mask."""
+    Args:
+        frames (array or pims.ImageSequence): image stack with input images
+        bgWindow (int): subsample frames for background creation. Defaults to 30.
+        thresholdWindow (int, optional): subsample frames to calculate the threshold. Use larger values if the objects are dense. Defaults to 30.
+        subtract (bool, optional): calculate and subtract a median-background. Defaults to False.
+        smooth (int, optional): size of gaussian filter for image smoothing. Defaults to 0.
+        tfactor (int, optional): fudge factor to correct threshold. Discouraged. Defaults to 1.
+
+    Returns:
+        array: masked (binary) image array
+    """    
+
     if subtract:
         bg = np.median(frames[::bgWindow], axis=0)
         if np.max(bg) > 0:
@@ -101,15 +134,24 @@ def calculateMask(frames, bgWindow = 15, thresholdWindow = 30, minSize = 50, sub
         tmp = filters.gaussian(tmp, smooth, preserve_range = True)
     # get an overall threshold value and binarize images by using z-stack
     thresh = getThreshold(tmp)*tfactor
-    #threshs = getThreshold(frames[::thresholdWindow])
-    #thresh = np.median(threshs)
-    return preprocess(frames, minSize, threshold = thresh, **kwargs)
+    return preprocess(frames, threshold = thresh, **kwargs)
 
 
 def extractImage(img, mask, length, cmsLocal):
-    """extracts a square image of an object centered around center of mass coordinates with size (length, length). Mask ensures that 
+    """ extracts a square image of an object centered around center of mass coordinates with size (length, length). Mask ensures that 
     only one object is visible if two are in the same region.
-    img is the bounding box region of the object."""
+    img is the bounding box region of the object.
+
+    Args:
+        img (array or pims.Frame): larger image
+        mask (array): binary mask of the same size as img
+        length (int): length of resulting image 
+        cmsLocal (float, float): center point 
+
+    Returns:
+        array: square cutout of (length,length) will be returned
+    """    
+    
     assert length%2==0, "length should be an even number to rounding artefacts."
     im = np.zeros((length, length))
     yc, xc = np.rint(cmsLocal).astype(np.int32)
@@ -144,34 +186,50 @@ def extractImage(img, mask, length, cmsLocal):
     return im
 
 def extractImagePad(img, bbox, pad, mask=None):
-    """ get a larger than bounding box image by padding around the detected object.
-        returns two pandas dataframes:
-        one with each row containing a detected object, its (x,y) location in px and additional properties.
-        The second with unraveled images of each object.
-    """
+    """get a larger than bounding box image by padding around the detected object.
+
+    Args:
+        img (array): input image
+        bbox (tuple): bounding box which lies in img in format (ymin, xmin, ymax, xmax)
+        pad (int): number of pixels to pad around each size. reslting image will be larger by 2*pad on each side.
+        mask (array, optional): binary mask of size img. Defaults to None.
+
+    Returns:
+        array: padded image
+        slice: location/bbox of padded image in original image
+    """    
+
     ymin, xmin, ymax, xmax  = bbox
     sliced = slice(np.max([0, ymin-pad]), ymax+pad), slice(np.max([0, xmin-pad]), xmax+pad)
     if mask is not None:
+        assert mask.shape == img.shape
         img = img*mask
     return img[sliced], sliced
 
 
 def objectDetection(mask, img, frame, params):
-    """label binary image and extract a region of interest around the object."""
+    """label a binary image and extract a region of interest around each labelled object, as well as collect properties of the object in a DataFrame.
+
+    Args:
+        mask (array): binary image
+        img (array): intensity image with same shape as mask
+        frame (int): a number to indicate a time stamp, which will populate the column 'frame'
+        params (dict): parameter dictionary containing image analysis parameters.
+
+    Returns:
+        pd.Dataframe, list: dataframe with information for each image, list of corresponding images.
+    """    
+    assert mask.shape == img.shape, 'Image and Mask size do not match.'
     df = pd.DataFrame()
     crop_images = []
     label_image = skimage.measure.label(mask, background=0, connectivity = 1)
     label_image = skimage.segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
-    #diffImage = util.img_as_float(nextImg) - util.img_as_float(img)
+    
     for region in skimage.measure.regionprops(label_image, intensity_image=img):
         if region.area > params['minSize'] and region.area < params['maxSize']:
             # get the image of an object
-            #im = extractImage(region.intensity_image, region.image, params['length'], region.local_centroid)
-            #diffIm = extractImage(diffImage[region.slice], region.image, params['length'], region.local_centroid)
-            # go back to smaller images
             im, sliced = extractImagePad(img, region.bbox, params['pad'], mask=label_image==region.label)
             bbox = [sliced[0].start, sliced[1].start, sliced[0].stop, sliced[1].stop]
-            #diffIm = extractImagePad(diffImage, region.bbox, params['pad'], mask=label_image==region.label)
             # bbox is min_row, min_col, max_row, max_col
             # Store features which survived to the criterions
             df = df.append([{'y': region.centroid[0],
@@ -196,8 +254,6 @@ def objectDetection(mask, img, frame, params):
             for part in skimage.measure.regionprops(labeled, intensity_image=img[region.slice]):
                 if part.area > params['minSize']*0.75 and part.area < params['maxSize']:
                     # get the image of an object
-                    #im = extractImage(part.intensity_image, part.image, params['length'], part.local_centroid)
-                    #diffIm = extractImage(diffImage[part.slice], part.image, params['length'], part.local_centroid)
                     # account for the offset from the region
                     yo, xo,_,_ = region.bbox
                     offsetbbox = np.array((part.bbox))+np.array([yo,xo,yo,xo])
@@ -232,30 +288,19 @@ def objectDetection(mask, img, frame, params):
     return df, crop_images
 
 
-# def runfeatureDetection(frames, masks, frameIndex, params):
-#     """detect objects in each image and use region props to extract features and store a local image.
-#         frames: contains the image stack
-#         masks: matching binary stack
-#         frameIndex: indicates a time corresponding to each image e.g. integers or timestamps.
-#         params: analysis parameters passed to objectDetection()
-#     """
-#     feat = []
-#     cropped_images = []
-#     print(f'Analyzing frames {frameIndex[0]} to {frameIndex[-1]}')
-#     sys.stdout.flush()
-#     for num, img in enumerate(frames):
-#         df, crop_ims = objectDetection(masks[num], img, frameIndex[num], params)
-#         feat.append(df)
-#         cropped_images+= crop_ims
-#     features = pd.concat(feat)
-#     features = features.reset_index()
-#     return features, cropped_images
-
-
 def linkParticles(df, searchRange, minimalDuration, **kwargs):
-    """input is a pandas dataframe that contains at least the columns 'frame' and 'x', 'y'. the function
-    inplace modifies the input dataframe by adding a column called 'particles' which labels the objects belonging to one trajectory. 
-    **kwargs can be passed to the trackpy function link_df to modify tracking behavior."""
+    """ Link detected particles into trajectories.
+    **kwargs can be passed to the trackpy function link_df to modify tracking behavior.
+
+    Args:
+        df (pd.dataFrame): pandas dataframe that contains at least the columns 'frame' and 'x', 'y'.
+        searchRange (float): how far particles can move in one frame
+        minimalDuration (int): minimal duration of a track in frames
+
+    Returns:
+        pd.dataFrame: inplace modified dataframe with an added column called 'particles' which labels the objects belonging to one trajectory. 
+    """    
+   
     traj = tp.link_df(df, searchRange, **kwargs)
     # filter short trajectories
     traj = tp.filter_stubs(traj, minimalDuration)
@@ -266,7 +311,16 @@ def linkParticles(df, searchRange, minimalDuration, **kwargs):
 
 def interpolateTrajectories(traj, columns = None):
     """given a dataframe with a trajectory, interpolate missing frames.
-    The interpolate function ignores non-pandas types, so no image interpolations."""
+    The interpolate function ignores non-pandas types, so some columns will not be interpolated.
+
+    Args:
+        traj (pd.dataFrame): pandas dataframe containing at minimum the columns 'frame' and the columns given in colums.
+        columns (list(str), optional): list of columns to interpolate. Defaults to None, which means all columns are attempted to be interpolated.
+
+    Returns:
+        pd.dataFrame: dataframe with interpolated trajectories
+    """    
+    
     idx = pd.Index(np.arange(traj['frame'].min(), traj['frame'].max()+1), name="frame")
     traj = traj.set_index("frame").reindex(idx).reset_index()
     if columns is not None:
@@ -277,19 +331,32 @@ def interpolateTrajectories(traj, columns = None):
 
 
 def cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine = False):
-    """Using the interpolated center of mass coordindates (x,y), fill in missing images. img is a full size frame."""
+    """Using the interpolated center of mass coordindates (x,y), fill in missing images. img is a full size frame.
+
+    Args:
+        img (array): original image
+        x (float): x-coordinate 
+        y (float): y-coordinate
+        lengthX (int): length of resulting image
+        lengthY (int): length of resulting image
+        size (float): expected minimal size for a relevant object
+        refine (bool, optional): Use filtering to separate potentially colliding objects. Defaults to False.
+
+    Returns:
+        list: image unraveled as 1d list
+        tuple: bounding box 
+        int: length of first image axis
+        int: length of second image axis
+    """    
+    
     xmin, xmax = int(x - lengthX//2), int(x + lengthX//2)
     ymin, ymax = int(y-lengthY//2), int(y+lengthY//2)
     sliced = slice(np.max([0, ymin]), np.min(ymax)), slice(np.max([0, xmin]), xmax)
     im = img[sliced]
     # actual size in case we went out of bounds
     ly, lx = im.shape
-    #padx = [np.max([-xmin, 0]), np.max([xmax-img.shape[1], 0])]
-    #pady = [np.max([-ymin, 0]), np.max([ymax-img.shape[0], 0])]
-    #im = np.pad(im, [pady, padx] , mode='constant')
     # refine to a single animal if neccessary
     if refine:
-    #    #mask = preprocess(im, minSize = 0, threshold = None, smooth = 0)
         labeled = refineWatershed(im, size)
         d = np.sqrt(lx**2+ly**2)
         if len(np.unique(labeled))>2:
@@ -305,14 +372,41 @@ def cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine = False):
 
 
 def fillMissingImages(imgs, frame, x, y, lengthX, lengthY, size, refine = False):
-    """run this on a dataframe to interpolate images from missing coordinates."""
+    """ Run this on a dataframe to interpolate images from previously missing, now interpolated coordinates.
+
+    Args:
+        img (array): original image
+        x (float): x-coordinate 
+        y (float): y-coordinate
+        lengthX (int): length of resulting image
+        lengthY (int): length of resulting image
+        size (float): expected minimal size for a relevant object
+        refine (bool, optional): Use filtering to separate potentially colliding objects. Defaults to False.
+
+    Returns:
+        list: image unraveled as 1d list
+        int: ymin of bounding box
+        int: xmin of bounding box
+        int: ymax of bounding box
+        int: xmax of bounding box
+        int: length of first image axis
+        int: length of second image axis
+    """    
     img = imgs[frame]
     im, sliced, ly, lx = cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine)
     return im, sliced[0],sliced[1],sliced[2],sliced[3], ly, lx
 
 
-
 def parallelWorker(args, **kwargs):
+    """helper wrapper to run object detection with multiprocessing.
+
+    Args:
+        args (div.): arguments for objectDetection
+
+    Returns:
+        pd.Dataframe: dataframe with information for each image
+        list: list of corresponding images.
+    """    
     return objectDetection(*args, **kwargs)
 
 
@@ -370,20 +464,32 @@ def parallel_imageanalysis(frames, masks, param, framenumbers = None, parallelWo
             return objects, images
         else:  # return empty DataFrame
             warnings.warn("No objects found in any frame.")
-            return pd.DataFrame(columns=list(features.columns) + ['frame']), images
+            return pd.DataFrame(columns=list(objects.columns) + ['frame']), images
     else:
         return output
 
 
-def interpolate_helper(rawframes, ims, tmp, param):
+def interpolate_helper(rawframes, ims, tmp, param, columns = ['x', 'y', 'shapeX', 'shapeY', 'particle']):
     """wrapper to make the code more readable. This interpolates all missing images in a trajectory.
-    check if image is all zeros - then we insert an small image from the original movie around the interpolated coordinates.
-    """
+    check if currently the image is all zeros - then we insert an small image from the original movie around the interpolated coordinates.
+
+    Args:
+        rawframes (pims.ImageSequence): sequence of images 
+        ims (np.array): stack of small images around detected objects corresponding to rows in tmp
+        tmp (pd.dataFrame): pandas dataframe with an onject and its properties per row
+        param (dict): dictionary of image analysis parameters
+        columns (list, optional): columns to interpolate. Defaults to ['x', 'y', 'shapeX', 'shapeY', 'particle'].
+
+    Returns:
+        pd.DataFrame: interpolated version of tmp with missing values interpolated
+        np.array: array of images with interpolated images inserted at the appropriate indices
+    """    
+   
     # create a new column keeping track if this row is interpolated or already in the image stack
     tmp.insert(0, 'has_image', 1)
     tmp.insert(0, 'image_index', np.arange(len(ims)))
     # generate an interpolated trajectory where all frames are accounted for
-    traj_interp = interpolateTrajectories(tmp, columns = ['x', 'y', 'shapeX', 'shapeY', 'particle'])
+    traj_interp = interpolateTrajectories(tmp, columns = columns)
     # make sure we have a range index
     traj_interp.reset_index()
     # iterate through the dataframe and if the image is all nan, attempt to fill it
