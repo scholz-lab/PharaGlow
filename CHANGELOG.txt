@@ -1,3 +1,13 @@
+version 0.91
+============
+notebook changes:
+- unified setup function to create all paths and logger etc
+- updated runscript for parallel submission includes a 'dry-run'
+
+main module: 
+- improved robustness to other imaging setups including different depth, scalings
+- include adaptive peak detection
+
 version 0.9
 ============
 notebook changes: 
