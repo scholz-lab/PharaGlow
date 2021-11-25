@@ -105,7 +105,6 @@ def hampel(vals_orig, k=7, t0=3):
     k: size of window (including the sample; 7 is equal to 3 on either side of value)
     t0: how many sigma away to call it an outlier
     '''
-    
     #Make copy so original not edited
     vals = vals_orig.copy()
     
@@ -119,6 +118,47 @@ def hampel(vals_orig, k=7, t0=3):
     outlier_idx = difference > threshold
     vals[outlier_idx] = rolling_median[outlier_idx] 
     return(vals)
+
+
+def preprocess(p, w_bg, w_sm, win_type_bg = 'hamming', win_type_sm = 'boxcar', **kwargs):
+    """preprocess a trace with rolling window brackground subtraction."""
+    bg = p.rolling(w_bg, min_periods=1, center=True, win_type=win_type_bg).median()
+    return (p - bg).rolling(w_sm, min_periods=1, center=True, win_type=win_type_sm).mean(), bg
+
+
+def find_pumps(p, heights = np.arange(0.01, 5, 0.1), min_distance = 5, sensitivity = 0.99, **kwargs):
+    """peak detection in a background subtracted trace assuming real 
+        peaks have to be at least min_distance samples apart."""
+    tmp = []
+    all_peaks = []
+    # find peaks at different heights
+    for h in heights:
+        peaks = find_peaks(p, prominence = h, **kwargs)[0]
+        tmp.append([len(peaks), np.mean(np.diff(peaks)>=min_distance)])
+        all_peaks.append(peaks)
+    tmp = np.array(tmp)
+    # set the valid peaks score to zero if no peaks are present
+    tmp[:,1][~np.isfinite(tmp[:,1])]= 0
+    # calculate random distribution of peaks in a series of length l (actually we know the intervals will be exponential)
+    null = []
+    l = len(p)
+    for npeaks in tmp[:,0]:
+        locs = np.random.randint(0,l,(100, int(npeaks)))
+        # calculate the random error rate - and its stdev
+        null.append([np.mean(np.diff(np.sort(locs), axis =1)>=min_distance), np.std(np.mean(np.diff(np.sort(locs), axis =1)>=min_distance, axis =1))])
+    null = np.array(null)
+    # now find the best peak level - larger than random, with high accuracy
+    # subtract random level plus 1 std:
+    metric_random = tmp[:,1] - (null[:,0]+null[:,1])
+    # check where this is still positive and where the valid intervals are 1 or some large value
+    valid = np.where((metric_random>0)*(tmp[:,1]>=sensitivity))[0]
+    if len(valid)>0:
+        #peaks = all_peaks[valid[np.argmax(tmp[:,0][valid])]]
+        h = heights[valid[np.argmax(tmp[:,0][valid])]]
+        peaks = find_peaks(p, prominence = h, distance = min_distance, **kwargs)[0]
+    else:
+        return [], tmp, null
+    return peaks, tmp, null
     
 
 def pumps(data):
@@ -129,81 +169,5 @@ def pumps(data):
     #k = np.min(np.mean(straightIms[:,150:,], axis =2), axis =1)
     return np.ravel(k)
 
-def manAutoComp(time0, pump0, v, manp, inside):
-    # crop automatic and manual to the same time frame
-    mi, ma = int(np.nanmax([manp.min(), np.nanmin(time0)]))-5, int(np.nanmin([manp.max(), np.nanmax(time0)]))
-    #print(mi,ma)
-    manp = manp[(manp>=mi)&(manp<=ma)]
-    time = time0[(time0>=mi)&(time0<=ma)]
-    pump = pump0[(time0>=mi)&(time0<=ma)]
-    v = v[(time0>=mi)&(time0<=ma)]
-    inside = inside[(time0>=mi)&(time0<=ma)]
-    # extract outliers and remove trends
-    #pump = pump- util.smooth(pump, 600)
-    
-    pump, ind = nanOutliers(pump.values, window_size = 300, n_sigmas=3)
-    pump, ind = pump[0], ind[1]
-    pump = pump - util.smooth(pump, 30)
-    pump = pd.Series(pump)
-    
-    # rescale to percentile
-    pump -= np.mean(pump)
-    pump/= np.percentile(pump, [0.5])#/2#/5
-    return time, pump, manp, v, inside
-
-## ROC curve for peak detection
-def rocPeaks(pump, pars):
-    ps, roc = [], []
-    w = 2
-    for p in pars:
-        peaks = find_peaks(pump, height=(p, 1.75), threshold=None, distance=5, prominence=None,\
-                    width=None, wlen=10, rel_height=None, plateau_size=None)[0]
-        meanPeak = np.array([pump[peak-w:peak+w+1] for peak in peaks if (peak +w <len(pump)) and peak-w>0]).T
-        ps.append(peaks)
-        roc.append(meanPeak)
-    return ps, roc
-    
-
-def preprocess(p, w_bg, w_sm, **kwargs):
-    bg = p.rolling(w_bg, min_periods=1, center=True, win_type='hamming').mean()
-    return (p - bg).rolling(w_sm, min_periods=1, center=True, win_type='parzen').mean(), bg
 
 
-def find_pumps(p, heights = np.arange(0.01, 5, 0.1), min_distance = 5, sensitivity = 0.99, **kwargs):
-    """peak detection in a background subtracted trace assuming real 
-        peaks have to be at least min_distance samples apart."""
-    tmp = []
-    all_peaks = []
-    # find peaks at different heights
-    for h in heights:
-        peaks = find_peaks(p, height = h,threshold =0.0)[0]
-        tmp.append([len(peaks), np.mean(np.diff(peaks)>=min_distance)])
-        all_peaks.append(peaks)
-    tmp = np.array(tmp)
-    # set the valid peaks score to zero if no peaks are present
-    tmp[:,1][~np.isfinite(tmp[:,1])]= 0
-    # calculate random distribution of peaks in a series of length l (actually we know the intervals will be exponential)
-    null = []
-    l = len(p)
-    for npeaks in tmp[:,0]:
-        locs = np.random.randint(0,l,(500, int(npeaks)))
-        # calculate the random error rate - and its stdev
-        null.append([np.mean(np.diff(np.sort(locs), axis =1)>=min_distance), np.std(np.mean(np.diff(np.sort(locs), axis =1)>=5, axis =1))])
-    null = np.array(null)
-    # now find the best peak level - larger than random, with high accuracy
-    # subtract random level plus 1 std:
-    metric_random = tmp[:,1] - (null[:,0]+null[:,1])
-    # check where this is still positive and where the valid intervals are 1 or some large value
-    valid = np.where((metric_random>0)*(tmp[:,1]>=sensitivity))[0]
-    if len(valid)>0:
-        peaks = all_peaks[valid[np.argmax(tmp[:,0][valid])]]
-    else:
-        return [], tmp, null
-    return peaks, tmp, null
-
-
-def bestMatchPeaks(pump, wsDetrend = 10 , wsOutlier = 2, wsDetrendLocal = 2, prs = np.linspace(0.1,5,50)):
-    """DEPRECATED: now calls new find_pumps function."""
-    ### define best match
-    pump = preprocess(pump, wsDetrend, wsDetrendLocal)
-    return find_pumps(pump, heights = prs, min_distance = 5, sensitivity = 0.95)
