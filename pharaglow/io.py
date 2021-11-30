@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """io.py: loading for pharaglow feature files."""
-import numpy as np
+
 import pandas as pd
 import warnings
 import logging
@@ -9,7 +9,17 @@ import logging
 def load(fname, image_depth =8, maxcols = 10000, prefix = "im", **kwargs):
     """load a pharglow features, trajectories or results file.
         We expect columns containing the string 'im' to be image pixels which will convert to uint8.
-    """
+
+    Args:
+        fname (str): filename of the .json file to load. 
+        image_depth (int, optional): bit depth of the images. Defaults to 8.
+        maxcols (int, optional): maximal number of expected columns. Defaults to 10000.
+        prefix (str, optional): prefix to add to the column. Defaults to "im".
+
+    Returns:
+        [type]: [description]
+    """    
+    
     converter = {}
     for i in range(maxcols):
         converter[f'im{i}']= 'uint8'
@@ -19,8 +29,18 @@ def load(fname, image_depth =8, maxcols = 10000, prefix = "im", **kwargs):
     
     
 def log_setup(name, level, fname):
-    '''This function will setup a logger with the name and level you pass as input. 
-    Levels are 10 (debug), 20 (info), 30 (warning), 40 (error), 50 (critical)'''
+    """This function will setup a logger with the name and level you pass as input. 
+    Levels are 10 (debug), 20 (info), 30 (warning), 40 (error), 50 (critical).
+
+    Args:
+        name (str): name of the logger object
+        level (int): logging level {10,20,30,40,50}
+        fname (str): filename for writing the log messages
+
+    Returns:
+        logging.Logger: a logger
+    """    
+    
     
     # start a logger
     logger = logging.getLogger(name)

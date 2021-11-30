@@ -19,7 +19,18 @@ from skimage.measure import find_contours, profile_line, regionprops, label
 
 
 def findLawn(image, smooth = 1, areaHoles = 15000, areaSpots = 50000):
-    """binarize the image of the bacterial lawn."""
+    """binarize the image of the bacterial lawn.
+
+    Args:
+        image (np.array or pims.Frame): image of a bacterial lawn
+        smooth (int, optional): apply gaussian filter of size smooth px. Defaults to 1.
+        areaHoles (int, optional): remove small holes in binary image. Defaults to 15000.
+        areaSpots (int, optional): remove small objects in binary image. Defaults to 50000.
+
+    Returns:
+        np.array: binarized image
+    """    
+    
     image = gaussian(image, smooth, preserve_range = True)
     thresh = threshold_otsu(image)
     binary = image > thresh
@@ -29,10 +40,15 @@ def findLawn(image, smooth = 1, areaHoles = 15000, areaSpots = 50000):
 
 @pims.pipeline
 def thresholdPharynx(im):
-    """use li threshold to obtain mask of pharynx.
-        input: image of shape (N,M) 
-        output: binary image (N,M).
-    """
+    """Use Yen threshold to obtain mask of pharynx.
+
+    Args:
+        im (numpy.array or pims.Frame): image
+
+    Returns:
+        np.array: binary image with only the largest object
+    """    
+   
     mask = im>threshold_yen(im)
     mask = binary_opening(mask)
     mask = binary_closing(mask)
@@ -47,18 +63,29 @@ def thresholdPharynx(im):
 
 
 def skeletonPharynx(mask):
-    """use skeletonization to obatain midline of pharynx.
-        input: binary mask (N, M) 
-        output: skeleton (N,M)"""
+    """ Use skeletonization to obatain midline of pharynx.
+
+    Args:
+        mask (numpy.array): binary mask of the pharynx
+
+    Returns:
+        numpy.array: skeleton of mask
+    """    
+
     return skeletonize(mask)
 
 @pims.pipeline
 def sortSkeleton(skeleton):
     """Use hierarchical clustering with optimal ordering to get \
         the best path through the skeleton points.
-        input: skeletonized image
-        output: sorted points on skeleton.
-        """
+
+    Args:
+        skeleton (numpy.array): skeletonized image of an object
+
+    Returns:
+        list: list of coordinates ordered by distance
+    """    
+    
     # coordinates of skeleton
     ptsX, ptsY = np.where(skeleton)
     # cluster
@@ -67,20 +94,33 @@ def sortSkeleton(skeleton):
 
 
 def pharynxFunc(x, *p, deriv = 0):
-    """defines a cubic polynomial helper function"""
+    """ Defines a cubic polynomial helper function.
+
+    Args:
+        x (numpy.array or list): list of coordinates to evaluate function on
+        deriv (int, optional): return the polynomial or its first derivative Defaults to 0. {0,1}
+
+    Returns:
+        numpy.array or list: polynomial evaluated at x
+    """    
+    
     if deriv==1:
         return p[1] + 2*p[2]*x + 3*p[3]*x**2 #+ 4*p[4]*x**4
     return p[0] + p[1]*x + p[2]*x**2 + p[3]*x**3 #+ p[4]*x**5
 
 
-
 def fitSkeleton(ptsX, ptsY, func = pharynxFunc):
     """Fit a (cubic) polynomial spline to the centerline. The input should be sorted skeleton coordinates.
-        ptsX: sorted x coordinate
-        ptsY: sorted y coordinate
-        func: Fit function, by default a cubic polynomial.
-        output: optimal fit parameters of pharynxFunc
-    """
+
+    Args:
+        ptsX (numpy.array or list): sorted x coordinates
+        ptsY (numpy.array or list): sorted y coordinates
+        func (function, optional): function to fit. Defaults to pharynxFunc.
+
+    Returns:
+        array: optimal fit parameters of pharynxFunc
+    """    
+  
     nP = len(ptsX)
     x = np.linspace(0, 100, nP)
     # fit each axis separately
@@ -91,11 +131,17 @@ def fitSkeleton(ptsX, ptsY, func = pharynxFunc):
 
 
 def morphologicalPharynxContour(mask, scale = 4, **kwargs):
-    """use morphological contour finding on the mask image to get a nice outline.
-        We will upsample the image to get more exact outlines.
+    """ Uses morphological contour finding on a mask image to get a nice outline.
+        We will upsample the image to get sub-pixel outlines.
         **kwargs are handed to morphological_chan_vese.
-        input: binary mask of pharynx.
-        output: coordinates of the contour as array of (N,2) coordinates."""
+
+    Args:
+        mask (numpy.array):  binary mask of pharynx.
+        scale (int, optional): Scale to upsample the image by. Defaults to 4.
+
+    Returns:
+        numpy.array: coordinates of the contour as array of (N,2) coordinates.
+    """    
     
     # upscale this image to get accurate contour
     image = img_as_float(rescale(mask, scale))
@@ -113,12 +159,18 @@ def morphologicalPharynxContour(mask, scale = 4, **kwargs):
 
 
 def cropcenterline(poptX, poptY, contour):
-    """Define start and end point of centerline by crossing of contour. 
-    Inputs: poptX, poptY optimal fit parameters describing pharynx shape/centerline.
-            contour: (N,2) array of points describing the pharynx outline.
-            
-    output: start and end coordinate to apply to _pharynxFunc(x) to create a centerline 
-    spanning the length of the pharynx.."""
+    """ Define start and end point of centerline by crossing of contour. 
+
+    Args:
+        poptX (array): optimal fit parameters describing pharynx centerline.
+        poptY (array): optimal fit parameters describing pharynx centerline.
+        contour (numpy.array): (N,2) array of points describing the pharynx outline.
+
+    Returns:
+        float, float: start and end coordinate to apply to .features._pharynxFunc(x) to create a centerline 
+    spanning the length of the pharynx.
+    """    
+    
     xs = np.linspace(-50,150, 200)
     tmpcl = np.c_[pharynxFunc(xs, *poptX), pharynxFunc(xs, *poptY)]
     # update centerline based on crossing the contour
@@ -136,20 +188,30 @@ def cropcenterline(poptX, poptY, contour):
 
 def centerline(poptX, poptY, xs):
     """create a centerline from fitted function.
-        Inputs: poptX, poptY optimal fit parameters describing pharynx shape/centerline.
-        xs: array of coordinates to create centerline from _pharynxFunc(x, *p, deriv = 0).
-        output: (N,2) acenterline spanning the length of the pharynx. Same length as xs.
-        """
+
+    Args:
+        poptX (array): optimal fit parameters describing pharynx centerline.
+        poptY (array): optimal fit parameters describing pharynx centerline.
+        xs (np.array): array of coordinates to create centerline from .feature._pharynxFunc(x, *p, deriv = 0)
+
+    Returns:
+        numpy.array: (N,2) a centerline spanning the length of the pharynx. Same length as xs.
+    """   
+    
     return np.c_[pharynxFunc(xs, *poptX), pharynxFunc(xs, *poptY)]
 
 
-
 def normalVecCl(poptX, poptY, xs):
-    """create vectors normal to the centerline by using the derivative of the function describing the midline.
-    inputs: poptX, poptY optimal fit parameters describing pharynx shape/centerline.
-            xs: array of coordinates to create centerline from _pharynxFunc(x, *p, deriv = 0).
-    output: (N,2) array of unit vectors orthogonal to centerline. Same length as xs.
-    """
+    """ Create vectors normal to the centerline by using the derivative of the function describing the midline.
+
+    Args:
+        poptX (array): optimal fit parameters describing pharynx centerline.
+        poptY (array): optimal fit parameters describing pharynx centerline.
+        xs (np.array): array of coordinates to create centerline from .feature._pharynxFunc(x, *p, deriv = 0)
+
+    Returns:
+        numpy.array: : (N,2) array of unit vectors orthogonal to centerline. Same length as xs.
+    """    
 
     # make an orthogonal vector to the cl by calculating derivative (dx, dy) and using (-dy, dx) as orthogonal vectors.
     dCl = np.c_[pharynxFunc(xs, *poptX, deriv = 1), pharynxFunc(xs, *poptY, deriv = 1)]#p.diff(cl, axis=0)
@@ -163,13 +225,17 @@ def normalVecCl(poptX, poptY, xs):
 
 
 def intensityAlongCenterline(im, cl, **kwargs):
-    """create a kymograph along the centerline. 
-        inputs: im: grayscale image
-                cl (n,2) list of centerline coordinates in image space.
+    """ Create an intensity kymograph along the centerline. 
+
+    Args:
+        im (numpy.array): image of a pharynx
+        cl (numpy.array or list): (n,2) list of centerline coordinates in image space.
         kwargs: **kwargs are passed skimage.measure.profile_line.
 
-        output: array of (?,) length. Length is determined by pathlength of centerline.
-        """
+    Returns:
+        numpy.array: array of (?,) length. Length is determined by pathlength of centerline.
+    """    
+
     if 'width' in kwargs:
         w = kwargs['width']
         kwargs.pop('width', None)
@@ -178,12 +244,16 @@ def intensityAlongCenterline(im, cl, **kwargs):
 
 
 def widthPharynx(cl, contour, dCl):
-    """Use vector interesections to get width of object. 
-        We are looking for contour points that have the same(or very similar) angle relative to the centerline point as the normal vectors".
-        inputs: cl (N,2) array
-                contour (M,2) array
-                dCl (N,2) array (can be created by calling normalVecCl(poptX, poptY, xs))
-        outputs: (N,2) widths of the contour at each centerline point.
+    """ Use vector interesections to get width of object. 
+        We are looking for contour points that have the same(or very similar) angle relative to the centerline point as the normal vectors.
+
+    Args:
+        cl ([type]): cl (N,2) array describing the centerline
+        contour ([type]): (M,2) array describing the contour
+        dCl ([type]): (N,2) array describing the normal vectors on the centerline (created by calling .features.normalVecCl(poptX, poptY, xs))
+
+    Returns:
+        numpy.array: (N,2) widths of the contour at each centerline point.
     """
 
     # all possible vectors between contour and centerline
@@ -202,21 +272,32 @@ def widthPharynx(cl, contour, dCl):
 
 def scalarWidth(widths):
     """calculate the width of the pharynx along the centerline.
-        input: (N, 2,2) array of start and end points of lines 
-        spanning the pharynx orthogonal to the midline.
-        output: (N,1) array of scalar width."""
+
+    Args:
+        widths (numpy.array): (N, 2,2) array of start and end points of lines spanning the pharynx orthogonal to the midline.
+
+    Returns:
+        numpy.array: (N,1) array of scalar widtha.
+    """
     return np.sqrt(np.sum(np.diff(widths, axis =1)**2, axis =-1))
 
 
 def straightenPharynx(im, xstart, xend, poptX, poptY, width, nPts = 100):
-    """Based on centerline, straighten the animal.
-    input: 
-    im: an image
-    xstart, xend, poptX, poptY are the parameters of a curve/centerline describing the shape of the pharynx
-    width: how far to sample left and right of the centerline
-    nPts: how any points to sample along the centerline
-    output: (nPts, width) array of image intensity
-    """
+    """ Based on a centerline, straighten the animal.
+
+    Args:
+        im (numpy.array or pims.Frame): image of curved object
+        xstart (float): start coordinate to apply to .features._pharynxFunc(x) to create a centerline 
+        xend (float):  end coordinate to apply to .features._pharynxFunc(x) to create a centerline 
+        poptX (array): optimal fit parameters describing pharynx centerline.
+        poptY (array): optimal fit parameters describing pharynx centerline.
+        width (int): how many points to sample orthogonal of the centerline
+        nPts (int, optional): how many points to sample along the centerline. Defaults to 100.
+
+    Returns:
+        numpy.array: (nPts, width) array of image intensity
+    """    
+    
     # use linescans to generate straightened animal
     xn = np.linspace(xstart,xend, nPts)
     clF = centerline(poptX, poptY, xn)
@@ -233,33 +314,43 @@ def straightenPharynx(im, xstart, xend, poptX, poptY, width, nPts = 100):
 
 
 def gradientPharynx(im):
-    """apply a local gradient to the image.
-        input:
-            im: image (M,N)
-        output: gradient of image (M,N)
+    """ Apply a local gradient to the image.
+
+    Args:
+        im (numpy.array or pims.Frame): image of curved object
+
+    Returns:
+        numpy.array: gradient of image 
     """
-    #im = util.img_as_ubyte(im)
+
     denoised = rank.median(im, disk(1))
     gradient = rank.gradient(denoised, disk(1))
-    return gradient#util.img_as_ubyte(gradient)
+    return gradient
 
 
 def extractPump(straightIm):
-    """use pumping metric to get measure of bulb contraction. It calculates the inverse maximum standard deviation along the anteriorposterior axis.
-        input: straightened images of a pharynx (M,N,T)
-        output: pharyngeal metric (T,)
+    """ Use a pumping metric to get measure of pharyngeal contractions. 
+    It calculates the inverse maximum standard deviation along the Dorsoventral axis.
+
+    Args:
+        straightIm (numpy.array): straightened image of pharynx
+
+    Returns:
+        float: pharyngeal metric
     """
     return -np.max(np.std(straightIm, axis =1), axis =0)
 
 
 def headLocationLawn(cl, slice, binLawn):
-    """use the first coordinate of the centerline to check if the worm touches the lawn.
-        Inputs:
-            cl: (N,2) centerline spanning the length of the pharynx.
-            slice: (yo, xo) offset between cl and full image
-            binLawn: image of a lawn or other background
-        Outputs:
-            Intensity at first point of cl (should be nose tip)
+    """ Use the first coordinate of the centerline to check if the worm touches the lawn.
+
+    Args:
+        cl (numpy,array or list): (N,2) centerline spanning the length of the pharynx.
+        slice (tuple): (yo, xo) offset between cl and full image
+        binLawn ([type]): image of a lawn or other background e.g. created by .features.findLawn
+
+    Returns:
+        float: image intensity at first point of cl (should be nose tip)
     """
     y,x = cl[0][0], cl[0][1]
     yo, xo = slice[0], slice[1]
@@ -270,11 +361,14 @@ def headLocationLawn(cl, slice, binLawn):
 
 def inside(x,y,binLawn):
     """Extract intensity of an image at coordinate (x,y).
-        Inputs:
-            x,y: location in px
-            binLawn: image of a lawn or other background
-        Outputs:
-            Intensity at coordinate
+
+    Args:
+        x (float): x location in px
+        y (float): y location in px
+        binLawn ([type]): image of a lawn or other background e.g. created by .features.findLawn
+
+    Returns:
+        float: image intensity at binLawn(y,x)
     """
     return binLawn[int(y), int(x)]
 

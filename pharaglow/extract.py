@@ -11,6 +11,14 @@ import pharaglow.features as pg
 from pharaglow import util
 
 def alignKymos(ar):
+    """Align a kymograph by largest correlation.
+
+    Args:
+        ar (numpy,array): 2d array with each row a kymograph line
+
+    Returns:
+        numpy.array: array with each row shifted for optimal correlation with the first row.
+    """    
     sample = ar[0]
     sample =sample - np.mean(sample)
     ar2 = np.zeros(ar.shape)
@@ -25,7 +33,16 @@ def alignKymos(ar):
 
 
 def extractKymo(df, key):
-    """extract the difference of the kymo."""
+    """extract the difference of the kymo.
+
+    Args:
+        df (pandas.DataFrame): a pharaglow results dataframe
+        key (str): a column name in dataframe e.g. 'kymo'
+
+    Returns:
+        numpy.array: the diff between adjacent kymograph rows
+    """    
+    
     # need to get rid of none values and such
     kymo = [np.array(list(filter(None.__ne__,row))) for row in df[key].values]
     kymo = np.array([np.interp(np.linspace(0, len(row), 100), np.arange(len(row)), np.array(row)) \
