@@ -401,7 +401,7 @@ def parallelWorker(args, **kwargs):
     """helper wrapper to run object detection with multiprocessing.
 
     Args:
-        args (div.): arguments for objectDetection
+        args (div.): arguments for .tracking.objectDetection
 
     Returns:
         pandas.DataFrame: dataframe with information for each image

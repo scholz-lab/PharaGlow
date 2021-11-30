@@ -51,77 +51,14 @@ def extractKymo(df, key):
     return np.nansum(np.abs(np.diff(kymo[0:], axis = 0)), axis = 0)
     
 
-def extractMaxWidths(df, cut = 60):
-    """takes dataframe with one particle and returns width kymograph and distance between peaks."""
-    w = np.array([pg.scalarWidth(row)[:,0] for row in df['Widths']])
-    return w, np.argmax(w[:,5:cut], axis = 1)+5, np.argmax(w[:,cut:-5], axis = 1)+cut
-
-
-def extractImages(df, key):
-    """get images from dataframe."""
-    return [np.array(im) for im in df[key].values]
-
-
-def minMaxDiffKymo(df, key):
-    """get the min and max intensity in a kymograph."""
-    kymo = np.array(df[key].values)
-    kymo = np.array([np.interp(np.linspace(0, len(row), 100), np.arange(len(row)), np.array(row)) \
-                      for row in kymo]).T
-    dkymo = np.diff(kymo[0:], axis = 0)
-    return np.max(dkymo, axis = 0), -np.min(dkymo, axis = 0)
-
-
-def pumpingMetrics(traj, params):
-    """given a dataframe with one trajectory, extract many pumping metrics."""
-    df = pd.DataFrame()
-
-    _, xl, xu = extractMaxWidths(traj, params['cut'])
-    # difference of widths
-    pwidth = xu -xl
-    # get trajectory wiggles
-    dv = np.diff(traj['xw']-traj['x'])**2+np.diff(traj['yw']-traj['y'])**2
-    dv = np.pad(dv, [1,0], mode = 'constant')
-    # normal kymograph
-    pkymo = extractKymo(traj, key = 'Kymo')
-    # weighted normal kymograph
-    pkymoW = extractKymo(traj, key = 'WeightedKymo')
-    # normal kymograph gradient
-    pkymoGrad = extractKymo(traj, key = 'KymoGrad')
-    # normal kymograph gradient weighted
-    pkymoGradW = extractKymo(traj, key = 'WeightedKymoGrad')
-    # measure pumps by min/max in kymograph
-    maxpump, minpump = minMaxDiffKymo(traj, key = 'Kymo')
-    # measure pumps by skew of difference intensity
-    imgs = extractImages(traj, 'Straightened')
-    pwarp = [np.abs(skew(im[0:], axis = None)) for im in np.diff(imgs, axis =0)]
-    pwarp = np.pad(pwarp, [1,0], mode = 'constant')
-    pwarpmean = [np.mean(np.abs(im[0:])) for im in np.diff(imgs, axis =0)]
-    pwarpmean = np.pad(pwarpmean, [1,0], mode = 'constant')
-    pwarpmax = [np.max(np.abs(im[0:])) for im in np.diff(imgs, axis =0)]
-    pwarpmax = np.pad(pwarpmax, [1,0], mode = 'constant')
-    
-    df = df.append([{'Bulb Distance': pwidth,
-                             'CMS': dv,
-                             'Kymo':pkymo,
-                             'WeightedKymo':pkymoW,
-                             'KymoGrad': pkymoGrad,
-                             'WeightedKymoGrad': pkymoGradW,
-                             'maxPump': maxpump,
-                             'minPump': minpump,
-                             'pwarp': pwarp,
-                             'meanDiff': pwarpmean,
-                             'maxDiff': pwarpmax
-                             },])
-    return df
-
-
-
 def hampel(vals_orig, k=7, t0=3):
-    '''
-    vals: pandas series of values from which to remove outliers
-    k: size of window (including the sample; 7 is equal to 3 on either side of value)
-    t0: how many sigma away to call it an outlier
-    '''
+    """Implements a Hampel filter (code from Eduardo Osorio, Stackoverflow).
+
+    Args:
+        vals_orig (list, numpy.array): series of values to filter
+        k (int, optional): window size to each side of the sample eg. 7 is 3 left and 3 right of the sample value. Defaults to 7.
+        t0 (int or float, optional): how many sigma away is an outlier. Defaults to 3.
+    """    
     #Make copy so original not edited
     vals = vals_orig.copy()
     
@@ -138,14 +75,39 @@ def hampel(vals_orig, k=7, t0=3):
 
 
 def preprocess(p, w_bg, w_sm, win_type_bg = 'hamming', win_type_sm = 'boxcar', **kwargs):
-    """preprocess a trace with rolling window brackground subtraction."""
+    """preprocess a trace with rolling window brackground subtraction.
+
+    Args:
+        p (numpy.array): input signal or time series
+        w_bg (int): background window size
+        w_sm (int): smoothing window size
+        win_type_bg (str, optional): background window type. Defaults to 'hamming'.
+        win_type_sm (str, optional): smoothing window type. Defaults to 'boxcar'.
+
+    Returns:
+        numpy.array: background subtracted and smoothed signal
+    """    
+    
     bg = p.rolling(w_bg, min_periods=1, center=True, win_type=win_type_bg).median()
     return (p - bg).rolling(w_sm, min_periods=1, center=True, win_type=win_type_sm).mean(), bg
 
 
 def find_pumps(p, heights = np.arange(0.01, 5, 0.1), min_distance = 5, sensitivity = 0.99, **kwargs):
-    """peak detection in a background subtracted trace assuming real 
-        peaks have to be at least min_distance samples apart."""
+    """ peak detection method finding the maximum number of peaks while allowing fewer than sensitivity fraction of peaks that are closer than a min_distance.
+
+    Args:
+        p (numpy,array): input signal with peaks
+        heights (list, optional): peak prominence values to test. Defaults to np.arange(0.01, 5, 0.1).
+        min_distance (int, optional): distance peaks should be apart. Defaults to 5.
+        sensitivity (float, optional): how many peaks can violate min_distance. Defaults to 0.99.
+
+    Returns:
+        list: peak indices
+        numpy.array: peak number and fraction of valid peaks for all heights
+        numpy.array: mean and standard deviation fraction of valid peaks for all heights in a random occurance
+
+    """    
+   
     tmp = []
     all_peaks = []
     # find peaks at different heights
@@ -178,12 +140,17 @@ def find_pumps(p, heights = np.arange(0.01, 5, 0.1), min_distance = 5, sensitivi
     return peaks, tmp, null
     
 
-def pumps(data):
-    straightIms = np.array([im for im in data['Straightened'].values])
-    print(straightIms.shape)
+def pumps(data, key = 'Straightened'):
+    """Pumping metric based on the dorsal-vetral signal variation.
+
+    Args:
+        data (pandas.DataFrame): dataframe with a column containing straightened images of pharyxes
+
+    Returns:
+        numpy.array: signal for all images
+    """
+    straightIms = np.array([im for im in data[key].values])
     k = np.max(np.std(straightIms, axis =2), axis =1)#-np.mean(straightIms, axis =2)
-    #k = -np.max(np.median(straightIms, axis =2), axis =1)
-    #k = np.min(np.mean(straightIms[:,150:,], axis =2), axis =1)
     return np.ravel(k)
 
 

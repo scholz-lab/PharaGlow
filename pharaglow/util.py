@@ -10,36 +10,36 @@ from functools import partial
 import gc
 import math
 
-def parallelize_dataframe(df, func, params, n_cores):
-    """ split a dataframe to easily use multiprocessing."""
-    df_split = np.array_split(df, n_cores)
-    df_split = [d for d in df_split  if len(d)>0]
-    if len(df_split) <1:
-        return
-    # filter zero-size jobs
-    print([len(d) for d in df_split])
-    pool = Pool(n_cores)
-    df = pd.concat(pool.starmap(func, zip(df_split, np.repeat(params, len(df_split)))))
-    pool.close()
-    pool.join()
-    return df
+# def parallelize_dataframe(df, func, params, n_cores):
+
+#     """ split a dataframe to easily use multiprocessing."""
+#     df_split = np.array_split(df, n_cores)
+#     df_split = [d for d in df_split  if len(d)>0]
+#     if len(df_split) <1:
+#         return
+#     # filter zero-size jobs
+#     print([len(d) for d in df_split])
+#     pool = Pool(n_cores)
+#     df = pd.concat(pool.starmap(func, zip(df_split, np.repeat(params, len(df_split)))))
+#     pool.close()
+#     pool.join()
+#     return df
 
 
 def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorkers = 5, output= None, depth = 'uint8', **kwargs):
-    """use multiprocessing to speed up image analysis. This is inspired by the trackpy.batch function.
-    arg:s contains iterables eg. (frames, masks) or just frames that will be iterated through.
-    param: parameters given to all jobs
-    parallelWorker: a function taking iterable args, and kwargs and returns a dataframe and one more result (optional)
-    framenumbers: if given, these will replace the 'frames' columns. Default assumption is that frames are consecutive integers.
-    nWorkers: processes to use, if 1 will run without multiprocessing
-    process_results: a function to run on the resulting dataframe.
+    """Use multiprocessing to speed up image analysis. This is inspired by the trackpy.batch function.
 
-    output : {None, trackpy.PandasHDFStore, SomeCustomClass}
-        If None, return all results as one big DataFrame. Otherwise, pass
-        results from each frame, one at a time, to the put() method
-        of whatever class is specified here.
+    Args:
+        args (tuple): contains iterables eg. (frames, masks) or just frames that will be iterated through.
+        param (dict): image analysis parameters
+        parallelWorker (func): a function defining what should be done with args
+        framenumbers (list, optional): a list of frame numbers corresponding to the frames in args. Defaults to None.
+        nWorkers (int, optional): Processes to use, if 1 will run without multiprocessing. Defaults to 5.
+        output ([type], optional): {None, trackpy.PandasHDFStore, SomeCustomClass} a storage class e.g. trackpy.PandasHDFStore. Defaults to None.
+        depth (str, optional): bit depth of frames. Defaults to 'uint8'.
 
-    returns: specified output or the results as pd.DataFrame and any other result as list.
+    Returns:
+        output or (pandas.DataFrame, numpy.array)
     """
     if framenumbers is None:
         framenumbers = np.arange(len(args[0]))
@@ -150,16 +150,37 @@ def smooth(x,window_len=11,window='hanning'):
 
 
 def unravelImages(im, lengthX):
-    """reshape images from linear to square."""
+    """ Reshape images from linear to square.
+    Args:
+        im (list): an image
+        lengthX (int): shape of new image in second axis
+
+    Returns:
+        numpy.array: image reshaped as (N,lengthX)
+    """
     return im.reshape(-1, lengthX)
     
     
 def get_im(df, colnames, lengthX):
-    """get an image from a dataframe of columns for each pixel."""
+    """deprecated
+    """
+    
     return unravelImages(df[colnames].to_numpy(), lengthX)
 
 
 def pad_images(im, shape, size, reshape = True, depth = 'uint8'):
+    """pad image to desired size.
+
+    Args:
+        im (list): a linearized version of an image
+        shape (int): shape of second axis of image. 
+        size (int): pad image to size (size, size)
+        reshape (bool, optional): reshape image to (-1, shape) before padding. Defaults to True.
+        depth (str, optional): bit depth of image. Defaults to 'uint8'.
+
+    Returns:
+        numpy.array: padded image of size (size, size)
+    """    
     # make image from list
     im = np.array(im, dtype = depth)
     if reshape:

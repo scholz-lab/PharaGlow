@@ -17,7 +17,7 @@ def load(fname, image_depth =8, maxcols = 10000, prefix = "im", **kwargs):
         prefix (str, optional): prefix to add to the column. Defaults to "im".
 
     Returns:
-        [type]: [description]
+        pandas.DataFrame: a pharaglow file as dataframe
     """    
     
     converter = {}
