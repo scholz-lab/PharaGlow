@@ -4,18 +4,15 @@
 import pims
 import numpy as np
 from numpy.linalg import norm
-from skimage import util
-from skimage.filters import threshold_li, threshold_yen, gaussian
-from skimage.morphology import skeletonize, watershed, disk, remove_small_holes, remove_small_objects, binary_closing, binary_opening
-from skimage import img_as_float, img_as_ubyte
-from skimage.segmentation import morphological_chan_vese, inverse_gaussian_gradient,checkerboard_level_set
+from skimage.filters import threshold_yen, gaussian
+from skimage.morphology import skeletonize, disk, remove_small_holes, remove_small_objects, binary_closing, binary_opening
+from skimage import img_as_float
+from skimage.segmentation import morphological_chan_vese, checkerboard_level_set
 from skimage.transform import rescale
 from scipy.cluster.hierarchy import linkage, leaves_list
-from scipy.interpolate import CubicSpline
 from scipy.optimize import curve_fit
-from skimage.filters import rank, threshold_li, gaussian, threshold_otsu
+from skimage.filters import rank, gaussian, threshold_otsu
 from skimage.measure import find_contours, profile_line, regionprops, label
-
 
 
 def findLawn(image, smooth = 1, areaHoles = 15000, areaSpots = 50000):
@@ -371,4 +368,3 @@ def inside(x,y,binLawn):
         float: image intensity at binLawn(y,x)
     """
     return binLawn[int(y), int(x)]
-

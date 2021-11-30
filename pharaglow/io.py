@@ -3,7 +3,6 @@
 """io.py: loading for pharaglow feature files."""
 
 import pandas as pd
-import warnings
 import logging
 
 def load(fname, image_depth =8, maxcols = 10000, prefix = "im", **kwargs):

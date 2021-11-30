@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 
 """extract.py: Extract pumping-like traces from kymographs etc.."""
-import pandas as pd
 import numpy as np
-from scipy.stats import skew
 from scipy.signal import find_peaks
-from skimage.util import view_as_windows
-import matplotlib.pylab as plt
-import pharaglow.features as pg
-from pharaglow import util
+
 
 def alignKymos(ar):
     """Align a kymograph by largest correlation.
@@ -52,7 +47,7 @@ def extractKymo(df, key):
     
 
 def hampel(vals_orig, k=7, t0=3):
-    """Implements a Hampel filter (code from Eduardo Osorio, Stackoverflow).
+    """Implements a Hampel filter (code from E. Osorio, Stackoverflow).
 
     Args:
         vals_orig (list, numpy.array): series of values to filter
@@ -152,6 +147,3 @@ def pumps(data, key = 'Straightened'):
     straightIms = np.array([im for im in data[key].values])
     k = np.max(np.std(straightIms, axis =2), axis =1)#-np.mean(straightIms, axis =2)
     return np.ravel(k)
-
-
-

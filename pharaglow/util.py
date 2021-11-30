@@ -7,7 +7,6 @@ import pandas as pd
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing as mp
 from functools import partial
-import gc
 import math
 
 # def parallelize_dataframe(df, func, params, n_cores):

@@ -8,19 +8,14 @@ import warnings
 
 import pims
 import trackpy as tp
-import os
-import sys
+
 import skimage
 from skimage.measure import label
-# preprocessing the image for tracking. 
-from skimage import morphology, util, filters, segmentation
+from skimage import morphology, util, filters
 from scipy import ndimage as ndi
-from skimage.morphology import watershed
-from skimage.feature import peak_local_max, canny
 from functools import partial
-import time
 from multiprocessing import Pool
-import gc
+
 from .util import pad_images 
 
 @pims.pipeline
