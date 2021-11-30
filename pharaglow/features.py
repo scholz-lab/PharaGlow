@@ -4,39 +4,38 @@
 import pims
 import numpy as np
 from numpy.linalg import norm
-from skimage.filters import threshold_yen, gaussian
+from scipy.cluster.hierarchy import linkage, leaves_list
+from scipy.optimize import curve_fit
 from skimage.morphology import skeletonize, disk, remove_small_holes, remove_small_objects, binary_closing, binary_opening
 from skimage import img_as_float
 from skimage.segmentation import morphological_chan_vese, checkerboard_level_set
 from skimage.transform import rescale
-from scipy.cluster.hierarchy import linkage, leaves_list
-from scipy.optimize import curve_fit
-from skimage.filters import rank, gaussian, threshold_otsu
+from skimage.filters import rank, threshold_otsu, threshold_yen, gaussian
 from skimage.measure import find_contours, profile_line, regionprops, label
 
 
-def findLawn(image, smooth = 1, areaHoles = 15000, areaSpots = 50000):
+def find_lawn(image, smooth = 1, area_holes = 15000, area_spots = 50000):
     """binarize the image of the bacterial lawn.
 
     Args:
         image (np.array or pims.Frame): image of a bacterial lawn
         smooth (int, optional): apply gaussian filter of size smooth px. Defaults to 1.
-        areaHoles (int, optional): remove small holes in binary image. Defaults to 15000.
-        areaSpots (int, optional): remove small objects in binary image. Defaults to 50000.
+        area_holes (int, optional): remove small holes in binary image. Defaults to 15000.
+        area_spots (int, optional): remove small objects in binary image. Defaults to 50000.
 
     Returns:
         np.array: binarized image
-    """    
-    
+    """
+
     image = gaussian(image, smooth, preserve_range = True)
     thresh = threshold_otsu(image)
     binary = image > thresh
-    binary = remove_small_holes(binary, area_threshold=areaHoles, connectivity=1, in_place=False)
-    binary = remove_small_objects(binary, min_size=areaSpots, connectivity=8, in_place=False)
+    binary = remove_small_holes(binary, area_threshold=area_holes, connectivity=1, in_place=False)
+    binary = remove_small_objects(binary, min_size=area_spots, connectivity=8, in_place=False)
     return binary
 
 @pims.pipeline
-def thresholdPharynx(im):
+def thresholdPharynx(img):
     """Use Yen threshold to obtain mask of pharynx.
 
     Args:
@@ -44,9 +43,9 @@ def thresholdPharynx(im):
 
     Returns:
         np.array: binary image with only the largest object
-    """    
-   
-    mask = im>threshold_yen(im)
+    """
+
+    mask = img>threshold_yen(img)
     mask = binary_opening(mask)
     mask = binary_closing(mask)
     labeled = label(mask)
@@ -67,7 +66,7 @@ def skeletonPharynx(mask):
 
     Returns:
         numpy.array: skeleton of mask
-    """    
+    """
 
     return skeletonize(mask)
 
@@ -81,8 +80,8 @@ def sortSkeleton(skeleton):
 
     Returns:
         list: list of coordinates ordered by distance
-    """    
-    
+    """
+
     # coordinates of skeleton
     ptsX, ptsY = np.where(skeleton)
     # cluster
@@ -99,8 +98,8 @@ def pharynxFunc(x, *p, deriv = 0):
 
     Returns:
         numpy.array or list: polynomial evaluated at x
-    """    
-    
+    """
+
     if deriv==1:
         return p[1] + 2*p[2]*x + 3*p[3]*x**2 #+ 4*p[4]*x**4
     return p[0] + p[1]*x + p[2]*x**2 + p[3]*x**3 #+ p[4]*x**5
@@ -116,14 +115,14 @@ def fitSkeleton(ptsX, ptsY, func = pharynxFunc):
 
     Returns:
         array: optimal fit parameters of pharynxFunc
-    """    
-  
+    """
+
     nP = len(ptsX)
     x = np.linspace(0, 100, nP)
     # fit each axis separately
-    poptX, pcov = curve_fit(func, x, ptsX, p0=(np.mean(ptsX),1,1,0.1,0.1))
-    poptY, pcov = curve_fit(func, x, ptsY, p0 = (np.mean(ptsY),1,1,0.1,0.1))
-    
+    poptX, _ = curve_fit(func, x, ptsX, p0=(np.mean(ptsX),1,1,0.1,0.1))
+    poptY, _= curve_fit(func, x, ptsY, p0 = (np.mean(ptsY),1,1,0.1,0.1))
+
     return poptX, poptY
 
 
@@ -138,8 +137,8 @@ def morphologicalPharynxContour(mask, scale = 4, **kwargs):
 
     Returns:
         numpy.array: coordinates of the contour as array of (N,2) coordinates.
-    """    
-    
+    """
+
     # upscale this image to get accurate contour
     image = img_as_float(rescale(mask, scale))
     # intialize a checkerboard
@@ -156,7 +155,7 @@ def morphologicalPharynxContour(mask, scale = 4, **kwargs):
 
 
 def cropcenterline(poptX, poptY, contour):
-    """ Define start and end point of centerline by crossing of contour. 
+    """ Define start and end point of centerline by crossing of contour.
 
     Args:
         poptX (array): optimal fit parameters describing pharynx centerline.
@@ -164,10 +163,10 @@ def cropcenterline(poptX, poptY, contour):
         contour (numpy.array): (N,2) array of points describing the pharynx outline.
 
     Returns:
-        float, float: start and end coordinate to apply to .features._pharynxFunc(x) to create a centerline 
+        float, float: start and end coordinate to apply to .features._pharynxFunc(x) to create a centerline
     spanning the length of the pharynx.
-    """    
-    
+    """
+
     xs = np.linspace(-50,150, 200)
     tmpcl = np.c_[pharynxFunc(xs, *poptX), pharynxFunc(xs, *poptY)]
     # update centerline based on crossing the contour
@@ -179,7 +178,7 @@ def cropcenterline(poptX, poptY, contour):
     # check if length makes sense, otherwise retain original
     if np.abs(start-end) < 50:
         xstart, xend = 0, 100
-    
+
     return xstart, xend
 
 
@@ -193,8 +192,8 @@ def centerline(poptX, poptY, xs):
 
     Returns:
         numpy.array: (N,2) a centerline spanning the length of the pharynx. Same length as xs.
-    """   
-    
+    """
+
     return np.c_[pharynxFunc(xs, *poptX), pharynxFunc(xs, *poptY)]
 
 
@@ -208,7 +207,7 @@ def normalVecCl(poptX, poptY, xs):
 
     Returns:
         numpy.array: : (N,2) array of unit vectors orthogonal to centerline. Same length as xs.
-    """    
+    """
 
     # make an orthogonal vector to the cl by calculating derivative (dx, dy) and using (-dy, dx) as orthogonal vectors.
     dCl = np.c_[pharynxFunc(xs, *poptX, deriv = 1), pharynxFunc(xs, *poptY, deriv = 1)]#p.diff(cl, axis=0)
@@ -222,7 +221,7 @@ def normalVecCl(poptX, poptY, xs):
 
 
 def intensityAlongCenterline(im, cl, **kwargs):
-    """ Create an intensity kymograph along the centerline. 
+    """ Create an intensity kymograph along the centerline.
 
     Args:
         im (numpy.array): image of a pharynx
@@ -231,7 +230,7 @@ def intensityAlongCenterline(im, cl, **kwargs):
 
     Returns:
         numpy.array: array of (?,) length. Length is determined by pathlength of centerline.
-    """    
+    """
 
     if 'width' in kwargs:
         w = kwargs['width']
@@ -241,7 +240,7 @@ def intensityAlongCenterline(im, cl, **kwargs):
 
 
 def widthPharynx(cl, contour, dCl):
-    """ Use vector interesections to get width of object. 
+    """ Use vector interesections to get width of object.
         We are looking for contour points that have the same(or very similar) angle relative to the centerline point as the normal vectors.
 
     Args:
@@ -284,8 +283,8 @@ def straightenPharynx(im, xstart, xend, poptX, poptY, width, nPts = 100):
 
     Args:
         im (numpy.array or pims.Frame): image of curved object
-        xstart (float): start coordinate to apply to .features._pharynxFunc(x) to create a centerline 
-        xend (float):  end coordinate to apply to .features._pharynxFunc(x) to create a centerline 
+        xstart (float): start coordinate to apply to .features._pharynxFunc(x) to create a centerline
+        xend (float):  end coordinate to apply to .features._pharynxFunc(x) to create a centerline
         poptX (array): optimal fit parameters describing pharynx centerline.
         poptY (array): optimal fit parameters describing pharynx centerline.
         width (int): how many points to sample orthogonal of the centerline
@@ -293,12 +292,12 @@ def straightenPharynx(im, xstart, xend, poptX, poptY, width, nPts = 100):
 
     Returns:
         numpy.array: (nPts, width) array of image intensity
-    """    
-    
+    """
+
     # use linescans to generate straightened animal
     xn = np.linspace(xstart,xend, nPts)
     clF = centerline(poptX, poptY, xn)
-    
+
     # make vectors orthogonal to the cl
     dCl = normalVecCl(poptX, poptY, xn)
     # create lines intersection the pharynx orthogonal to midline
@@ -317,7 +316,7 @@ def gradientPharynx(im):
         im (numpy.array or pims.Frame): image of curved object
 
     Returns:
-        numpy.array: gradient of image 
+        numpy.array: gradient of image
     """
 
     denoised = rank.median(im, disk(1))
@@ -326,7 +325,7 @@ def gradientPharynx(im):
 
 
 def extractPump(straightIm):
-    """ Use a pumping metric to get measure of pharyngeal contractions. 
+    """ Use a pumping metric to get measure of pharyngeal contractions.
     It calculates the inverse maximum standard deviation along the Dorsoventral axis.
 
     Args:
@@ -338,7 +337,7 @@ def extractPump(straightIm):
     return -np.max(np.std(straightIm, axis =1), axis =0)
 
 
-def headLocationLawn(cl, slice, binLawn):
+def headLocationLawn(cl, slices, binLawn):
     """ Use the first coordinate of the centerline to check if the worm touches the lawn.
 
     Args:
@@ -350,7 +349,7 @@ def headLocationLawn(cl, slice, binLawn):
         float: image intensity at first point of cl (should be nose tip)
     """
     y,x = cl[0][0], cl[0][1]
-    yo, xo = slice[0], slice[1]
+    yo, xo = slices[0], slices[1]
     # make sure that rounding errors don't get you out of bounds
     yn, xn = np.min([binLawn.shape[0]-1, int(y+yo)]), np.min([binLawn.shape[1]-1, int(x+xo)])
     return binLawn[yn, xn]
