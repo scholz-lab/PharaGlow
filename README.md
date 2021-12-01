@@ -104,7 +104,7 @@ These parameters are:
 (Based on the module papermill for running jupyter notebooks with many parameters).
 * Edit the notebooks/runBatch.py to the appropriate locations and parameter files. It will analyze a dataFolder where multiple folders of tiff files are located. eg.
 a dataFolder containing 3 movies in subfolder1, subfolder2, subfolder3
-* The code that will be run is called notebooks/BatchRunTemplate.ipynb. This is functionally  the same as the code in notebook/RunningPharaglowParallel.ipynb
+* The code that will be run is called notebooks/BatchRunTemplate.ipynb. This is functionally the same as the code in notebook/RunningPharaglowParallel.ipynb
 
 #### Batch running multiple files with the same parameters (Option 1)
 * run the batch processing in the commandline like this: 
