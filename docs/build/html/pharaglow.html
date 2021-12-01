@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pharaglow package &mdash; PharaGlow  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="PharaGlow" href="link_readme.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> PharaGlow
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="link_readme.html">PharaGlow</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">pharaglow package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pharaglow.extract">pharaglow.extract module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pharaglow.features">pharaglow.features module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pharaglow.io">pharaglow.io module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pharaglow.run">pharaglow.run module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pharaglow.tracking">pharaglow.tracking module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pharaglow.util">pharaglow.util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pharaglow">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PharaGlow</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>pharaglow package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/pharaglow.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pharaglow-package">
+<h1>pharaglow package<a class="headerlink" href="#pharaglow-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-pharaglow.extract">
+<span id="pharaglow-extract-module"></span><h2>pharaglow.extract module<a class="headerlink" href="#module-pharaglow.extract" title="Permalink to this headline"></a></h2>
+<p>extract.py: Extract pumping-like traces from kymographs etc..</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.extract.alignKymos">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.extract.</span></span><span class="sig-name descname"><span class="pre">alignKymos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ar</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/extract.html#alignKymos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.extract.alignKymos" title="Permalink to this definition"></a></dt>
+<dd><p>Align a kymograph by largest correlation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ar</strong> (<em>numpy</em><em>,</em><em>array</em>) – 2d array with each row a kymograph line</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>array with each row shifted for optimal correlation with the first row.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.extract.extractKymo">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.extract.</span></span><span class="sig-name descname"><span class="pre">extractKymo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/extract.html#extractKymo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.extract.extractKymo" title="Permalink to this definition"></a></dt>
+<dd><p>extract the difference of the kymo.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – a pharaglow results dataframe</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – a column name in dataframe e.g. ‘kymo’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the diff between adjacent kymograph rows</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.extract.find_pumps">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.extract.</span></span><span class="sig-name descname"><span class="pre">find_pumps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0.01,</span> <span class="pre">0.11,</span> <span class="pre">0.21,</span> <span class="pre">0.31,</span> <span class="pre">0.41,</span> <span class="pre">0.51,</span> <span class="pre">0.61,</span> <span class="pre">0.71,</span> <span class="pre">0.81,</span> <span class="pre">0.91,</span> <span class="pre">1.01,</span> <span class="pre">1.11,</span> <span class="pre">1.21,</span> <span class="pre">1.31,</span> <span class="pre">1.41,</span> <span class="pre">1.51,</span> <span class="pre">1.61,</span> <span class="pre">1.71,</span> <span class="pre">1.81,</span> <span class="pre">1.91,</span> <span class="pre">2.01,</span> <span class="pre">2.11,</span> <span class="pre">2.21,</span> <span class="pre">2.31,</span> <span class="pre">2.41,</span> <span class="pre">2.51,</span> <span class="pre">2.61,</span> <span class="pre">2.71,</span> <span class="pre">2.81,</span> <span class="pre">2.91,</span> <span class="pre">3.01,</span> <span class="pre">3.11,</span> <span class="pre">3.21,</span> <span class="pre">3.31,</span> <span class="pre">3.41,</span> <span class="pre">3.51,</span> <span class="pre">3.61,</span> <span class="pre">3.71,</span> <span class="pre">3.81,</span> <span class="pre">3.91,</span> <span class="pre">4.01,</span> <span class="pre">4.11,</span> <span class="pre">4.21,</span> <span class="pre">4.31,</span> <span class="pre">4.41,</span> <span class="pre">4.51,</span> <span class="pre">4.61,</span> <span class="pre">4.71,</span> <span class="pre">4.81,</span> <span class="pre">4.91])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensitivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.99</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/extract.html#find_pumps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.extract.find_pumps" title="Permalink to this definition"></a></dt>
+<dd><p>peak detection method finding the maximum number of peaks while allowing fewer than
+a sensitivity fraction of peaks that are closer than a min_distance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>numpy.array</em>) – input signal with peaks</p></li>
+<li><p><strong>heights</strong> (<em>list</em><em>, </em><em>optional</em>) – peak prominence values to test. Defaults to np.arange(0.01, 5, 0.1).</p></li>
+<li><p><strong>min_distance</strong> (<em>int</em><em>, </em><em>optional</em>) – distance peaks should be apart. Defaults to 5.</p></li>
+<li><p><strong>sensitivity</strong> (<em>float</em><em>, </em><em>optional</em>) – how many peaks can violate min_distance. Defaults to 0.99.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>peak indices
+numpy.array: peak number and fraction of valid peaks for all heights
+numpy.array: mean and standard deviation fraction of valid peaks for all heights in a random occurance</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.extract.hampel">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.extract.</span></span><span class="sig-name descname"><span class="pre">hampel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vals_orig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/extract.html#hampel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.extract.hampel" title="Permalink to this definition"></a></dt>
+<dd><p>Implements a Hampel filter (code from E. Osorio, Stackoverflow).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vals_orig</strong> (<em>list</em><em>, </em><em>numpy.array</em>) – series of values to filter</p></li>
+<li><p><strong>k</strong> (<em>int</em><em>, </em><em>optional</em>) – window size to each side of the sample eg. 7 is 3 left and 3 right of the sample value. Defaults to 7.</p></li>
+<li><p><strong>t0</strong> (<em>int</em><em> or </em><em>float</em><em>, </em><em>optional</em>) – how many sigma away is an outlier. Defaults to 3.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.extract.preprocess">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.extract.</span></span><span class="sig-name descname"><span class="pre">preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_bg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_sm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">win_type_bg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hamming'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">win_type_sm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'boxcar'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/extract.html#preprocess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.extract.preprocess" title="Permalink to this definition"></a></dt>
+<dd><p>preprocess a trace with rolling window brackground subtraction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>numpy.array</em>) – input signal or time series</p></li>
+<li><p><strong>w_bg</strong> (<em>int</em>) – background window size</p></li>
+<li><p><strong>w_sm</strong> (<em>int</em>) – smoothing window size</p></li>
+<li><p><strong>win_type_bg</strong> (<em>str</em><em>, </em><em>optional</em>) – background window type. Defaults to ‘hamming’.</p></li>
+<li><p><strong>win_type_sm</strong> (<em>str</em><em>, </em><em>optional</em>) – smoothing window type. Defaults to ‘boxcar’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>background subtracted and smoothed signal</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.extract.pumps">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.extract.</span></span><span class="sig-name descname"><span class="pre">pumps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Straightened'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/extract.html#pumps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.extract.pumps" title="Permalink to this definition"></a></dt>
+<dd><p>Pumping metric based on the dorsal-vetral signal variation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>pandas.DataFrame</em>) – dataframe with a column containing straightened images of pharyxes</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>signal for all images</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-pharaglow.features">
+<span id="pharaglow-features-module"></span><h2>pharaglow.features module<a class="headerlink" href="#module-pharaglow.features" title="Permalink to this headline"></a></h2>
+<p>features.py: image analysis of pharynx. Uses skimage to provide image functionality.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.centerline">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">centerline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poptX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poptY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#centerline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.centerline" title="Permalink to this definition"></a></dt>
+<dd><p>create a centerline from fitted function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poptX</strong> (<em>array</em>) – optimal fit parameters describing pharynx centerline.</p></li>
+<li><p><strong>poptY</strong> (<em>array</em>) – optimal fit parameters describing pharynx centerline.</p></li>
+<li><p><strong>xs</strong> (<em>np.array</em>) – array of coordinates to create centerline from .feature._pharynxFunc(x, <a href="#id1"><span class="problematic" id="id2">*</span></a>p, deriv = 0)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(N,2) a centerline spanning the length of the pharynx. Same length as xs.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.cropcenterline">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">cropcenterline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poptX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poptY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contour</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#cropcenterline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.cropcenterline" title="Permalink to this definition"></a></dt>
+<dd><p>Define start and end point of centerline by crossing of contour.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poptX</strong> (<em>array</em>) – optimal fit parameters describing pharynx centerline.</p></li>
+<li><p><strong>poptY</strong> (<em>array</em>) – optimal fit parameters describing pharynx centerline.</p></li>
+<li><p><strong>contour</strong> (<em>numpy.array</em>) – (N,2) array of points describing the pharynx outline.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>start and end coordinate to apply to .features._pharynxFunc(x) to create a centerline</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float, float</p>
+</dd>
+</dl>
+<p>spanning the length of the pharynx.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.extractPump">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">extractPump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">straightIm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#extractPump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.extractPump" title="Permalink to this definition"></a></dt>
+<dd><p>Use a pumping metric to get measure of pharyngeal contractions.
+It calculates the inverse maximum standard deviation along the Dorsoventral axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>straightIm</strong> (<em>numpy.array</em>) – straightened image of pharynx</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>pharyngeal metric</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.find_lawn">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">find_lawn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_holes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_spots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#find_lawn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.find_lawn" title="Permalink to this definition"></a></dt>
+<dd><p>binarize the image of the bacterial lawn.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>np.array</em><em> or </em><em>pims.Frame</em>) – image of a bacterial lawn</p></li>
+<li><p><strong>smooth</strong> (<em>int</em><em>, </em><em>optional</em>) – apply gaussian filter of size smooth px. Defaults to 1.</p></li>
+<li><p><strong>area_holes</strong> (<em>int</em><em>, </em><em>optional</em>) – remove small holes in binary image. Defaults to 15000.</p></li>
+<li><p><strong>area_spots</strong> (<em>int</em><em>, </em><em>optional</em>) – remove small objects in binary image. Defaults to 50000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>binarized image</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.fitSkeleton">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">fitSkeleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ptsX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ptsY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">pharynxFunc&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#fitSkeleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.fitSkeleton" title="Permalink to this definition"></a></dt>
+<dd><p>Fit a (cubic) polynomial spline to the centerline. The input should be sorted skeleton coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ptsX</strong> (<em>numpy.array</em><em> or </em><em>list</em>) – sorted x coordinates</p></li>
+<li><p><strong>ptsY</strong> (<em>numpy.array</em><em> or </em><em>list</em>) – sorted y coordinates</p></li>
+<li><p><strong>func</strong> (<em>function</em><em>, </em><em>optional</em>) – function to fit. Defaults to pharynxFunc.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>optimal fit parameters of pharynxFunc</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.gradientPharynx">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">gradientPharynx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#gradientPharynx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.gradientPharynx" title="Permalink to this definition"></a></dt>
+<dd><p>Apply a local gradient to the image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>im</strong> (<em>numpy.array</em><em> or </em><em>pims.Frame</em>) – image of curved object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>gradient of image</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.headLocationLawn">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">headLocationLawn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binLawn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#headLocationLawn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.headLocationLawn" title="Permalink to this definition"></a></dt>
+<dd><p>Use the first coordinate of the centerline to check if the worm touches the lawn.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cl</strong> (<em>numpy</em><em>,</em><em>array</em><em> or </em><em>list</em>) – (N,2) centerline spanning the length of the pharynx.</p></li>
+<li><p><strong>slice</strong> (<em>tuple</em>) – (yo, xo) offset between cl and full image</p></li>
+<li><p><strong>binLawn</strong> (<em>[</em><em>type</em><em>]</em>) – image of a lawn or other background e.g. created by .features.findLawn</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>image intensity at first point of cl (should be nose tip)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.inside">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">inside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binLawn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#inside"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.inside" title="Permalink to this definition"></a></dt>
+<dd><p>Extract intensity of an image at coordinate (x,y).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – x location in px</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y location in px</p></li>
+<li><p><strong>binLawn</strong> (<em>[</em><em>type</em><em>]</em>) – image of a lawn or other background e.g. created by .features.findLawn</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>image intensity at binLawn(y,x)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.intensityAlongCenterline">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">intensityAlongCenterline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#intensityAlongCenterline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.intensityAlongCenterline" title="Permalink to this definition"></a></dt>
+<dd><p>Create an intensity kymograph along the centerline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>im</strong> (<em>numpy.array</em>) – image of a pharynx</p></li>
+<li><p><strong>cl</strong> (<em>numpy.array</em><em> or </em><em>list</em>) – (n,2) list of centerline coordinates in image space.</p></li>
+<li><p><strong>kwargs</strong> – <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs are passed skimage.measure.profile_line.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>array of (?,) length. Length is determined by pathlength of centerline.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.morphologicalPharynxContour">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">morphologicalPharynxContour</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#morphologicalPharynxContour"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.morphologicalPharynxContour" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Uses morphological contour finding on a mask image to get a nice outline.</dt><dd><p>We will upsample the image to get sub-pixel outlines.
+<a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs are handed to morphological_chan_vese.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mask</strong> (<em>numpy.array</em>) – binary mask of pharynx.</p></li>
+<li><p><strong>scale</strong> (<em>int</em><em>, </em><em>optional</em>) – Scale to upsample the image by. Defaults to 4.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>coordinates of the contour as array of (N,2) coordinates.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.normalVecCl">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">normalVecCl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poptX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poptY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#normalVecCl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.normalVecCl" title="Permalink to this definition"></a></dt>
+<dd><p>Create vectors normal to the centerline by using the derivative of the function describing the midline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poptX</strong> (<em>array</em>) – optimal fit parameters describing pharynx centerline.</p></li>
+<li><p><strong>poptY</strong> (<em>array</em>) – optimal fit parameters describing pharynx centerline.</p></li>
+<li><p><strong>xs</strong> (<em>np.array</em>) – array of coordinates to create centerline from .feature._pharynxFunc(x, <a href="#id7"><span class="problematic" id="id8">*</span></a>p, deriv = 0)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>: (N,2) array of unit vectors orthogonal to centerline. Same length as xs.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.pharynxFunc">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">pharynxFunc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#pharynxFunc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.pharynxFunc" title="Permalink to this definition"></a></dt>
+<dd><p>Defines a cubic polynomial helper function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>numpy.array</em><em> or </em><em>list</em>) – list of coordinates to evaluate function on</p></li>
+<li><p><strong>deriv</strong> (<em>int</em><em>, </em><em>optional</em>) – return the polynomial or its first derivative Defaults to 0. {0,1}</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>polynomial evaluated at x</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array or list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.scalarWidth">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">scalarWidth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#scalarWidth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.scalarWidth" title="Permalink to this definition"></a></dt>
+<dd><p>calculate the width of the pharynx along the centerline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>widths</strong> (<em>numpy.array</em>) – (N, 2,2) array of start and end points of lines spanning the pharynx orthogonal to the midline.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(N,1) array of scalar widtha.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.skeletonPharynx">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">skeletonPharynx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#skeletonPharynx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.skeletonPharynx" title="Permalink to this definition"></a></dt>
+<dd><p>Use skeletonization to obatain midline of pharynx.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>numpy.array</em>) – binary mask of the pharynx</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>skeleton of mask</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.sortSkeleton">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">sortSkeleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skeleton</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#sortSkeleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.sortSkeleton" title="Permalink to this definition"></a></dt>
+<dd><p>This function has been made lazy. When passed
+a Slicerator, it will return a
+Pipeline of the results. When passed
+any other objects, its behavior is unchanged.</p>
+<p>Use hierarchical clustering with optimal ordering to get         the best path through the skeleton points.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>skeleton (numpy.array): skeletonized image of an object</p>
+</dd>
+<dt>Returns:</dt><dd><p>list: list of coordinates ordered by distance</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.straightenPharynx">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">straightenPharynx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xstart</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poptX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poptY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nPts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#straightenPharynx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.straightenPharynx" title="Permalink to this definition"></a></dt>
+<dd><p>Based on a centerline, straighten the animal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>im</strong> (<em>numpy.array</em><em> or </em><em>pims.Frame</em>) – image of curved object</p></li>
+<li><p><strong>xstart</strong> (<em>float</em>) – start coordinate to apply to .features._pharynxFunc(x) to create a centerline</p></li>
+<li><p><strong>xend</strong> (<em>float</em>) – end coordinate to apply to .features._pharynxFunc(x) to create a centerline</p></li>
+<li><p><strong>poptX</strong> (<em>array</em>) – optimal fit parameters describing pharynx centerline.</p></li>
+<li><p><strong>poptY</strong> (<em>array</em>) – optimal fit parameters describing pharynx centerline.</p></li>
+<li><p><strong>width</strong> (<em>int</em>) – how many points to sample orthogonal of the centerline</p></li>
+<li><p><strong>nPts</strong> (<em>int</em><em>, </em><em>optional</em>) – how many points to sample along the centerline. Defaults to 100.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(nPts, width) array of image intensity</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.thresholdPharynx">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">thresholdPharynx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#thresholdPharynx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.thresholdPharynx" title="Permalink to this definition"></a></dt>
+<dd><p>This function has been made lazy. When passed
+a Slicerator, it will return a
+Pipeline of the results. When passed
+any other objects, its behavior is unchanged.</p>
+<p>Use Yen threshold to obtain mask of pharynx.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>im (numpy.array or pims.Frame): image</p>
+</dd>
+<dt>Returns:</dt><dd><p>np.array: binary image with only the largest object</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.features.widthPharynx">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.features.</span></span><span class="sig-name descname"><span class="pre">widthPharynx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dCl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/features.html#widthPharynx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.features.widthPharynx" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Use vector interesections to get width of object.</dt><dd><p>We are looking for contour points that have the same(or very similar) angle relative to the centerline point as the normal vectors.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cl</strong> (<em>[</em><em>type</em><em>]</em>) – cl (N,2) array describing the centerline</p></li>
+<li><p><strong>contour</strong> (<em>[</em><em>type</em><em>]</em>) – (M,2) array describing the contour</p></li>
+<li><p><strong>dCl</strong> (<em>[</em><em>type</em><em>]</em>) – (N,2) array describing the normal vectors on the centerline (created by calling .features.normalVecCl(poptX, poptY, xs))</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(N,2) widths of the contour at each centerline point.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-pharaglow.io">
+<span id="pharaglow-io-module"></span><h2>pharaglow.io module<a class="headerlink" href="#module-pharaglow.io" title="Permalink to this headline"></a></h2>
+<p>io.py: loading for pharaglow feature files.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.io.load">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.io.</span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxcols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'im'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/io.html#load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.io.load" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>load a pharglow features, trajectories or results file.</dt><dd><p>We expect columns containing the string ‘im’ to be image pixels which will convert to uint8.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em>) – filename of the .json file to load.</p></li>
+<li><p><strong>image_depth</strong> (<em>int</em><em>, </em><em>optional</em>) – bit depth of the images. Defaults to 8.</p></li>
+<li><p><strong>maxcols</strong> (<em>int</em><em>, </em><em>optional</em>) – maximal number of expected columns. Defaults to 10000.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em><em>, </em><em>optional</em>) – prefix to add to the column. Defaults to “im”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a pharaglow file as dataframe</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.io.log_setup">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.io.</span></span><span class="sig-name descname"><span class="pre">log_setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/io.html#log_setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.io.log_setup" title="Permalink to this definition"></a></dt>
+<dd><p>This function will setup a logger with the name and level you pass as input.
+Levels are 10 (debug), 20 (info), 30 (warning), 40 (error), 50 (critical).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – name of the logger object</p></li>
+<li><p><strong>level</strong> (<em>int</em>) – logging level {10,20,30,40,50}</p></li>
+<li><p><strong>fname</strong> (<em>str</em>) – filename for writing the log messages</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a logger</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>logging.Logger</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-pharaglow.run">
+<span id="pharaglow-run-module"></span><h2>pharaglow.run module<a class="headerlink" href="#module-pharaglow.run" title="Permalink to this headline"></a></h2>
+<p>run.py: run pharaglow analysis by inplace modifying pandas dataframes.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.run.parallel_pharaglow_run">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.run.</span></span><span class="sig-name descname"><span class="pre">parallel_pharaglow_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/run.html#parallel_pharaglow_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.run.parallel_pharaglow_run" title="Permalink to this definition"></a></dt>
+<dd><p>Define a worker function for parallelization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> – arguments for .features.runPharaglowOnImage()</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>hands over output from .features.runPharaglowOnImage()</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.run.pharynxorientation">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.run.</span></span><span class="sig-name descname"><span class="pre">pharynxorientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/run.html#pharynxorientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.run.pharynxorientation" title="Permalink to this definition"></a></dt>
+<dd><p>Get all images into the same orientation by comparing to a sample image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – a pharaglow dataframe after running .run.runPharaglowOnImage()</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dataFrame with flipped columns where neccessary</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.run.runPharaglowCL">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.run.</span></span><span class="sig-name descname"><span class="pre">runPharaglowCL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ptsX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ptsY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/run.html#runPharaglowCL"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.run.runPharaglowCL" title="Permalink to this definition"></a></dt>
+<dd><p>Fit the centerline points and detect object morphology.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mask</strong> (<em>list</em>) – binary image, unraveled</p></li>
+<li><p><strong>ptsX</strong> (<em>list</em>) – coordinates of centerline along X</p></li>
+<li><p><strong>ptsY</strong> (<em>list</em>) – coordinates of centerline along Y</p></li>
+<li><p><strong>length</strong> (<em>list</em>) – length of one axis of the image</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>poptX - optimal fit parameters of .features.pharynxFunc
+list: poptY - optimal fit parameters of .features.pharynxFunc
+float: xstart -start coordinate to apply to .features._pharynxFunc(x) to create a centerline
+float: xend - end coordinate to apply to .features._pharynxFunc(x) to create a centerline
+list: cl - (n,2) list of centerline coordinates in image space.
+list: dCl - (n,2) array of unit vectors orthogonal to centerline. Same length as cl.
+list: widths - (n,2) widths of the contour at each centerline point.
+list: contour- (m,2) coordinates along the contour of the object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.run.runPharaglowImg">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.run.</span></span><span class="sig-name descname"><span class="pre">runPharaglowImg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xstart</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poptX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poptY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/run.html#runPharaglowImg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.run.runPharaglowImg" title="Permalink to this definition"></a></dt>
+<dd><p>Obtain the straightened version and gradient of the input image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>im</strong> (<em>numpy.array</em><em> or </em><em>pims.Frame</em>) – image of curved object</p></li>
+<li><p><strong>xstart</strong> (<em>float</em>) – start coordinate to apply to .features._pharynxFunc(x) to
+create a centerline</p></li>
+<li><p><strong>xend</strong> (<em>float</em>) – end coordinate to apply to .features._pharynxFunc(x)
+to create a centerline</p></li>
+<li><p><strong>poptX</strong> (<em>array</em>) – optimal fit parameters describing pharynx centerline.</p></li>
+<li><p><strong>poptY</strong> (<em>array</em>) – optimal fit parameters describing pharynx centerline.</p></li>
+<li><p><strong>width</strong> (<em>int</em>) – how many points to sample orthogonal of the centerline</p></li>
+<li><p><strong>nPts</strong> (<em>int</em><em>, </em><em>optional</em>) – how many points to sample along the centerline. Defaults to 100.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>local derivative of image
+numpy.array:  (nPts, width) array of image intensity straightened by centerline</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.run.runPharaglowKymo">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.run.</span></span><span class="sig-name descname"><span class="pre">runPharaglowKymo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widths</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/run.html#runPharaglowKymo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.run.runPharaglowKymo" title="Permalink to this definition"></a></dt>
+<dd><p>Use the centerline to extract intensity along this line from an image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>im</strong> (<em>numpy.array</em>) – image of a pharynx</p></li>
+<li><p><strong>cl</strong> (<em>numpy.array</em><em> or </em><em>list</em>) – (n,2) list of centerline coordinates in image space.</p></li>
+<li><p><strong>kwargs</strong> – <a href="#id9"><span class="problematic" id="id10">**</span></a>kwargs are passed skimage.measure.profile_line.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>array of (?,) length. Length is determined by pathlength of centerline.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.run.runPharaglowOnImage">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.run.</span></span><span class="sig-name descname"><span class="pre">runPharaglowOnImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framenumber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/run.html#runPharaglowOnImage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.run.runPharaglowOnImage" title="Permalink to this definition"></a></dt>
+<dd><p>Run pharaglow-specific image analysis of a pharynx on a single image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>numpy.array</em><em> or </em><em>pims.Frame</em>) – input image</p></li>
+<li><p><strong>framenumber</strong> (<em>int</em>) – frame number to indicate in the resulting</p></li>
+<li><p><strong>analyzed.</strong> (<em>dataframe which image is being</em>) – </p></li>
+<li><p><strong>arams</strong> (<em>dict</em>) – parameter dictionary containing image analysis parameters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>collection of data created by pharaglow for this image.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.run.runPharaglowSkel">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.run.</span></span><span class="sig-name descname"><span class="pre">runPharaglowSkel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/run.html#runPharaglowSkel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.run.runPharaglowSkel" title="Permalink to this definition"></a></dt>
+<dd><p>Create a centerline of the object in the image by binarizing,
+skeletonizing and sorting centerline points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>im</strong> (<em>numpy.array</em><em> or </em><em>pims.Frame</em>) – image</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>binary of image, unraveled
+list: coordinates of centerline along X
+list: coordinates of centerline along Y</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-pharaglow.tracking">
+<span id="pharaglow-tracking-module"></span><h2>pharaglow.tracking module<a class="headerlink" href="#module-pharaglow.tracking" title="Permalink to this headline"></a></h2>
+<p>tracking.py: Detection of worms and trackpy-based worm tracking.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.calculateMask">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">calculateMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bgWindow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresholdWindow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtract</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tfactor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#calculateMask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.calculateMask" title="Permalink to this definition"></a></dt>
+<dd><p>standard median stack-projection to obtain a background image followd by
+thresholding and filtering of small objects to get a clean mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frames</strong> (<em>numpy.array</em><em> or </em><em>pims.ImageSequence</em>) – image stack with input images</p></li>
+<li><p><strong>bgWindow</strong> (<em>int</em>) – subsample frames for background creation. Defaults to 30.</p></li>
+<li><p><strong>thresholdWindow</strong> (<em>int</em><em>, </em><em>optional</em>) – subsample frames to calculate the threshold.
+Use larger values if the objects are dense. Defaults to 30.</p></li>
+<li><p><strong>subtract</strong> (<em>bool</em><em>, </em><em>optional</em>) – calculate and subtract a median-background. Defaults to False.</p></li>
+<li><p><strong>smooth</strong> (<em>int</em><em>, </em><em>optional</em>) – size of gaussian filter for image smoothing. Defaults to 0.</p></li>
+<li><p><strong>tfactor</strong> (<em>int</em><em>, </em><em>optional</em>) – fudge factor to correct threshold. Discouraged. Defaults to 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>masked (binary) image array</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.cropImagesAroundCMS">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">cropImagesAroundCMS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengthX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengthY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#cropImagesAroundCMS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.cropImagesAroundCMS" title="Permalink to this definition"></a></dt>
+<dd><p>Using the interpolated center of mass coordindates (x,y), fill in missing images. img is a full size frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>numpy.array</em>) – original image</p></li>
+<li><p><strong>x</strong> (<em>float</em>) – x-coordinate</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y-coordinate</p></li>
+<li><p><strong>lengthX</strong> (<em>int</em>) – length of resulting image</p></li>
+<li><p><strong>lengthY</strong> (<em>int</em>) – length of resulting image</p></li>
+<li><p><strong>size</strong> (<em>float</em>) – expected minimal size for a relevant object</p></li>
+<li><p><strong>refine</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use filtering to separate potentially colliding objects. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>image unraveled as 1d list
+tuple: bounding box
+int: length of first image axis
+int: length of second image axis</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.extractImage">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">extractImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmsLocal</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#extractImage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.extractImage" title="Permalink to this definition"></a></dt>
+<dd><p>extracts a square image of an object centered around center of mass coordinates with size (length, length). Mask ensures that
+only one object is visible if two are in the same region.
+img is the bounding box region of the object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>numpy.array</em><em> or </em><em>pims.Frame</em>) – larger image</p></li>
+<li><p><strong>mask</strong> (<em>numpy.array</em>) – binary mask of the same size as img</p></li>
+<li><p><strong>length</strong> (<em>int</em>) – length of resulting image</p></li>
+<li><p><strong>cmsLocal</strong> (<em>float</em><em>, </em><em>float</em>) – center point</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>square cutout of (length,length) will be returned</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.extractImagePad">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">extractImagePad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#extractImagePad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.extractImagePad" title="Permalink to this definition"></a></dt>
+<dd><p>get a larger than bounding box image by padding around the detected object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>numpy.array</em>) – input image</p></li>
+<li><p><strong>bbox</strong> (<em>tuple</em>) – bounding box which lies in img in format (ymin, xmin, ymax, xmax)</p></li>
+<li><p><strong>pad</strong> (<em>int</em>) – number of pixels to pad around each size. reslting image will be larger by 2*pad on each side.</p></li>
+<li><p><strong>mask</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) – binary mask of size img. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>padded image
+slice: location/bbox of padded image in original image</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.fillMissingImages">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">fillMissingImages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengthX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengthY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#fillMissingImages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.fillMissingImages" title="Permalink to this definition"></a></dt>
+<dd><p>Run this on a dataframe to interpolate images from previously missing, now interpolated coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>numpy.array</em>) – original image</p></li>
+<li><p><strong>x</strong> (<em>float</em>) – x-coordinate</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y-coordinate</p></li>
+<li><p><strong>lengthX</strong> (<em>int</em>) – length of resulting image</p></li>
+<li><p><strong>lengthY</strong> (<em>int</em>) – length of resulting image</p></li>
+<li><p><strong>size</strong> (<em>float</em>) – expected minimal size for a relevant object</p></li>
+<li><p><strong>refine</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use filtering to separate potentially colliding objects. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>image unraveled as 1d list
+int: ymin of bounding box
+int: xmin of bounding box
+int: ymax of bounding box
+int: xmax of bounding box
+int: length of first image axis
+int: length of second image axis</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.getThreshold">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">getThreshold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#getThreshold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.getThreshold" title="Permalink to this definition"></a></dt>
+<dd><p>This function has been made lazy. When passed
+a Slicerator, it will return a
+Pipeline of the results. When passed
+any other objects, its behavior is unchanged.</p>
+<dl class="simple">
+<dt>“return a global threshold value for an image using yen’s method.</dt><dd><dl class="simple">
+<dt>Returns:</dt><dd><p>float: theshold value</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.interpolateTrajectories">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">interpolateTrajectories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#interpolateTrajectories"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.interpolateTrajectories" title="Permalink to this definition"></a></dt>
+<dd><p>given a dataframe with a trajectory, interpolate missing frames.
+The interpolate function ignores non-pandas types, so some columns will not be interpolated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>traj</strong> (<em>pandas.DataFrame</em>) – pandas dataframe containing at minimum the columns ‘frame’ and the columns given in colums.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>(</em><em>str</em><em>)</em><em>, </em><em>optional</em>) – list of columns to interpolate.</p></li>
+<li><p><strong>interpolated.</strong> (<em>Defaults to None</em><em>, </em><em>which means all columns are attempted to be</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dataframe with interpolated trajectories</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.interpolate_helper">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">interpolate_helper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawframes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['x',</span> <span class="pre">'y',</span> <span class="pre">'shapeX',</span> <span class="pre">'shapeY',</span> <span class="pre">'particle']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#interpolate_helper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.interpolate_helper" title="Permalink to this definition"></a></dt>
+<dd><p>wrapper to make the code more readable. This interpolates all missing images in a trajectory.
+check if currently the image is all zeros - then we insert an small image from the original movie around the interpolated coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rawframes</strong> (<em>pims.ImageSequence</em>) – sequence of images</p></li>
+<li><p><strong>ims</strong> (<em>numpy.array</em>) – stack of small images around detected objects corresponding to rows in tmp</p></li>
+<li><p><strong>tmp</strong> (<em>pandas.DataFrame</em>) – pandas dataframe with an onject and its properties per row</p></li>
+<li><p><strong>param</strong> (<em>dict</em>) – dictionary of image analysis parameters, see example file <cite>AnalysisParameters_1x.json</cite></p></li>
+<li><p><strong>columns</strong> (<em>list</em><em>, </em><em>optional</em>) – columns to interpolate. Defaults to [‘x’, ‘y’, ‘shapeX’, ‘shapeY’, ‘particle’].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>interpolated version of tmp with missing values interpolated
+numpy.array: array of images with interpolated images inserted at the appropriate indices</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.linkParticles">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">linkParticles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">searchRange</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimalDuration</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#linkParticles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.linkParticles" title="Permalink to this definition"></a></dt>
+<dd><p>Link detected particles into trajectories.
+<a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs can be passed to the trackpy function link_df to modify tracking behavior.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – pandas dataframe that contains at least the columns ‘frame’ and ‘x’, ‘y’.</p></li>
+<li><p><strong>searchRange</strong> (<em>float</em>) – how far particles can move in one frame</p></li>
+<li><p><strong>minimalDuration</strong> (<em>int</em>) – minimal duration of a track in frames</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>inplace modified dataframe with an added column called ‘particles’ which labels the objects belonging to one trajectory.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.objectDetection">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">objectDetection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#objectDetection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.objectDetection" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>label a binary image and extract a region of interest around each labelled object,</dt><dd><p>as well as collect properties of the object in a DataFrame.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mask</strong> (<em>numpy.array</em>) – binary image</p></li>
+<li><p><strong>img</strong> (<em>numpy.array</em>) – intensity image with same shape as mask</p></li>
+<li><p><strong>frame</strong> (<em>int</em>) – a number to indicate a time stamp, which will populate the column ‘frame’</p></li>
+<li><p><strong>params</strong> (<em>dict</em>) – parameter dictionary containing image analysis parameters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dataframe with information for each image, list of corresponding images.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.Dataframe, list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.parallelWorker">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">parallelWorker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#parallelWorker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.parallelWorker" title="Permalink to this definition"></a></dt>
+<dd><p>helper wrapper to run object detection with multiprocessing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> – arguments for .tracking.objectDetection</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dataframe with information for each image
+list: list of corresponding images.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.parallel_imageanalysis">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">parallel_imageanalysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framenumbers=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallelWorker=&lt;function</span> <span class="pre">parallelWorker&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nWorkers=5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#parallel_imageanalysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.parallel_imageanalysis" title="Permalink to this definition"></a></dt>
+<dd><p>use multiptocessing to speed up image analysis. This is inspired by the trackpy.batch function.</p>
+<p>frames: numpy.array or other iterable of images
+masks: the binary of the frames, same length
+param: parameters given to all jobs</p>
+<dl class="simple">
+<dt>output<span class="classifier">{None, trackpy.PandasHDFStore, SomeCustomClass}</span></dt><dd><p>If None, return all results as one big DataFrame. Otherwise, pass
+results from each frame, one at a time, to the put() method
+of whatever class is specified here.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.preprocess">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dilate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#preprocess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.preprocess" title="Permalink to this definition"></a></dt>
+<dd><p>This function has been made lazy. When passed
+a Slicerator, it will return a
+Pipeline of the results. When passed
+any other objects, its behavior is unchanged.</p>
+<blockquote>
+<div><p>Apply image processing functions to return a binary image.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>img (numpy.array or pims.Frame): input image
+smooth (int): apply a gaussian filter to img with width=smooth
+threshold (float): threshold value to apply after smoothing (default: None)
+dilate (int): apply a binary dilation n = dilate times (default = False)</p>
+</dd>
+<dt>Returns:</dt><dd><p>numpy.array: binary (masked) image</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.refineWatershed">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">refineWatershed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[3,</span> <span class="pre">4,</span> <span class="pre">5]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#refineWatershed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.refineWatershed" title="Permalink to this definition"></a></dt>
+<dd><p>This function has been made lazy. When passed
+a Slicerator, it will return a
+Pipeline of the results. When passed
+any other objects, its behavior is unchanged.</p>
+<dl>
+<dt>“Refine segmentation using thresholding with different filtered images.</dt><dd><p>Favors detection of two objects.
+Args:</p>
+<blockquote>
+<div><p>img (numpy.array or pims.Frame): input image
+min_size (int, float): minimal size of objects to retain as labels
+filter_sizes (list, optional): filter sizes to try until objects are separated. Defaults to [3,4,5].</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>numpy.array : labelled image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.tracking.subtractBG">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.tracking.</span></span><span class="sig-name descname"><span class="pre">subtractBG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/tracking.html#subtractBG"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.tracking.subtractBG" title="Permalink to this definition"></a></dt>
+<dd><p>This function has been made lazy. When passed
+a Slicerator, it will return a
+Pipeline of the results. When passed
+any other objects, its behavior is unchanged.</p>
+<p>Subtract a background from the image.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><p>img (numpy.array or pims.Frame): input image
+bg (numpy.array or pims.Frame): second image with background</p>
+</dd>
+<dt>Returns:</dt><dd><p>numpy.array: background subtracted image</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+</section>
+<section id="module-pharaglow.util">
+<span id="pharaglow-util-module"></span><h2>pharaglow.util module<a class="headerlink" href="#module-pharaglow.util" title="Permalink to this headline"></a></h2>
+<p>util.py: useful general functions like filters and peak detection.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.util.get_im">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.util.</span></span><span class="sig-name descname"><span class="pre">get_im</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colnames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengthX</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/util.html#get_im"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.util.get_im" title="Permalink to this definition"></a></dt>
+<dd><p>deprecated</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.util.pad_images">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.util.</span></span><span class="sig-name descname"><span class="pre">pad_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reshape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'uint8'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/util.html#pad_images"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.util.pad_images" title="Permalink to this definition"></a></dt>
+<dd><p>pad image to desired size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>im</strong> (<em>list</em>) – a linearized version of an image</p></li>
+<li><p><strong>shape</strong> (<em>int</em>) – shape of second axis of image.</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – pad image to size (size, size)</p></li>
+<li><p><strong>reshape</strong> (<em>bool</em><em>, </em><em>optional</em>) – reshape image to (-1, shape) before padding. Defaults to True.</p></li>
+<li><p><strong>depth</strong> (<em>str</em><em>, </em><em>optional</em>) – bit depth of image. Defaults to ‘uint8’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>padded image of size (size, size)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.util.parallel_analysis">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.util.</span></span><span class="sig-name descname"><span class="pre">parallel_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallelWorker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">framenumbers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nWorkers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'uint8'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/util.html#parallel_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.util.parallel_analysis" title="Permalink to this definition"></a></dt>
+<dd><p>Use multiprocessing to speed up image analysis. This is inspired by the trackpy.batch function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>tuple</em>) – contains iterables eg. (frames, masks) or just frames that will be iterated through.</p></li>
+<li><p><strong>param</strong> (<em>dict</em>) – image analysis parameters</p></li>
+<li><p><strong>parallelWorker</strong> (<em>func</em>) – a function defining what should be done with args</p></li>
+<li><p><strong>framenumbers</strong> (<em>list</em><em>, </em><em>optional</em>) – a list of frame numbers corresponding to the frames in args. Defaults to None.</p></li>
+<li><p><strong>nWorkers</strong> (<em>int</em><em>, </em><em>optional</em>) – Processes to use, if 1 will run without multiprocessing. Defaults to 5.</p></li>
+<li><p><strong>output</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – {None, trackpy.PandasHDFStore, SomeCustomClass} a storage class e.g. trackpy.PandasHDFStore. Defaults to None.</p></li>
+<li><p><strong>depth</strong> (<em>str</em><em>, </em><em>optional</em>) – bit depth of frames. Defaults to ‘uint8’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>output or (pandas.DataFrame, numpy.array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.util.smooth">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.util.</span></span><span class="sig-name descname"><span class="pre">smooth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hanning'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/util.html#smooth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.util.smooth" title="Permalink to this definition"></a></dt>
+<dd><p>smooth the data using a window with requested size.</p>
+<p>This method is based on the convolution of a scaled window with the signal.
+The signal is prepared by introducing reflected copies of the signal
+(with the window size) in both ends so that transient parts are minimized
+in the begining and end part of the output signal.
+import warnings
+input:</p>
+<blockquote>
+<div><p>x: the input signal
+window_len: the dimension of the smoothing window; should be an odd integer
+window: the type of window from ‘flat’, ‘hanning’, ‘hamming’, ‘bartlett’, ‘blackman’</p>
+<blockquote>
+<div><p>flat window will produce a moving average smoothing.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="simple">
+<dt>output:</dt><dd><p>the smoothed signal</p>
+</dd>
+</dl>
+<p>example:</p>
+<p>t=linspace(-2,2,0.1)
+x=sin(t)+randn(len(t))*0.1
+y=smooth(x)</p>
+<p>see also:</p>
+<p>numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
+scipy.signal.lfilter</p>
+<p>TODO: the window parameter could be the window itself if an array instead of a string
+NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pharaglow.util.unravelImages">
+<span class="sig-prename descclassname"><span class="pre">pharaglow.util.</span></span><span class="sig-name descname"><span class="pre">unravelImages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengthX</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pharaglow/util.html#unravelImages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pharaglow.util.unravelImages" title="Permalink to this definition"></a></dt>
+<dd><p>Reshape images from linear to square.
+:param im: an image
+:type im: list
+:param lengthX: shape of new image in second axis
+:type lengthX: int</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>image reshaped as (N,lengthX)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-pharaglow">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pharaglow" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="link_readme.html" class="btn btn-neutral float-left" title="PharaGlow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Monika Scholz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

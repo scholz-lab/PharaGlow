@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pharaglow.tracking &mdash; PharaGlow  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> PharaGlow
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../link_readme.html">PharaGlow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pharaglow.html">pharaglow package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PharaGlow</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>pharaglow.tracking</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pharaglow.tracking</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;tracking.py: Detection of worms and trackpy-based worm tracking.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">import</span> <span class="nn">pims</span>
+<span class="kn">import</span> <span class="nn">trackpy</span> <span class="k">as</span> <span class="nn">tp</span>
+
+<span class="kn">import</span> <span class="nn">skimage</span>
+<span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">label</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="kn">import</span> <span class="n">morphology</span><span class="p">,</span> <span class="n">util</span><span class="p">,</span> <span class="n">filters</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">ndimage</span> <span class="k">as</span> <span class="n">ndi</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">pad_images</span>
+
+<div class="viewcode-block" id="subtractBG"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.subtractBG">[docs]</a><span class="nd">@pims</span><span class="o">.</span><span class="n">pipeline</span>
+<span class="k">def</span> <span class="nf">subtractBG</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">bg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Subtract a background from the image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img (numpy.array or pims.Frame): input image</span>
+<span class="sd">        bg (numpy.array or pims.Frame): second image with background</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: background subtracted image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">img</span><span class="o">-</span><span class="n">bg</span>
+    <span class="n">mi</span><span class="p">,</span> <span class="n">ma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">tmp</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+    <span class="n">tmp</span> <span class="o">-=</span> <span class="n">mi</span>
+    <span class="k">return</span> <span class="n">util</span><span class="o">.</span><span class="n">img_as_float</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getThreshold"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.getThreshold">[docs]</a><span class="nd">@pims</span><span class="o">.</span><span class="n">pipeline</span>
+<span class="k">def</span> <span class="nf">getThreshold</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;&quot;return a global threshold value for an image using yen&#39;s method.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        float: theshold value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">filters</span><span class="o">.</span><span class="n">threshold_yen</span><span class="p">(</span><span class="n">img</span><span class="p">)</span><span class="c1">#, initial_guess = lambda arr: np.quantile(arr, 0.5))</span></div>
+
+
+<div class="viewcode-block" id="preprocess"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.preprocess">[docs]</a><span class="nd">@pims</span><span class="o">.</span><span class="n">pipeline</span>
+<span class="k">def</span> <span class="nf">preprocess</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smooth</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dilate</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply image processing functions to return a binary image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img (numpy.array or pims.Frame): input image</span>
+<span class="sd">        smooth (int): apply a gaussian filter to img with width=smooth</span>
+<span class="sd">        threshold (float): threshold value to apply after smoothing (default: None)</span>
+<span class="sd">        dilate (int): apply a binary dilation n = dilate times (default = False)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: binary (masked) image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># smooth</span>
+    <span class="k">if</span> <span class="n">smooth</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">smooth</span><span class="p">,</span> <span class="n">preserve_range</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Apply thresholds</span>
+    <span class="k">if</span> <span class="n">threshold</span> <span class="o">==</span><span class="kc">None</span><span class="p">:</span>
+        <span class="n">threshold</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">threshold_yen</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">img</span> <span class="o">&gt;=</span> <span class="n">threshold</span>
+    <span class="c1"># dilations</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dilate</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">ndi</span><span class="o">.</span><span class="n">binary_dilation</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mask</span></div>
+
+
+<div class="viewcode-block" id="refineWatershed"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.refineWatershed">[docs]</a><span class="nd">@pims</span><span class="o">.</span><span class="n">pipeline</span>
+<span class="k">def</span> <span class="nf">refineWatershed</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">min_size</span><span class="p">,</span> <span class="n">filter_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;&quot;Refine segmentation using thresholding with different filtered images.</span>
+<span class="sd">    Favors detection of two objects.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        img (numpy.array or pims.Frame): input image</span>
+<span class="sd">        min_size (int, float): minimal size of objects to retain as labels</span>
+<span class="sd">        filter_sizes (list, optional): filter sizes to try until objects are separated. Defaults to [3,4,5].</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array : labelled image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">min_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">current_no</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">filter_sizes</span><span class="p">:</span>
+        <span class="n">bg</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">preserve_range</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">img</span><span class="o">-</span><span class="n">bg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">img</span><span class="p">[</span><span class="n">img</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="c1"># mask</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">img</span><span class="o">&gt;</span><span class="n">filters</span><span class="o">.</span><span class="n">threshold_li</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">initial_guess</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">ndi</span><span class="o">.</span><span class="n">binary_closing</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">morphology</span><span class="o">.</span><span class="n">remove_small_objects</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">labelled</span><span class="p">,</span> <span class="n">num</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">connectivity</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span><span class="n">return_num</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">labelled</span>
+        <span class="k">if</span> <span class="n">num</span><span class="o">&lt;</span><span class="n">current_no</span> <span class="ow">and</span> <span class="n">num</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">min_mask</span> <span class="o">=</span> <span class="n">labelled</span>
+            <span class="n">current_no</span> <span class="o">=</span> <span class="n">num</span>
+    <span class="k">return</span> <span class="n">min_mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="calculateMask"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.calculateMask">[docs]</a><span class="k">def</span> <span class="nf">calculateMask</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">bgWindow</span> <span class="o">=</span> <span class="mi">30</span> <span class="p">,</span> <span class="n">thresholdWindow</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span> <span class="n">subtract</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">smooth</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tfactor</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;standard median stack-projection to obtain a background image followd by</span>
+<span class="sd">    thresholding and filtering of small objects to get a clean mask.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        frames (numpy.array or pims.ImageSequence): image stack with input images</span>
+<span class="sd">        bgWindow (int): subsample frames for background creation. Defaults to 30.</span>
+<span class="sd">        thresholdWindow (int, optional): subsample frames to calculate the threshold.</span>
+<span class="sd">                        Use larger values if the objects are dense. Defaults to 30.</span>
+<span class="sd">        subtract (bool, optional): calculate and subtract a median-background. Defaults to False.</span>
+<span class="sd">        smooth (int, optional): size of gaussian filter for image smoothing. Defaults to 0.</span>
+<span class="sd">        tfactor (int, optional): fudge factor to correct threshold. Discouraged. Defaults to 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: masked (binary) image array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">subtract</span><span class="p">:</span>
+        <span class="n">bg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">frames</span><span class="p">[::</span><span class="n">bgWindow</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1">#subtract bg from all frames</span>
+            <span class="n">frames</span> <span class="o">=</span> <span class="n">subtractBG</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">bg</span><span class="p">)</span>
+    <span class="c1"># image to determine threshold</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">frames</span><span class="p">[::</span><span class="n">thresholdWindow</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># smooth</span>
+    <span class="k">if</span> <span class="n">smooth</span><span class="p">:</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">smooth</span><span class="p">,</span> <span class="n">preserve_range</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># get an overall threshold value and binarize images by using z-stack</span>
+    <span class="n">thresh</span> <span class="o">=</span> <span class="n">getThreshold</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">*</span><span class="n">tfactor</span>
+    <span class="k">return</span> <span class="n">preprocess</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="n">thresh</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="extractImage"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.extractImage">[docs]</a><span class="k">def</span> <span class="nf">extractImage</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">cmsLocal</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; extracts a square image of an object centered around center of mass coordinates with size (length, length). Mask ensures that</span>
+<span class="sd">    only one object is visible if two are in the same region.</span>
+<span class="sd">    img is the bounding box region of the object.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img (numpy.array or pims.Frame): larger image</span>
+<span class="sd">        mask (numpy.array): binary mask of the same size as img</span>
+<span class="sd">        length (int): length of resulting image</span>
+<span class="sd">        cmsLocal (float, float): center point</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: square cutout of (length,length) will be returned</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">assert</span> <span class="n">length</span><span class="o">%</span><span class="mi">2</span><span class="o">==</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;length should be an even number to rounding artefacts.&quot;</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">length</span><span class="p">,</span> <span class="n">length</span><span class="p">))</span>
+    <span class="n">yc</span><span class="p">,</span> <span class="n">xc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">cmsLocal</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">sy</span><span class="p">,</span> <span class="n">sx</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span>
+    <span class="c1"># check that the image will fit in the bounded region</span>
+    <span class="k">if</span> <span class="n">sx</span><span class="o">-</span><span class="n">xc</span><span class="o">&gt;=</span><span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The object is larger than the bounding box. </span><span class="se">\</span>
+<span class="s1">            Try increasing the length parameter.&#39;</span><span class="p">,</span> <span class="ne">Warning</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:,</span><span class="n">xc</span> <span class="o">-</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span><span class="n">xc</span> <span class="o">+</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[:,</span><span class="n">xc</span> <span class="o">-</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span><span class="n">xc</span> <span class="o">+</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">xc</span> <span class="o">=</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span>
+    <span class="k">if</span> <span class="n">sy</span><span class="o">-</span><span class="n">yc</span><span class="o">&gt;=</span><span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The object is larger than the bounding box. </span><span class="se">\</span>
+<span class="s1">            Try increasing the length parameter.&#39;</span><span class="p">,</span> <span class="ne">Warning</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">yc</span> <span class="o">-</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span><span class="n">yc</span> <span class="o">+</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="n">yc</span> <span class="o">-</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span><span class="n">yc</span> <span class="o">+</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">yc</span> <span class="o">=</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span>
+    <span class="n">sy</span><span class="p">,</span> <span class="n">sx</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">yoff</span> <span class="o">=</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="o">-</span><span class="n">yc</span>
+    <span class="n">xoff</span> <span class="o">=</span> <span class="n">length</span><span class="o">//</span><span class="mi">2</span><span class="o">-</span><span class="n">xc</span>
+    <span class="k">if</span> <span class="n">yoff</span><span class="o">&lt;</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">xoff</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The center of mass is severly off center in this image. The image might be cropped.&#39;</span><span class="p">,</span> \
+                      <span class="ne">Warning</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">yoff</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">xoff</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">im</span><span class="p">[</span><span class="n">yoff</span><span class="p">:</span><span class="n">yoff</span><span class="o">+</span><span class="n">sy</span><span class="p">,</span> <span class="n">xoff</span><span class="p">:</span><span class="n">xoff</span><span class="o">+</span><span class="n">sx</span><span class="p">]</span> <span class="o">=</span> <span class="n">img</span><span class="o">*</span><span class="n">mask</span>
+    <span class="k">elif</span> <span class="n">yoff</span><span class="o">&lt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">xoff</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">im</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">yoff</span><span class="o">+</span><span class="n">sy</span><span class="p">,</span> <span class="n">xoff</span><span class="p">:</span><span class="n">sx</span><span class="o">+</span><span class="n">xoff</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">img</span><span class="o">*</span><span class="n">mask</span><span class="p">)[</span><span class="o">-</span><span class="n">yoff</span><span class="p">:]</span>
+    <span class="k">elif</span> <span class="n">xoff</span><span class="o">&lt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">yoff</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">im</span><span class="p">[</span><span class="n">yoff</span><span class="p">:</span><span class="n">yoff</span><span class="o">+</span><span class="n">sy</span><span class="p">,</span> <span class="p">:</span><span class="n">sx</span><span class="o">+</span><span class="n">xoff</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">img</span><span class="o">*</span><span class="n">mask</span><span class="p">)[:,</span><span class="o">-</span><span class="n">xoff</span><span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">im</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">yoff</span><span class="o">+</span><span class="n">sy</span><span class="p">,</span> <span class="p">:</span><span class="n">sx</span><span class="o">+</span><span class="n">xoff</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">img</span><span class="o">*</span><span class="n">mask</span><span class="p">)[</span><span class="o">-</span><span class="n">yoff</span><span class="p">:,</span><span class="o">-</span><span class="n">xoff</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="n">im</span></div>
+
+<div class="viewcode-block" id="extractImagePad"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.extractImagePad">[docs]</a><span class="k">def</span> <span class="nf">extractImagePad</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;get a larger than bounding box image by padding around the detected object.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img (numpy.array): input image</span>
+<span class="sd">        bbox (tuple): bounding box which lies in img in format (ymin, xmin, ymax, xmax)</span>
+<span class="sd">        pad (int): number of pixels to pad around each size. reslting image will be larger by 2*pad on each side.</span>
+<span class="sd">        mask (numpy.array, optional): binary mask of size img. Defaults to None.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: padded image</span>
+<span class="sd">        slice: location/bbox of padded image in original image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ymin</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">xmax</span>  <span class="o">=</span> <span class="n">bbox</span>
+    <span class="n">sliced</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymin</span><span class="o">-</span><span class="n">pad</span><span class="p">]),</span> <span class="n">ymax</span><span class="o">+</span><span class="n">pad</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">xmin</span><span class="o">-</span><span class="n">pad</span><span class="p">]),</span> <span class="n">xmax</span><span class="o">+</span><span class="n">pad</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">*</span><span class="n">mask</span>
+    <span class="k">return</span> <span class="n">img</span><span class="p">[</span><span class="n">sliced</span><span class="p">],</span> <span class="n">sliced</span></div>
+
+
+<div class="viewcode-block" id="objectDetection"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.objectDetection">[docs]</a><span class="k">def</span> <span class="nf">objectDetection</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;label a binary image and extract a region of interest around each labelled object,</span>
+<span class="sd">        as well as collect properties of the object in a DataFrame.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mask (numpy.array): binary image</span>
+<span class="sd">        img (numpy.array): intensity image with same shape as mask</span>
+<span class="sd">        frame (int): a number to indicate a time stamp, which will populate the column &#39;frame&#39;</span>
+<span class="sd">        params (dict): parameter dictionary containing image analysis parameters.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.Dataframe, list: dataframe with information for each image, list of corresponding images.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;Image and Mask size do not match.&#39;</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="n">crop_images</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">label_image</span> <span class="o">=</span> <span class="n">skimage</span><span class="o">.</span><span class="n">measure</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">connectivity</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">label_image</span> <span class="o">=</span> <span class="n">skimage</span><span class="o">.</span><span class="n">segmentation</span><span class="o">.</span><span class="n">clear_border</span><span class="p">(</span><span class="n">label_image</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bgval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">skimage</span><span class="o">.</span><span class="n">measure</span><span class="o">.</span><span class="n">regionprops</span><span class="p">(</span><span class="n">label_image</span><span class="p">,</span> <span class="n">intensity_image</span><span class="o">=</span><span class="n">img</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">region</span><span class="o">.</span><span class="n">area</span> <span class="o">&gt;</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;minSize&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">region</span><span class="o">.</span><span class="n">area</span> <span class="o">&lt;</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;maxSize&#39;</span><span class="p">]:</span>
+            <span class="c1"># get the image of an object</span>
+            <span class="n">im</span><span class="p">,</span> <span class="n">sliced</span> <span class="o">=</span> <span class="n">extractImagePad</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">region</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;pad&#39;</span><span class="p">],</span> <span class="n">mask</span><span class="o">=</span><span class="n">label_image</span><span class="o">==</span><span class="n">region</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="n">sliced</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">sliced</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">sliced</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">sliced</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">]</span>
+            <span class="c1"># bbox is min_row, min_col, max_row, max_col</span>
+            <span class="c1"># Store features which survived to the criterions</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">append</span><span class="p">([{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">region</span><span class="o">.</span><span class="n">centroid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                             <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">region</span><span class="o">.</span><span class="n">centroid</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                             <span class="s1">&#39;slice_y0&#39;</span><span class="p">:</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                             <span class="s1">&#39;slice_y1&#39;</span><span class="p">:</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                             <span class="s1">&#39;slice_x0&#39;</span><span class="p">:</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                             <span class="s1">&#39;slice_x1&#39;</span><span class="p">:</span><span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                             <span class="s1">&#39;frame&#39;</span><span class="p">:</span> <span class="n">frame</span><span class="p">,</span>
+                             <span class="s1">&#39;area&#39;</span><span class="p">:</span> <span class="n">region</span><span class="o">.</span><span class="n">area</span><span class="p">,</span>
+                             <span class="c1">#&#39;image&#39;: im.ravel(),</span>
+                             <span class="s1">&#39;yw&#39;</span><span class="p">:</span> <span class="n">region</span><span class="o">.</span><span class="n">weighted_centroid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                             <span class="s1">&#39;xw&#39;</span><span class="p">:</span> <span class="n">region</span><span class="o">.</span><span class="n">weighted_centroid</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                             <span class="s1">&#39;shapeY&#39;</span><span class="p">:</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                             <span class="s1">&#39;shapeX&#39;</span><span class="p">:</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                             <span class="p">},])</span>
+            <span class="c1"># add the images to crop images</span>
+            <span class="n">crop_images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">ravel</span><span class="p">()))</span>
+        <span class="c1"># do watershed to get crossing objects separated.</span>
+        <span class="k">elif</span> <span class="n">region</span><span class="o">.</span><span class="n">area</span> <span class="o">&gt;</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;minSize&#39;</span><span class="p">]:</span>
+            <span class="n">labeled</span> <span class="o">=</span> <span class="n">refineWatershed</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="n">region</span><span class="o">.</span><span class="n">slice</span><span class="p">],</span> <span class="n">size</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;watershed&#39;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">skimage</span><span class="o">.</span><span class="n">measure</span><span class="o">.</span><span class="n">regionprops</span><span class="p">(</span><span class="n">labeled</span><span class="p">,</span> <span class="n">intensity_image</span><span class="o">=</span><span class="n">img</span><span class="p">[</span><span class="n">region</span><span class="o">.</span><span class="n">slice</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">part</span><span class="o">.</span><span class="n">area</span> <span class="o">&gt;</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;minSize&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">0.75</span> <span class="ow">and</span> <span class="n">part</span><span class="o">.</span><span class="n">area</span> <span class="o">&lt;</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;maxSize&#39;</span><span class="p">]:</span>
+                    <span class="c1"># get the image of an object</span>
+                    <span class="c1"># account for the offset from the region</span>
+                    <span class="n">yo</span><span class="p">,</span> <span class="n">xo</span><span class="p">,</span><span class="n">_</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">bbox</span>
+                    <span class="n">offsetbbox</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">part</span><span class="o">.</span><span class="n">bbox</span><span class="p">))</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">yo</span><span class="p">,</span><span class="n">xo</span><span class="p">,</span><span class="n">yo</span><span class="p">,</span><span class="n">xo</span><span class="p">])</span>
+                    <span class="c1"># go back to smaller images</span>
+                    <span class="n">tmpMask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                    <span class="n">tmpMask</span><span class="p">[</span><span class="n">region</span><span class="o">.</span><span class="n">slice</span><span class="p">]</span> <span class="o">=</span> <span class="n">labeled</span><span class="o">==</span><span class="n">part</span><span class="o">.</span><span class="n">label</span>
+                    <span class="n">tmpMask</span> <span class="o">=</span> <span class="n">tmpMask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+                    <span class="n">im</span><span class="p">,</span> <span class="n">sliced</span> <span class="o">=</span> <span class="n">extractImagePad</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">offsetbbox</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;pad&#39;</span><span class="p">],</span> <span class="n">mask</span><span class="o">=</span><span class="n">tmpMask</span><span class="p">)</span>
+                    <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="n">sliced</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">sliced</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">sliced</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">sliced</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">]</span>
+                    <span class="c1">#diffIm = extractImagePad(diffImage, offsetbbox, params[&#39;pad&#39;], mask=tmpMask)</span>
+                    <span class="c1"># Store features which survived to the criterions</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">append</span><span class="p">([{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">part</span><span class="o">.</span><span class="n">centroid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">yo</span><span class="p">,</span>
+                                     <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">part</span><span class="o">.</span><span class="n">centroid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">xo</span><span class="p">,</span>
+                                     <span class="s1">&#39;slice_y0&#39;</span><span class="p">:</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                     <span class="s1">&#39;slice_y1&#39;</span><span class="p">:</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                                     <span class="s1">&#39;slice_x0&#39;</span><span class="p">:</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                     <span class="s1">&#39;slice_x1&#39;</span><span class="p">:</span><span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                                     <span class="s1">&#39;frame&#39;</span><span class="p">:</span> <span class="n">frame</span><span class="p">,</span>
+                                     <span class="s1">&#39;area&#39;</span><span class="p">:</span> <span class="n">part</span><span class="o">.</span><span class="n">area</span><span class="p">,</span>
+                                     <span class="c1">#&#39;image&#39;: im.ravel(),</span>
+                                     <span class="s1">&#39;yw&#39;</span><span class="p">:</span> <span class="n">part</span><span class="o">.</span><span class="n">weighted_centroid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">yo</span><span class="p">,</span>
+                                     <span class="s1">&#39;xw&#39;</span><span class="p">:</span> <span class="n">part</span><span class="o">.</span><span class="n">weighted_centroid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">xo</span><span class="p">,</span>
+                                     <span class="s1">&#39;shapeY&#39;</span><span class="p">:</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                     <span class="s1">&#39;shapeX&#39;</span><span class="p">:</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                     <span class="p">},])</span>
+                    <span class="c1"># add the images to crop images</span>
+                    <span class="n">crop_images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">ravel</span><span class="p">()))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;shapeX&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;shapeX&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;shapeY&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;shapeY&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">crop_images</span></div>
+
+
+<div class="viewcode-block" id="linkParticles"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.linkParticles">[docs]</a><span class="k">def</span> <span class="nf">linkParticles</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">searchRange</span><span class="p">,</span> <span class="n">minimalDuration</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Link detected particles into trajectories.</span>
+<span class="sd">    **kwargs can be passed to the trackpy function link_df to modify tracking behavior.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pandas.DataFrame): pandas dataframe that contains at least the columns &#39;frame&#39; and &#39;x&#39;, &#39;y&#39;.</span>
+<span class="sd">        searchRange (float): how far particles can move in one frame</span>
+<span class="sd">        minimalDuration (int): minimal duration of a track in frames</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame: inplace modified dataframe with an added column called &#39;particles&#39; which labels the objects belonging to one trajectory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">traj</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">link_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">searchRange</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># filter short trajectories</span>
+    <span class="n">traj</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">filter_stubs</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">minimalDuration</span><span class="p">)</span>
+    <span class="c1"># make a numerical index</span>
+    <span class="n">traj</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">index</span><span class="p">)),</span> <span class="n">inplace</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">traj</span></div>
+
+
+<div class="viewcode-block" id="interpolateTrajectories"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.interpolateTrajectories">[docs]</a><span class="k">def</span> <span class="nf">interpolateTrajectories</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;given a dataframe with a trajectory, interpolate missing frames.</span>
+<span class="sd">    The interpolate function ignores non-pandas types, so some columns will not be interpolated.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        traj (pandas.DataFrame): pandas dataframe containing at minimum the columns &#39;frame&#39; and the columns given in colums.</span>
+<span class="sd">        columns (list(str), optional): list of columns to interpolate.</span>
+<span class="sd">        Defaults to None, which means all columns are attempted to be interpolated.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame: dataframe with interpolated trajectories</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">traj</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">traj</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;frame&quot;</span><span class="p">)</span>
+    <span class="n">traj</span> <span class="o">=</span> <span class="n">traj</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;frame&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="n">traj</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">traj</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">interpolate</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">traj</span>
+    <span class="k">return</span> <span class="n">traj</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="cropImagesAroundCMS"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.cropImagesAroundCMS">[docs]</a><span class="k">def</span> <span class="nf">cropImagesAroundCMS</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">lengthX</span><span class="p">,</span> <span class="n">lengthY</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">refine</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Using the interpolated center of mass coordindates (x,y), fill in missing images. img is a full size frame.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img (numpy.array): original image</span>
+<span class="sd">        x (float): x-coordinate</span>
+<span class="sd">        y (float): y-coordinate</span>
+<span class="sd">        lengthX (int): length of resulting image</span>
+<span class="sd">        lengthY (int): length of resulting image</span>
+<span class="sd">        size (float): expected minimal size for a relevant object</span>
+<span class="sd">        refine (bool, optional): Use filtering to separate potentially colliding objects. Defaults to False.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: image unraveled as 1d list</span>
+<span class="sd">        tuple: bounding box</span>
+<span class="sd">        int: length of first image axis</span>
+<span class="sd">        int: length of second image axis</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">lengthX</span><span class="o">//</span><span class="mi">2</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">lengthX</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="o">-</span><span class="n">lengthY</span><span class="o">//</span><span class="mi">2</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="n">lengthY</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">sliced</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymin</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">ymax</span><span class="p">)),</span> <span class="nb">slice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">xmin</span><span class="p">]),</span> <span class="n">xmax</span><span class="p">)</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">sliced</span><span class="p">]</span>
+    <span class="c1"># actual size in case we went out of bounds</span>
+    <span class="n">ly</span><span class="p">,</span> <span class="n">lx</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span>
+    <span class="c1"># refine to a single animal if neccessary</span>
+    <span class="k">if</span> <span class="n">refine</span><span class="p">:</span>
+        <span class="n">labeled</span> <span class="o">=</span> <span class="n">refineWatershed</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">lx</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">ly</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labeled</span><span class="p">))</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">skimage</span><span class="o">.</span><span class="n">measure</span><span class="o">.</span><span class="n">regionprops</span><span class="p">(</span><span class="n">labeled</span><span class="p">):</span>
+                <span class="n">d2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">part</span><span class="o">.</span><span class="n">centroid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">ly</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">centroid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">lx</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">d2</span> <span class="o">&lt;</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="n">mask</span> <span class="o">=</span> <span class="n">labeled</span><span class="o">==</span><span class="n">part</span><span class="o">.</span><span class="n">label</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="n">d2</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">im</span><span class="o">*</span><span class="n">mask</span>
+    <span class="c1"># make bounding box from slice. Bounding box is [ymin, xmin, ymax, xmax]</span>
+    <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="n">sliced</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">sliced</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">sliced</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">sliced</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">im</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">lx</span></div>
+
+
+<div class="viewcode-block" id="fillMissingImages"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.fillMissingImages">[docs]</a><span class="k">def</span> <span class="nf">fillMissingImages</span><span class="p">(</span><span class="n">imgs</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">lengthX</span><span class="p">,</span> <span class="n">lengthY</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">refine</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Run this on a dataframe to interpolate images from previously missing, now interpolated coordinates.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img (numpy.array): original image</span>
+<span class="sd">        x (float): x-coordinate</span>
+<span class="sd">        y (float): y-coordinate</span>
+<span class="sd">        lengthX (int): length of resulting image</span>
+<span class="sd">        lengthY (int): length of resulting image</span>
+<span class="sd">        size (float): expected minimal size for a relevant object</span>
+<span class="sd">        refine (bool, optional): Use filtering to separate potentially colliding objects. Defaults to False.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: image unraveled as 1d list</span>
+<span class="sd">        int: ymin of bounding box</span>
+<span class="sd">        int: xmin of bounding box</span>
+<span class="sd">        int: ymax of bounding box</span>
+<span class="sd">        int: xmax of bounding box</span>
+<span class="sd">        int: length of first image axis</span>
+<span class="sd">        int: length of second image axis</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">imgs</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span>
+    <span class="n">im</span><span class="p">,</span> <span class="n">sliced</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">lx</span> <span class="o">=</span> <span class="n">cropImagesAroundCMS</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">lengthX</span><span class="p">,</span> <span class="n">lengthY</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">refine</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">im</span><span class="p">,</span> <span class="n">sliced</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">sliced</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">sliced</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">sliced</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">ly</span><span class="p">,</span> <span class="n">lx</span></div>
+
+
+<div class="viewcode-block" id="parallelWorker"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.parallelWorker">[docs]</a><span class="k">def</span> <span class="nf">parallelWorker</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;helper wrapper to run object detection with multiprocessing.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        args (div.): arguments for .tracking.objectDetection</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame: dataframe with information for each image</span>
+<span class="sd">        list: list of corresponding images.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">objectDetection</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="parallel_imageanalysis"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.parallel_imageanalysis">[docs]</a><span class="k">def</span> <span class="nf">parallel_imageanalysis</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">framenumbers</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parallelWorker</span><span class="o">=</span> <span class="n">parallelWorker</span><span class="p">,</span> <span class="n">nWorkers</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;use multiptocessing to speed up image analysis. This is inspired by the trackpy.batch function.</span>
+
+<span class="sd">    frames: numpy.array or other iterable of images</span>
+<span class="sd">    masks: the binary of the frames, same length</span>
+<span class="sd">    param: parameters given to all jobs</span>
+
+<span class="sd">    output : {None, trackpy.PandasHDFStore, SomeCustomClass}</span>
+<span class="sd">        If None, return all results as one big DataFrame. Otherwise, pass</span>
+<span class="sd">        results from each frame, one at a time, to the put() method</span>
+<span class="sd">        of whatever class is specified here.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">masks</span><span class="p">),</span> <span class="s2">&quot;unequal length of images and binary masks.&quot;</span>
+    <span class="k">if</span> <span class="n">framenumbers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">framenumbers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">))</span>
+    <span class="c1"># Prepare wrapped function for mapping to `frames`</span>
+
+    <span class="n">detection_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">parallelWorker</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">param</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nWorkers</span> <span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="nb">map</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># prepare imap pool</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">nWorkers</span><span class="p">)</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">imap</span>
+
+    <span class="n">objects</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">detection_func</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span> <span class="n">masks</span><span class="p">,</span><span class="n">frames</span><span class="p">,</span> <span class="n">framenumbers</span><span class="p">))):</span>
+            <span class="c1"># allow alternate frame numbers</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Store if features were found</span>
+                <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">objects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">images</span> <span class="o">+=</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># here we keep images within the dataframe</span>
+                    <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;images&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="c1"># Ensure correct termination of Pool</span>
+            <span class="n">pool</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">objects</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">objects</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">images</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">pad_images</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">im</span><span class="p">,</span><span class="n">shape</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">objects</span><span class="p">[</span><span class="s1">&#39;shapeX&#39;</span><span class="p">])])</span>
+            <span class="n">images</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">images</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">objects</span><span class="p">,</span> <span class="n">images</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># return empty DataFrame</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No objects found in any frame.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">objects</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]),</span> <span class="n">images</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="interpolate_helper"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.tracking.interpolate_helper">[docs]</a><span class="k">def</span> <span class="nf">interpolate_helper</span><span class="p">(</span><span class="n">rawframes</span><span class="p">,</span> <span class="n">ims</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;shapeX&#39;</span><span class="p">,</span> <span class="s1">&#39;shapeY&#39;</span><span class="p">,</span> <span class="s1">&#39;particle&#39;</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;wrapper to make the code more readable. This interpolates all missing images in a trajectory.</span>
+<span class="sd">    check if currently the image is all zeros - then we insert an small image from the original movie around the interpolated coordinates.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        rawframes (pims.ImageSequence): sequence of images</span>
+<span class="sd">        ims (numpy.array): stack of small images around detected objects corresponding to rows in tmp</span>
+<span class="sd">        tmp (pandas.DataFrame): pandas dataframe with an onject and its properties per row</span>
+<span class="sd">        param (dict): dictionary of image analysis parameters, see example file `AnalysisParameters_1x.json`</span>
+<span class="sd">        columns (list, optional): columns to interpolate. Defaults to [&#39;x&#39;, &#39;y&#39;, &#39;shapeX&#39;, &#39;shapeY&#39;, &#39;particle&#39;].</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame: interpolated version of tmp with missing values interpolated</span>
+<span class="sd">        numpy.array: array of images with interpolated images inserted at the appropriate indices</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># create a new column keeping track if this row is interpolated or already in the image stack</span>
+    <span class="n">tmp</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;has_image&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">tmp</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;image_index&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ims</span><span class="p">)))</span>
+    <span class="c1"># generate an interpolated trajectory where all frames are accounted for</span>
+    <span class="n">traj_interp</span> <span class="o">=</span> <span class="n">interpolateTrajectories</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">columns</span><span class="p">)</span>
+    <span class="c1"># make sure we have a range index</span>
+    <span class="n">traj_interp</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="c1"># iterate through the dataframe and if the image is all nan, attempt to fill it</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">traj_interp</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;has_image&#39;</span><span class="p">]):</span>
+            <span class="c1"># get the image</span>
+            <span class="n">im</span><span class="p">,</span> <span class="n">sy0</span><span class="p">,</span> <span class="n">sx0</span><span class="p">,</span> <span class="n">sy1</span><span class="p">,</span> <span class="n">sx1</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">lx</span> <span class="o">=</span> <span class="n">fillMissingImages</span><span class="p">(</span><span class="n">rawframes</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]),</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span>\
+                                                   <span class="n">lengthX</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;shapeX&#39;</span><span class="p">],</span><span class="n">lengthY</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;shapeY&#39;</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;watershed&#39;</span><span class="p">])</span>
+            <span class="c1"># pad the image</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">pad_images</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">])</span>
+            <span class="c1"># insert it into the array at the correct position</span>
+            <span class="n">images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+            <span class="c1"># update the slice and shape information</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice_y0&#39;</span><span class="p">,</span><span class="s1">&#39;slice_x0&#39;</span><span class="p">,</span><span class="s1">&#39;slice_y1&#39;</span><span class="p">,</span><span class="s1">&#39;slice_x1&#39;</span><span class="p">,</span> <span class="s1">&#39;shapeY&#39;</span><span class="p">,</span> <span class="s1">&#39;shapeX&#39;</span><span class="p">]</span>
+            <span class="n">traj_interp</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">cols</span><span class="p">]</span> <span class="o">=</span> <span class="n">sy0</span><span class="p">,</span> <span class="n">sx0</span><span class="p">,</span> <span class="n">sy1</span><span class="p">,</span> <span class="n">sx1</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">lx</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ims</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;image_index&#39;</span><span class="p">])])</span>
+    <span class="k">return</span> <span class="n">traj_interp</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">images</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Monika Scholz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

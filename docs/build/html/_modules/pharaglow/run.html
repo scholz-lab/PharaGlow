@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pharaglow.run &mdash; PharaGlow  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> PharaGlow
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../link_readme.html">PharaGlow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pharaglow.html">pharaglow package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PharaGlow</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>pharaglow.run</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pharaglow.run</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;run.py: run pharaglow analysis by inplace modifying pandas dataframes.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">skimage.io</span> <span class="kn">import</span> <span class="n">imread</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">import</span> <span class="nn">pharaglow.features</span> <span class="k">as</span> <span class="nn">pg</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">util</span> <span class="k">as</span> <span class="n">pgu</span>
+
+
+<div class="viewcode-block" id="runPharaglowSkel"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.run.runPharaglowSkel">[docs]</a><span class="k">def</span> <span class="nf">runPharaglowSkel</span><span class="p">(</span><span class="n">im</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Create a centerline of the object in the image by binarizing,</span>
+<span class="sd">    skeletonizing and sorting centerline points.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        im (numpy.array or pims.Frame): image</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: binary of image, unraveled</span>
+<span class="sd">        list: coordinates of centerline along X</span>
+<span class="sd">        list: coordinates of centerline along Y</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">thresholdPharynx</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+    <span class="n">skel</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">skeletonPharynx</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="c1"># if the image is empty or nearly empty</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">skel</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">6</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">mask</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">sortSkeleton</span><span class="p">(</span><span class="n">skel</span><span class="p">)</span>
+    <span class="n">ptsX</span><span class="p">,</span> <span class="n">ptsY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">skel</span><span class="p">)</span>
+    <span class="n">ptsX</span><span class="p">,</span> <span class="n">ptsY</span> <span class="o">=</span> <span class="n">ptsX</span><span class="p">[</span><span class="n">order</span><span class="p">],</span> <span class="n">ptsY</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">mask</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">ptsX</span><span class="p">,</span> <span class="n">ptsY</span></div>
+
+
+<div class="viewcode-block" id="runPharaglowCL"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.run.runPharaglowCL">[docs]</a><span class="k">def</span> <span class="nf">runPharaglowCL</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">ptsX</span><span class="p">,</span> <span class="n">ptsY</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Fit the centerline points and detect object morphology.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mask (list): binary image, unraveled</span>
+<span class="sd">        ptsX (list): coordinates of centerline along X</span>
+<span class="sd">        ptsY (list): coordinates of centerline along Y</span>
+<span class="sd">        length (list): length of one axis of the image</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: poptX - optimal fit parameters of .features.pharynxFunc</span>
+<span class="sd">        list: poptY - optimal fit parameters of .features.pharynxFunc</span>
+<span class="sd">        float: xstart -start coordinate to apply to .features._pharynxFunc(x) to create a centerline</span>
+<span class="sd">        float: xend - end coordinate to apply to .features._pharynxFunc(x) to create a centerline</span>
+<span class="sd">        list: cl - (n,2) list of centerline coordinates in image space.</span>
+<span class="sd">        list: dCl - (n,2) array of unit vectors orthogonal to centerline. Same length as cl.</span>
+<span class="sd">        list: widths - (n,2) widths of the contour at each centerline point.</span>
+<span class="sd">        list: contour- (m,2) coordinates along the contour of the object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># mask reshaping from linear</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">pgu</span><span class="o">.</span><span class="n">unravelImages</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+    <span class="c1"># getting centerline and widths along midline</span>
+    <span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">fitSkeleton</span><span class="p">(</span><span class="n">ptsX</span><span class="p">,</span> <span class="n">ptsY</span><span class="p">)</span>
+    <span class="n">scale</span><span class="o">=</span>  <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">contour</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">morphologicalPharynxContour</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">cropcenterline</span><span class="p">(</span><span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">contour</span><span class="p">)</span>
+    <span class="c1"># create uniform spacing along line</span>
+    <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="n">cl</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">centerline</span><span class="p">(</span><span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">xs</span><span class="p">)</span>
+    <span class="n">dCl</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">normalVecCl</span><span class="p">(</span><span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">xs</span><span class="p">)</span>
+    <span class="n">widths</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">widthPharynx</span><span class="p">(</span><span class="n">cl</span><span class="p">,</span> <span class="n">contour</span><span class="p">,</span> <span class="n">dCl</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">pg</span><span class="o">.</span><span class="n">scalarWidth</span><span class="p">(</span><span class="n">widths</span><span class="p">))</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">widths</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">xtmp</span> <span class="o">=</span> <span class="n">xstart</span>
+        <span class="n">xstart</span> <span class="o">=</span> <span class="n">xend</span>
+        <span class="n">xend</span> <span class="o">=</span> <span class="n">xtmp</span>
+        <span class="n">cl</span> <span class="o">=</span> <span class="n">cl</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">dCl</span> <span class="o">=</span> <span class="n">dCl</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">widths</span> <span class="o">=</span> <span class="n">widths</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="n">dCl</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="n">contour</span></div>
+
+
+<div class="viewcode-block" id="runPharaglowKymo"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.run.runPharaglowKymo">[docs]</a><span class="k">def</span> <span class="nf">runPharaglowKymo</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Use the centerline to extract intensity along this line from an image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        im (numpy.array): image of a pharynx</span>
+<span class="sd">        cl (numpy.array or list): (n,2) list of centerline coordinates in image space.</span>
+<span class="sd">        kwargs: **kwargs are passed skimage.measure.profile_line.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: array of (?,) length. Length is determined by pathlength of centerline.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))[:,0]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">pg</span><span class="o">.</span><span class="n">intensityAlongCenterline</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="runPharaglowImg"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.run.runPharaglowImg">[docs]</a><span class="k">def</span> <span class="nf">runPharaglowImg</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">,</span> <span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">npts</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Obtain the straightened version and gradient of the input image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        im (numpy.array or pims.Frame): image of curved object</span>
+<span class="sd">        xstart (float): start coordinate to apply to .features._pharynxFunc(x) to</span>
+<span class="sd">                create a centerline</span>
+<span class="sd">        xend (float):  end coordinate to apply to .features._pharynxFunc(x)</span>
+<span class="sd">                to create a centerline</span>
+<span class="sd">        poptX (array): optimal fit parameters describing pharynx centerline.</span>
+<span class="sd">        poptY (array): optimal fit parameters describing pharynx centerline.</span>
+<span class="sd">        width (int): how many points to sample orthogonal of the centerline</span>
+<span class="sd">        nPts (int, optional): how many points to sample along the centerline. Defaults to 100.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: local derivative of image</span>
+<span class="sd">        numpy.array:  (nPts, width) array of image intensity straightened by centerline</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#local derivative, can enhance contrast</span>
+    <span class="n">gradientImage</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">gradientPharynx</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+    <span class="c1"># straightened image</span>
+    <span class="n">straightIm</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">straightenPharynx</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">,</span> <span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">nPts</span> <span class="o">=</span> <span class="n">npts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gradientImage</span><span class="p">,</span> <span class="n">straightIm</span></div>
+
+
+<div class="viewcode-block" id="pharynxorientation"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.run.pharynxorientation">[docs]</a><span class="k">def</span> <span class="nf">pharynxorientation</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Get all images into the same orientation by comparing to a sample image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pandas.DataFrame): a pharaglow dataframe after running .run.runPharaglowOnImage()</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame: dataFrame with flipped columns where neccessary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="s1">&#39;StraightKymo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Straightened&#39;</span><span class="p">],</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Similarity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">sample</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;StraightKymo&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="c1"># let&#39;s make sure the sample is anterior to posterior</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">sample</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="o">//</span><span class="mi">2</span><span class="p">)])</span><span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">sample</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="o">//</span><span class="mi">2</span><span class="p">):]):</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="n">sample</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># this uses the intenisty profile - sometimes goes wrong</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Similarity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>\
+        <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;StraightKymo&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">sample</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">&lt;</span>\
+            <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;StraightKymo&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">sample</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># now flip the orientation where the sample is upside down</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;SkeletonX&#39;</span><span class="p">,</span> <span class="s1">&#39;SkeletonY&#39;</span><span class="p">,</span> <span class="s1">&#39;Centerline&#39;</span><span class="p">,</span> <span class="s1">&#39;dCl&#39;</span><span class="p">,</span> <span class="s1">&#39;Widths&#39;</span><span class="p">,</span> <span class="s1">&#39;Kymo&#39;</span><span class="p">,</span>\
+           <span class="s1">&#39;StraightKymo&#39;</span><span class="p">,</span> <span class="s1">&#39;Straightened&#39;</span><span class="p">,</span> <span class="s1">&#39;KymoGrad&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Similarity&#39;</span><span class="p">]</span> \
+                <span class="k">else</span> <span class="n">row</span><span class="p">[</span><span class="n">key</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Flip the start coordinates</span>
+    <span class="k">if</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;Xstart&#39;</span><span class="p">,</span> <span class="s1">&#39;Xend&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Xtmp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Xstart&#39;</span><span class="p">]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Xstart&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Xstart&#39;</span><span class="p">]</span> <span class="k">if</span> \
+            <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Similarity&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Xend&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Xend&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Xend&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Similarity&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Xtmp&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="runPharaglowOnImage"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.run.runPharaglowOnImage">[docs]</a><span class="k">def</span> <span class="nf">runPharaglowOnImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">framenumber</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Run pharaglow-specific image analysis of a pharynx on a single image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image (numpy.array or pims.Frame): input image</span>
+<span class="sd">        framenumber (int): frame number to indicate in the resulting</span>
+<span class="sd">        dataframe which image is being analyzed.</span>
+<span class="sd">        arams (dict): parameter dictionary containing image analysis parameters.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame: collection of data created by pharaglow for this image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s1">&#39;run_all&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">run_all</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;run_all&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">run_all</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Mask&#39;</span><span class="p">,</span> <span class="s1">&#39;SkeletonX&#39;</span><span class="p">,</span> <span class="s1">&#39;SkeletonY&#39;</span><span class="p">,</span><span class="s1">&#39;ParX&#39;</span><span class="p">,</span> <span class="s1">&#39;ParY&#39;</span><span class="p">,</span> <span class="s1">&#39;Xstart&#39;</span><span class="p">,</span>\
+         <span class="s1">&#39;Xend&#39;</span><span class="p">,</span> <span class="s1">&#39;Centerline&#39;</span><span class="p">,</span> <span class="s1">&#39;dCl&#39;</span><span class="p">,</span> <span class="s1">&#39;Widths&#39;</span><span class="p">,</span> \
+        <span class="s1">&#39;Contour&#39;</span><span class="p">,</span><span class="s1">&#39;Gradient&#39;</span><span class="p">,</span> <span class="s1">&#39;Straightened&#39;</span><span class="p">,</span> <span class="s1">&#39;Kymo&#39;</span><span class="p">,</span> <span class="s1">&#39;KymoGrad&#39;</span><span class="p">]</span>
+    <span class="c1"># skeletonize</span>
+    <span class="n">mask</span><span class="p">,</span> <span class="n">skelX</span><span class="p">,</span> <span class="n">skelY</span> <span class="o">=</span> <span class="n">runPharaglowSkel</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">skelX</span><span class="p">))</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">skelY</span><span class="p">)):</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">colnames</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1">#centerline fit</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">parX</span><span class="p">,</span> <span class="n">parY</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="n">dCl</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="n">contour</span> <span class="o">=</span> \
+            <span class="n">runPharaglowCL</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span><span class="n">skelX</span><span class="p">,</span> <span class="n">skelY</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">],</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="c1"># image transformation operations</span>
+        <span class="n">grad</span><span class="p">,</span> <span class="n">straightened</span> <span class="o">=</span> <span class="n">runPharaglowImg</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span><span class="n">xend</span><span class="p">,</span>\
+                                            <span class="n">parX</span><span class="p">,</span> <span class="n">parY</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;widthStraight&#39;</span><span class="p">],</span>\
+                                            <span class="n">params</span><span class="p">[</span><span class="s1">&#39;nPts&#39;</span><span class="p">])</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">skelX</span><span class="p">,</span> <span class="n">skelY</span><span class="p">,</span> <span class="n">parX</span><span class="p">,</span> <span class="n">parY</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">,</span>\
+             <span class="n">cl</span><span class="p">,</span> <span class="n">dCl</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="n">contour</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">straightened</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">run_all</span><span class="p">:</span>
+            <span class="c1"># run kymographs</span>
+            <span class="n">kymo</span><span class="o">=</span> <span class="n">runPharaglowKymo</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="n">linewidth</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;linewidth&#39;</span><span class="p">])</span>
+            <span class="c1"># run kymographs</span>
+            <span class="n">kymograd</span> <span class="o">=</span> <span class="n">runPharaglowKymo</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="n">linewidth</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;linewidth&#39;</span><span class="p">])</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kymo</span><span class="p">,</span> <span class="n">kymograd</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">colnames</span><span class="p">,</span><span class="n">results</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">data</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;object&#39;</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">framenumber</span>
+    <span class="c1">#print(&#39;Done&#39;, framenumber)</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span></div>
+
+
+<div class="viewcode-block" id="parallel_pharaglow_run"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.run.parallel_pharaglow_run">[docs]</a><span class="k">def</span> <span class="nf">parallel_pharaglow_run</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Define a worker function for parallelization.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        args (div.): arguments for .features.runPharaglowOnImage()</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame: hands over output from .features.runPharaglowOnImage()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">runPharaglowOnImage</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Monika Scholz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
