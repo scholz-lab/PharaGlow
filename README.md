@@ -18,7 +18,7 @@ All subsequent analyses steps add 'columns' to the data, and thus features is a 
 
 
 ### Installation
-1. clone PharaGlow repository in your local directory
+1. Clone PharaGlow repository in your local directory
 ```
 git clone [...]
 ```
@@ -47,7 +47,7 @@ conda install -c conda-forge nbstripout
 Before analyzing your data, check  your installation and familiarize yourself with the code. Obtain a copy of a test dataset with 1000 frames of 1x magnification, showing animals expressing myo-2::mCherry. (Lab Dropbox/Data).
 
 * Start a jupyter notebook server
-* open the notebook notebooks/RunningPharaGlowMain.ipynb
+* open the notebook notebooks/PharaGlowMain.ipynb
 * alter the paths in the cell labeled 'input parameters' to point to the data and the output locations, as well as the AnalysisParameter file (see below)
 * run the notebook. The first few cells are pretty fast, but feature detection can take tens of minutes (depends on your computer and nWorkers. It takes 3 minutes on an Intel I9, 5 workers)
 The output of masks looks like this for frame 10 using the default AnalysisParameters.
