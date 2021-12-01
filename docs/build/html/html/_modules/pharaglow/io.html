@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pharaglow.io &mdash; PharaGlow  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> PharaGlow
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../link_readme.html">PharaGlow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pharaglow.html">pharaglow package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PharaGlow</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>pharaglow.io</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pharaglow.io</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;io.py: loading for pharaglow feature files.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+
+<div class="viewcode-block" id="load"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.io.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">image_depth</span> <span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">maxcols</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;im&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;load a pharglow features, trajectories or results file.</span>
+<span class="sd">        We expect columns containing the string &#39;im&#39; to be image pixels which will convert to uint8.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fname (str): filename of the .json file to load.</span>
+<span class="sd">        image_depth (int, optional): bit depth of the images. Defaults to 8.</span>
+<span class="sd">        maxcols (int, optional): maximal number of expected columns. Defaults to 10000.</span>
+<span class="sd">        prefix (str, optional): prefix to add to the column. Defaults to &quot;im&quot;.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame: a pharaglow file as dataframe</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">converter</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxcols</span><span class="p">):</span>
+        <span class="n">converter</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;uint</span><span class="si">{</span><span class="n">image_depth</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">converter</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="log_setup"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.io.log_setup">[docs]</a><span class="k">def</span> <span class="nf">log_setup</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This function will setup a logger with the name and level you pass as input.</span>
+<span class="sd">    Levels are 10 (debug), 20 (info), 30 (warning), 40 (error), 50 (critical).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): name of the logger object</span>
+<span class="sd">        level (int): logging level {10,20,30,40,50}</span>
+<span class="sd">        fname (str): filename for writing the log messages</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        logging.Logger: a logger</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="c1"># start a logger</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="c1"># set a formatter to manage the output format of our handler</span>
+    <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> | </span><span class="si">%(name)s</span><span class="s1"> |  </span><span class="si">%(levelname)s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># set the level passed as input, has to be logging.LEVEL not a string</span>
+    <span class="c1"># until we do so mylog doesn&#39;t have a level and inherits the root logger level:WARNING</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+
+    <span class="c1"># add a handler to send INFO level messages to console</span>
+    <span class="c1"># console_handler = logging.StreamHandler()</span>
+    <span class="c1"># console_handler.setLevel(logging.INFO)</span>
+    <span class="c1"># logger.addHandler(console_handler)</span>
+
+    <span class="c1"># add a handler to send DEBUG level messages to file</span>
+    <span class="c1"># all you need is a file name I added the &#39;w&#39; so each time a new file will be created</span>
+    <span class="c1"># without it the messagges will be appended to the same file</span>
+    <span class="n">file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="c1"># file_handler = logging.FileHandler(fname,&#39;w&#39;)</span>
+    <span class="n">file_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+    <span class="n">file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">file_handler</span><span class="p">)</span>
+
+    <span class="c1"># return the logger object</span>
+    <span class="k">return</span> <span class="n">logger</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Monika Scholz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

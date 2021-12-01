@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pharaglow.features &mdash; PharaGlow  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> PharaGlow
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../link_readme.html">PharaGlow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pharaglow.html">pharaglow package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PharaGlow</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>pharaglow.features</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pharaglow.features</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;features.py: image analysis of pharynx. Uses skimage to provide image functionality.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pims</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="kn">import</span> <span class="n">norm</span>
+<span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="kn">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">leaves_list</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
+<span class="kn">from</span> <span class="nn">skimage.morphology</span> <span class="kn">import</span> <span class="n">skeletonize</span><span class="p">,</span> <span class="n">disk</span><span class="p">,</span> <span class="n">remove_small_holes</span><span class="p">,</span> <span class="n">remove_small_objects</span><span class="p">,</span> <span class="n">binary_closing</span><span class="p">,</span> <span class="n">binary_opening</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="kn">import</span> <span class="n">img_as_float</span>
+<span class="kn">from</span> <span class="nn">skimage.segmentation</span> <span class="kn">import</span> <span class="n">morphological_chan_vese</span><span class="p">,</span> <span class="n">checkerboard_level_set</span>
+<span class="kn">from</span> <span class="nn">skimage.transform</span> <span class="kn">import</span> <span class="n">rescale</span>
+<span class="kn">from</span> <span class="nn">skimage.filters</span> <span class="kn">import</span> <span class="n">rank</span><span class="p">,</span> <span class="n">threshold_otsu</span><span class="p">,</span> <span class="n">threshold_yen</span><span class="p">,</span> <span class="n">gaussian</span>
+<span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">find_contours</span><span class="p">,</span> <span class="n">profile_line</span><span class="p">,</span> <span class="n">regionprops</span><span class="p">,</span> <span class="n">label</span>
+
+
+<div class="viewcode-block" id="find_lawn"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.find_lawn">[docs]</a><span class="k">def</span> <span class="nf">find_lawn</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">smooth</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">area_holes</span> <span class="o">=</span> <span class="mi">15000</span><span class="p">,</span> <span class="n">area_spots</span> <span class="o">=</span> <span class="mi">50000</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;binarize the image of the bacterial lawn.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image (np.array or pims.Frame): image of a bacterial lawn</span>
+<span class="sd">        smooth (int, optional): apply gaussian filter of size smooth px. Defaults to 1.</span>
+<span class="sd">        area_holes (int, optional): remove small holes in binary image. Defaults to 15000.</span>
+<span class="sd">        area_spots (int, optional): remove small objects in binary image. Defaults to 50000.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        np.array: binarized image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">smooth</span><span class="p">,</span> <span class="n">preserve_range</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">thresh</span> <span class="o">=</span> <span class="n">threshold_otsu</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">binary</span> <span class="o">=</span> <span class="n">image</span> <span class="o">&gt;</span> <span class="n">thresh</span>
+    <span class="n">binary</span> <span class="o">=</span> <span class="n">remove_small_holes</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">area_threshold</span><span class="o">=</span><span class="n">area_holes</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">binary</span> <span class="o">=</span> <span class="n">remove_small_objects</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="n">area_spots</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">binary</span></div>
+
+<div class="viewcode-block" id="thresholdPharynx"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.thresholdPharynx">[docs]</a><span class="nd">@pims</span><span class="o">.</span><span class="n">pipeline</span>
+<span class="k">def</span> <span class="nf">thresholdPharynx</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Use Yen threshold to obtain mask of pharynx.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        im (numpy.array or pims.Frame): image</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        np.array: binary image with only the largest object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">img</span><span class="o">&gt;</span><span class="n">threshold_yen</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">binary_opening</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">binary_closing</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="n">labeled</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="c1"># keep only the largest item</span>
+    <span class="n">area</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">regionprops</span><span class="p">(</span><span class="n">labeled</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">area</span> <span class="o">&lt;=</span> <span class="n">region</span><span class="o">.</span><span class="n">area</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">labeled</span><span class="o">==</span><span class="n">region</span><span class="o">.</span><span class="n">label</span>
+            <span class="n">area</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">area</span>
+    <span class="k">return</span> <span class="n">mask</span></div>
+
+
+<div class="viewcode-block" id="skeletonPharynx"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.skeletonPharynx">[docs]</a><span class="k">def</span> <span class="nf">skeletonPharynx</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Use skeletonization to obatain midline of pharynx.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mask (numpy.array): binary mask of the pharynx</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: skeleton of mask</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">skeletonize</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="sortSkeleton"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.sortSkeleton">[docs]</a><span class="nd">@pims</span><span class="o">.</span><span class="n">pipeline</span>
+<span class="k">def</span> <span class="nf">sortSkeleton</span><span class="p">(</span><span class="n">skeleton</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Use hierarchical clustering with optimal ordering to get \</span>
+<span class="sd">        the best path through the skeleton points.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        skeleton (numpy.array): skeletonized image of an object</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: list of coordinates ordered by distance</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># coordinates of skeleton</span>
+    <span class="n">ptsX</span><span class="p">,</span> <span class="n">ptsY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">skeleton</span><span class="p">)</span>
+    <span class="c1"># cluster</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">ptsX</span><span class="p">,</span> <span class="n">ptsY</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;average&#39;</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;cityblock&#39;</span><span class="p">,</span> <span class="n">optimal_ordering</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">leaves_list</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="pharynxFunc"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.pharynxFunc">[docs]</a><span class="k">def</span> <span class="nf">pharynxFunc</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="n">deriv</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Defines a cubic polynomial helper function.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (numpy.array or list): list of coordinates to evaluate function on</span>
+<span class="sd">        deriv (int, optional): return the polynomial or its first derivative Defaults to 0. {0,1}</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array or list: polynomial evaluated at x</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">deriv</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="c1">#+ 4*p[4]*x**4</span>
+    <span class="k">return</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="mi">3</span> <span class="c1">#+ p[4]*x**5</span></div>
+
+
+<div class="viewcode-block" id="fitSkeleton"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.fitSkeleton">[docs]</a><span class="k">def</span> <span class="nf">fitSkeleton</span><span class="p">(</span><span class="n">ptsX</span><span class="p">,</span> <span class="n">ptsY</span><span class="p">,</span> <span class="n">func</span> <span class="o">=</span> <span class="n">pharynxFunc</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fit a (cubic) polynomial spline to the centerline. The input should be sorted skeleton coordinates.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ptsX (numpy.array or list): sorted x coordinates</span>
+<span class="sd">        ptsY (numpy.array or list): sorted y coordinates</span>
+<span class="sd">        func (function, optional): function to fit. Defaults to pharynxFunc.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        array: optimal fit parameters of pharynxFunc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">nP</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ptsX</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">nP</span><span class="p">)</span>
+    <span class="c1"># fit each axis separately</span>
+    <span class="n">poptX</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">ptsX</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ptsX</span><span class="p">),</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">))</span>
+    <span class="n">poptY</span><span class="p">,</span> <span class="n">_</span><span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">ptsY</span><span class="p">,</span> <span class="n">p0</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ptsY</span><span class="p">),</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span></div>
+
+
+<div class="viewcode-block" id="morphologicalPharynxContour"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.morphologicalPharynxContour">[docs]</a><span class="k">def</span> <span class="nf">morphologicalPharynxContour</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Uses morphological contour finding on a mask image to get a nice outline.</span>
+<span class="sd">        We will upsample the image to get sub-pixel outlines.</span>
+<span class="sd">        **kwargs are handed to morphological_chan_vese.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mask (numpy.array):  binary mask of pharynx.</span>
+<span class="sd">        scale (int, optional): Scale to upsample the image by. Defaults to 4.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: coordinates of the contour as array of (N,2) coordinates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># upscale this image to get accurate contour</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">img_as_float</span><span class="p">(</span><span class="n">rescale</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">scale</span><span class="p">))</span>
+    <span class="c1"># intialize a checkerboard</span>
+    <span class="n">init_ls</span> <span class="o">=</span> <span class="n">checkerboard_level_set</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="c1"># run morphological contour finding</span>
+    <span class="n">snake</span> <span class="o">=</span>  <span class="n">morphological_chan_vese</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">init_level_set</span><span class="o">=</span><span class="n">init_ls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># let&#39;s try the contour</span>
+    <span class="n">contour</span><span class="o">=</span> <span class="n">find_contours</span><span class="p">(</span><span class="n">snake</span><span class="p">,</span> <span class="n">level</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span><span class="c1">#, fully_connected=&#39;high&#39;, positive_orientation=&#39;high&#39;,)</span>
+    <span class="c1"># just in case we find multiple, get only the longest contour</span>
+    <span class="n">contour</span> <span class="o">=</span> <span class="n">contour</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">contour</span><span class="p">])]</span>
+    <span class="n">cX</span><span class="p">,</span> <span class="n">cY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">contour</span><span class="o">/</span><span class="n">scale</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">contour</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">cX</span><span class="p">,</span> <span class="n">cY</span><span class="p">),</span> <span class="n">axis</span> <span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">contour</span></div>
+
+
+<div class="viewcode-block" id="cropcenterline"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.cropcenterline">[docs]</a><span class="k">def</span> <span class="nf">cropcenterline</span><span class="p">(</span><span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">contour</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Define start and end point of centerline by crossing of contour.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poptX (array): optimal fit parameters describing pharynx centerline.</span>
+<span class="sd">        poptY (array): optimal fit parameters describing pharynx centerline.</span>
+<span class="sd">        contour (numpy.array): (N,2) array of points describing the pharynx outline.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float, float: start and end coordinate to apply to .features._pharynxFunc(x) to create a centerline</span>
+<span class="sd">    spanning the length of the pharynx.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">50</span><span class="p">,</span><span class="mi">150</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+    <span class="n">tmpcl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">pharynxFunc</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="o">*</span><span class="n">poptX</span><span class="p">),</span> <span class="n">pharynxFunc</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="o">*</span><span class="n">poptY</span><span class="p">)]</span>
+    <span class="c1"># update centerline based on crossing the contour</span>
+    <span class="c1"># we are looking for two crossing points</span>
+    <span class="n">distClC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">tmpcl</span><span class="o">-</span><span class="n">contour</span><span class="p">[:,</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">distClC</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">))[:</span><span class="mi">2</span><span class="p">]</span>
+     <span class="c1"># update centerline length</span>
+    <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span> <span class="o">=</span> <span class="n">xs</span><span class="p">[</span><span class="n">start</span><span class="p">],</span><span class="n">xs</span><span class="p">[</span><span class="n">end</span><span class="p">]</span>
+    <span class="c1"># check if length makes sense, otherwise retain original</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">start</span><span class="o">-</span><span class="n">end</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
+        <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span>
+
+    <span class="k">return</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span></div>
+
+
+<div class="viewcode-block" id="centerline"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.centerline">[docs]</a><span class="k">def</span> <span class="nf">centerline</span><span class="p">(</span><span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">xs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;create a centerline from fitted function.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poptX (array): optimal fit parameters describing pharynx centerline.</span>
+<span class="sd">        poptY (array): optimal fit parameters describing pharynx centerline.</span>
+<span class="sd">        xs (np.array): array of coordinates to create centerline from .feature._pharynxFunc(x, *p, deriv = 0)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: (N,2) a centerline spanning the length of the pharynx. Same length as xs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">pharynxFunc</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="o">*</span><span class="n">poptX</span><span class="p">),</span> <span class="n">pharynxFunc</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="o">*</span><span class="n">poptY</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="normalVecCl"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.normalVecCl">[docs]</a><span class="k">def</span> <span class="nf">normalVecCl</span><span class="p">(</span><span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">xs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Create vectors normal to the centerline by using the derivative of the function describing the midline.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poptX (array): optimal fit parameters describing pharynx centerline.</span>
+<span class="sd">        poptY (array): optimal fit parameters describing pharynx centerline.</span>
+<span class="sd">        xs (np.array): array of coordinates to create centerline from .feature._pharynxFunc(x, *p, deriv = 0)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: : (N,2) array of unit vectors orthogonal to centerline. Same length as xs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># make an orthogonal vector to the cl by calculating derivative (dx, dy) and using (-dy, dx) as orthogonal vectors.</span>
+    <span class="n">dCl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">pharynxFunc</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="o">*</span><span class="n">poptX</span><span class="p">,</span> <span class="n">deriv</span> <span class="o">=</span> <span class="mi">1</span><span class="p">),</span> <span class="n">pharynxFunc</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="o">*</span><span class="n">poptY</span><span class="p">,</span> <span class="n">deriv</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)]</span><span class="c1">#p.diff(cl, axis=0)</span>
+    <span class="n">dCl</span> <span class="o">=</span><span class="n">dCl</span><span class="p">[:,::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># normalize northogonal vectors</span>
+    <span class="n">dCl</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*=-</span><span class="mi">1</span>
+    <span class="n">dClnorm</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">dCl</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">dCl</span> <span class="o">=</span> <span class="n">dCl</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">dClnorm</span><span class="p">[:,</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1">#dCl = dCl/dClnorm[:,np.newaxis]</span>
+    <span class="k">return</span> <span class="n">dCl</span></div>
+
+
+<div class="viewcode-block" id="intensityAlongCenterline"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.intensityAlongCenterline">[docs]</a><span class="k">def</span> <span class="nf">intensityAlongCenterline</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Create an intensity kymograph along the centerline.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        im (numpy.array): image of a pharynx</span>
+<span class="sd">        cl (numpy.array or list): (n,2) list of centerline coordinates in image space.</span>
+<span class="sd">        kwargs: **kwargs are passed skimage.measure.profile_line.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: array of (?,) length. Length is determined by pathlength of centerline.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s1">&#39;width&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">profile_line</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cl</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">cl</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">linewidth</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cl</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">profile_line</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cl</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">cl</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cl</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span></div>
+
+
+<div class="viewcode-block" id="widthPharynx"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.widthPharynx">[docs]</a><span class="k">def</span> <span class="nf">widthPharynx</span><span class="p">(</span><span class="n">cl</span><span class="p">,</span> <span class="n">contour</span><span class="p">,</span> <span class="n">dCl</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Use vector interesections to get width of object.</span>
+<span class="sd">        We are looking for contour points that have the same(or very similar) angle relative to the centerline point as the normal vectors.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cl ([type]): cl (N,2) array describing the centerline</span>
+<span class="sd">        contour ([type]): (M,2) array describing the contour</span>
+<span class="sd">        dCl ([type]): (N,2) array describing the normal vectors on the centerline (created by calling .features.normalVecCl(poptX, poptY, xs))</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: (N,2) widths of the contour at each centerline point.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># all possible vectors between contour and centerline</span>
+    <span class="n">vCCl</span> <span class="o">=</span> <span class="n">cl</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">contour</span><span class="p">[:,</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="c1"># get normed vectors</span>
+    <span class="n">vCClnorm</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">vCCl</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">vCCl</span> <span class="o">=</span> <span class="n">vCCl</span><span class="o">/</span><span class="n">vCClnorm</span><span class="p">[:,:,</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="c1"># calculate relative angles between centerline and contour-centerline vectors</span>
+    <span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vCCl</span><span class="o">*</span><span class="n">dCl</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">c1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">angles</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">c2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">angles</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># new widths</span>
+    <span class="n">widths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">contour</span><span class="p">[</span><span class="n">c1</span><span class="p">],</span> <span class="n">contour</span><span class="p">[</span><span class="n">c2</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">widths</span></div>
+
+
+<div class="viewcode-block" id="scalarWidth"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.scalarWidth">[docs]</a><span class="k">def</span> <span class="nf">scalarWidth</span><span class="p">(</span><span class="n">widths</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;calculate the width of the pharynx along the centerline.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        widths (numpy.array): (N, 2,2) array of start and end points of lines spanning the pharynx orthogonal to the midline.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: (N,1) array of scalar widtha.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">widths</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=-</span><span class="mi">1</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="straightenPharynx"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.straightenPharynx">[docs]</a><span class="k">def</span> <span class="nf">straightenPharynx</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">,</span> <span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">nPts</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Based on a centerline, straighten the animal.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        im (numpy.array or pims.Frame): image of curved object</span>
+<span class="sd">        xstart (float): start coordinate to apply to .features._pharynxFunc(x) to create a centerline</span>
+<span class="sd">        xend (float):  end coordinate to apply to .features._pharynxFunc(x) to create a centerline</span>
+<span class="sd">        poptX (array): optimal fit parameters describing pharynx centerline.</span>
+<span class="sd">        poptY (array): optimal fit parameters describing pharynx centerline.</span>
+<span class="sd">        width (int): how many points to sample orthogonal of the centerline</span>
+<span class="sd">        nPts (int, optional): how many points to sample along the centerline. Defaults to 100.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: (nPts, width) array of image intensity</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># use linescans to generate straightened animal</span>
+    <span class="n">xn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xstart</span><span class="p">,</span><span class="n">xend</span><span class="p">,</span> <span class="n">nPts</span><span class="p">)</span>
+    <span class="n">clF</span> <span class="o">=</span> <span class="n">centerline</span><span class="p">(</span><span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">xn</span><span class="p">)</span>
+
+    <span class="c1"># make vectors orthogonal to the cl</span>
+    <span class="n">dCl</span> <span class="o">=</span> <span class="n">normalVecCl</span><span class="p">(</span><span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">xn</span><span class="p">)</span>
+    <span class="c1"># create lines intersection the pharynx orthogonal to midline</span>
+    <span class="n">widths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">clF</span><span class="o">+</span><span class="n">width</span><span class="o">*</span><span class="n">dCl</span><span class="p">,</span> <span class="n">clF</span><span class="o">-</span><span class="n">width</span><span class="o">*</span><span class="n">dCl</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># get the intensity profile along these lines</span>
+    <span class="n">kymo</span> <span class="o">=</span> <span class="p">[</span><span class="n">profile_line</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">pts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;constant&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">pts</span> <span class="ow">in</span> <span class="n">widths</span><span class="p">]</span>
+    <span class="c1"># interpolate to obtain straight image</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">width</span><span class="p">,</span> <span class="n">width</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">ky</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ky</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="n">ky</span><span class="p">)</span> <span class="k">for</span> <span class="n">ky</span> <span class="ow">in</span> <span class="n">kymo</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gradientPharynx"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.gradientPharynx">[docs]</a><span class="k">def</span> <span class="nf">gradientPharynx</span><span class="p">(</span><span class="n">im</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Apply a local gradient to the image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        im (numpy.array or pims.Frame): image of curved object</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.array: gradient of image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">denoised</span> <span class="o">=</span> <span class="n">rank</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">disk</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">gradient</span> <span class="o">=</span> <span class="n">rank</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">denoised</span><span class="p">,</span> <span class="n">disk</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">gradient</span></div>
+
+
+<div class="viewcode-block" id="extractPump"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.extractPump">[docs]</a><span class="k">def</span> <span class="nf">extractPump</span><span class="p">(</span><span class="n">straightIm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Use a pumping metric to get measure of pharyngeal contractions.</span>
+<span class="sd">    It calculates the inverse maximum standard deviation along the Dorsoventral axis.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        straightIm (numpy.array): straightened image of pharynx</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: pharyngeal metric</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">straightIm</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">axis</span> <span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="headLocationLawn"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.headLocationLawn">[docs]</a><span class="k">def</span> <span class="nf">headLocationLawn</span><span class="p">(</span><span class="n">cl</span><span class="p">,</span> <span class="n">slices</span><span class="p">,</span> <span class="n">binLawn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Use the first coordinate of the centerline to check if the worm touches the lawn.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cl (numpy,array or list): (N,2) centerline spanning the length of the pharynx.</span>
+<span class="sd">        slice (tuple): (yo, xo) offset between cl and full image</span>
+<span class="sd">        binLawn ([type]): image of a lawn or other background e.g. created by .features.findLawn</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: image intensity at first point of cl (should be nose tip)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">y</span><span class="p">,</span><span class="n">x</span> <span class="o">=</span> <span class="n">cl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">cl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">yo</span><span class="p">,</span> <span class="n">xo</span> <span class="o">=</span> <span class="n">slices</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">slices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># make sure that rounding errors don&#39;t get you out of bounds</span>
+    <span class="n">yn</span><span class="p">,</span> <span class="n">xn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">binLawn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="n">yo</span><span class="p">)]),</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">binLawn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">xo</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">binLawn</span><span class="p">[</span><span class="n">yn</span><span class="p">,</span> <span class="n">xn</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="inside"><a class="viewcode-back" href="../../pharaglow.html#pharaglow.features.inside">[docs]</a><span class="k">def</span> <span class="nf">inside</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">binLawn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extract intensity of an image at coordinate (x,y).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (float): x location in px</span>
+<span class="sd">        y (float): y location in px</span>
+<span class="sd">        binLawn ([type]): image of a lawn or other background e.g. created by .features.findLawn</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: image intensity at binLawn(y,x)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">binLawn</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Monika Scholz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
