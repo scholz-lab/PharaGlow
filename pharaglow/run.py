@@ -4,24 +4,23 @@
 
 import numpy as np
 from skimage.io import imread
-from skimage import util
-import json
 import pandas as pd
 
 import pharaglow.features as pg
-import pharaglow.tracking as pgt
-import pharaglow.util as pgu
+from . import util as pgu
 
 
 def runPharaglowSkel(im):
-    """create a centerline of the object in the image by binarizing, skeletonizing and sorting centerline points.
-        Inputs:
-            im: image
-            length: length of one axis of the image
-        Outputs:
-            mask: binary of image, unraveled
-            ptsX: coordinates of centerline along X
-            ptsY: coordinates of centerline along Y
+    """ Create a centerline of the object in the image by binarizing,
+    skeletonizing and sorting centerline points.
+
+    Args:
+        im (numpy.array or pims.Frame): image
+
+    Returns:
+        list: binary of image, unraveled
+        list: coordinates of centerline along X
+        list: coordinates of centerline along Y
     """
 
     mask = pg.thresholdPharynx(im)
@@ -36,17 +35,23 @@ def runPharaglowSkel(im):
 
 
 def runPharaglowCL(mask, ptsX, ptsY, length, **kwargs):
-    """Fit centerline points and detect object morphology.
-            mask: binary image, unraveled
-            ptsX: coordinates of centerline along X
-            ptsY: coordinates of centerline along Y
-            length: length of one axis of the image
-        Outputs:
-            poptX, poptY, xstart, xend: parameters describing a functon along the centerline
-            cl: (n,2) list of centerline coordinates in image space.
-            dCl: (n,2) array of unit vectors orthogonal to centerline. Same length as cl.
-            widths: (n,2) widths of the contour at each centerline point.
-            contour: (m,2) coordinates along the contour of the object
+    """ Fit the centerline points and detect object morphology.
+
+    Args:
+        mask (list): binary image, unraveled
+        ptsX (list): coordinates of centerline along X
+        ptsY (list): coordinates of centerline along Y
+        length (list): length of one axis of the image
+
+    Returns:
+        list: poptX - optimal fit parameters of .features.pharynxFunc
+        list: poptY - optimal fit parameters of .features.pharynxFunc
+        float: xstart -start coordinate to apply to .features._pharynxFunc(x) to create a centerline
+        float: xend - end coordinate to apply to .features._pharynxFunc(x) to create a centerline
+        list: cl - (n,2) list of centerline coordinates in image space.
+        list: dCl - (n,2) array of unit vectors orthogonal to centerline. Same length as cl.
+        list: widths - (n,2) widths of the contour at each centerline point.
+        list: contour- (m,2) coordinates along the contour of the object
     """
     # mask reshaping from linear
     mask = pgu.unravelImages(mask, length)
@@ -71,30 +76,37 @@ def runPharaglowCL(mask, ptsX, ptsY, length, **kwargs):
 
 
 def runPharaglowKymo(im, cl, widths, **kwargs):
-    """Use the centerline to extract intensity along this line from an image.
-       Inputs:
-            im: image
-            cl: (n,2) list of centerline coordinates in image space.
-            widths: scalar width along centerline (n,2)
-        Outputs:
-            intensity (N,): array of pixel intensities
-    """
+    """ Use the centerline to extract intensity along this line from an image.
 
+    Args:
+        im (numpy.array): image of a pharynx
+        cl (numpy.array or list): (n,2) list of centerline coordinates in image space.
+        kwargs: **kwargs are passed skimage.measure.profile_line.
+
+    Returns:
+        numpy.array: array of (?,) length. Length is determined by pathlength of centerline.
+    """
     #kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))[:,0]
     return [pg.intensityAlongCenterline(im, cl, **kwargs)]
 
 
 def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts):
-    """Obtain the straightened version and gradient of the input image.
-        Inputs:
-            im: an image
-            xstart, xend, poptX, poptY are the parameters of a curve/centerline describing the shape of the pharynx
-            width: how far to sample left and right of the centerline
-            npts: how any points to sample along the centerline
-        Outputs:
-            gradientimage: local derivative of image
-            straightIm:  (nPts, width) array of image intensity
-            
+    """ Obtain the straightened version and gradient of the input image.
+
+    Args:
+        im (numpy.array or pims.Frame): image of curved object
+        xstart (float): start coordinate to apply to .features._pharynxFunc(x) to
+                create a centerline
+        xend (float):  end coordinate to apply to .features._pharynxFunc(x)
+                to create a centerline
+        poptX (array): optimal fit parameters describing pharynx centerline.
+        poptY (array): optimal fit parameters describing pharynx centerline.
+        width (int): how many points to sample orthogonal of the centerline
+        nPts (int, optional): how many points to sample along the centerline. Defaults to 100.
+
+    Returns:
+        numpy.array: local derivative of image
+        numpy.array:  (nPts, width) array of image intensity straightened by centerline
     """
     #local derivative, can enhance contrast
     gradientImage = pg.gradientPharynx(im)
@@ -104,7 +116,14 @@ def runPharaglowImg(im, xstart, xend, poptX, poptY, width, npts):
 
 
 def pharynxorientation(df):
-    """A Get the orientation from the minimal trajectory of the start and end points for a single trajectory."""
+    """ Get all images into the same orientation by comparing to a sample image.
+
+    Args:
+        df (pandas.DataFrame): a pharaglow dataframe after running .run.runPharaglowOnImage()
+
+    Returns:
+        pandas.DataFrame: dataFrame with flipped columns where neccessary
+    """
     df.loc[:,'StraightKymo'] = df.apply(
     lambda row: np.mean(row['Straightened'], axis = 1), axis=1)
     df['Similarity'] = False
@@ -114,28 +133,42 @@ def pharynxorientation(df):
         sample = sample[::-1]
     # this uses the intenisty profile - sometimes goes wrong
     df['Similarity'] = df.apply(\
-        lambda row: np.sum((row['StraightKymo']-sample)**2)<np.sum((row['StraightKymo']-sample[::-1])**2), axis=1)
+        lambda row: np.sum((row['StraightKymo']-sample)**2)<\
+            np.sum((row['StraightKymo']-sample[::-1])**2), axis=1)
     # now flip the orientation where the sample is upside down
     for key in ['SkeletonX', 'SkeletonY', 'Centerline', 'dCl', 'Widths', 'Kymo',\
            'StraightKymo', 'Straightened', 'KymoGrad']:
         if key in df.columns:
-            df[key] = df.apply(lambda row: row[key] if row['Similarity'] else row[key][::-1], axis=1)
+            df[key] = df.apply(lambda row: row[key] if row['Similarity'] \
+                else row[key][::-1], axis=1)
     # Flip the start coordinates
     if set(['Xstart', 'Xend']).issubset(df.columns):
         df['Xtmp'] = df['Xstart']
-        df['Xstart'] = df.apply(lambda row: row['Xstart'] if row['Similarity'] else row['Xend'], axis=1)
+        df['Xstart'] = df.apply(lambda row: row['Xstart'] if \
+            row['Similarity'] else row['Xend'], axis=1)
         df['Xend'] = df.apply(lambda row: row['Xend'] if row['Similarity'] else row['Xtmp'], axis=1)
     return df
 
 
 def runPharaglowOnImage(image, framenumber, params, **kwargs):
-    """"run pharaglow-specific image analysis on a single image."""
-    
+    """ Run pharaglow-specific image analysis of a pharynx on a single image.
+
+    Args:
+        image (numpy.array or pims.Frame): input image
+        framenumber (int): frame number to indicate in the resulting
+        dataframe which image is being analyzed.
+        arams (dict): parameter dictionary containing image analysis parameters.
+
+    Returns:
+        pandas.DataFrame: collection of data created by pharaglow for this image.
+    """
+
     if 'run_all' in kwargs.keys():
         run_all = kwargs['run_all']
     else:
         run_all = False
-    colnames = ['Mask', 'SkeletonX', 'SkeletonY','ParX', 'ParY', 'Xstart', 'Xend', 'Centerline', 'dCl', 'Widths', \
+    colnames = ['Mask', 'SkeletonX', 'SkeletonY','ParX', 'ParY', 'Xstart',\
+         'Xend', 'Centerline', 'dCl', 'Widths', \
         'Contour','Gradient', 'Straightened', 'Kymo', 'KymoGrad']
     # skeletonize
     mask, skelX, skelY = runPharaglowSkel(image)
@@ -144,12 +177,14 @@ def runPharaglowOnImage(image, framenumber, params, **kwargs):
     else:
         #centerline fit
         scale = params.pop('scale', 4)
-        parX, parY, xstart, xend, cl, dCl, widths, contour = runPharaglowCL(mask,skelX, skelY, params['length'], scale = scale)
+        parX, parY, xstart, xend, cl, dCl, widths, contour = \
+            runPharaglowCL(mask,skelX, skelY, params['length'], scale = scale)
         # image transformation operations
         grad, straightened = runPharaglowImg(image, xstart,xend,\
                                             parX, parY, params['widthStraight'],\
                                             params['nPts'])
-        results = [mask, skelX, skelY, parX, parY, xstart, xend, cl, dCl, widths, contour, grad, straightened]
+        results = [mask, skelX, skelY, parX, parY, xstart, xend,\
+             cl, dCl, widths, contour, grad, straightened]
         if run_all:
             # run kymographs
             kymo= runPharaglowKymo(image, cl, widths, linewidth = params['linewidth'])
@@ -162,12 +197,17 @@ def runPharaglowOnImage(image, framenumber, params, **kwargs):
     df = pd.DataFrame([data], dtype = 'object')
     df['frame'] = framenumber
     #print('Done', framenumber)
-    return df, 
-  
+    return df,
+
 
 def parallel_pharaglow_run(args, **kwargs):
-    """define a worker function for parallelization."""
+    """ Define a worker function for parallelization.
+
+    Args:
+        args (div.): arguments for .features.runPharaglowOnImage()
+
+    Returns:
+        pandas.DataFrame: hands over output from .features.runPharaglowOnImage()
+    """
+
     return runPharaglowOnImage(*args, **kwargs)
-
-        
-

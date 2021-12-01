@@ -2,49 +2,48 @@
 
 """util.py: useful general functions like filters and peak detection."""
 import warnings
-import numpy as np
-import pandas as pd
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing as mp
 from functools import partial
-import gc
 import math
+import numpy as np
+import pandas as pd
 
-def parallelize_dataframe(df, func, params, n_cores):
-    """ split a dataframe to easily use multiprocessing."""
-    df_split = np.array_split(df, n_cores)
-    df_split = [d for d in df_split  if len(d)>0]
-    if len(df_split) <1:
-        return
-    # filter zero-size jobs
-    print([len(d) for d in df_split])
-    pool = Pool(n_cores)
-    df = pd.concat(pool.starmap(func, zip(df_split, np.repeat(params, len(df_split)))))
-    pool.close()
-    pool.join()
-    return df
+
+# def parallelize_dataframe(df, func, params, n_cores):
+
+#     """ split a dataframe to easily use multiprocessing."""
+#     df_split = np.array_split(df, n_cores)
+#     df_split = [d for d in df_split  if len(d)>0]
+#     if len(df_split) <1:
+#         return
+#     # filter zero-size jobs
+#     print([len(d) for d in df_split])
+#     pool = Pool(n_cores)
+#     df = pd.concat(pool.starmap(func, zip(df_split, np.repeat(params, len(df_split)))))
+#     pool.close()
+#     pool.join()
+#     return df
 
 
 def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorkers = 5, output= None, depth = 'uint8', **kwargs):
-    """use multiprocessing to speed up image analysis. This is inspired by the trackpy.batch function.
-    arg:s contains iterables eg. (frames, masks) or just frames that will be iterated through.
-    param: parameters given to all jobs
-    parallelWorker: a function taking iterable args, and kwargs and returns a dataframe and one more result (optional)
-    framenumbers: if given, these will replace the 'frames' columns. Default assumption is that frames are consecutive integers.
-    nWorkers: processes to use, if 1 will run without multiprocessing
-    process_results: a function to run on the resulting dataframe.
+    """Use multiprocessing to speed up image analysis. This is inspired by the trackpy.batch function.
 
-    output : {None, trackpy.PandasHDFStore, SomeCustomClass}
-        If None, return all results as one big DataFrame. Otherwise, pass
-        results from each frame, one at a time, to the put() method
-        of whatever class is specified here.
+    Args:
+        args (tuple): contains iterables eg. (frames, masks) or just frames that will be iterated through.
+        param (dict): image analysis parameters
+        parallelWorker (func): a function defining what should be done with args
+        framenumbers (list, optional): a list of frame numbers corresponding to the frames in args. Defaults to None.
+        nWorkers (int, optional): Processes to use, if 1 will run without multiprocessing. Defaults to 5.
+        output ([type], optional): {None, trackpy.PandasHDFStore, SomeCustomClass} a storage class e.g. trackpy.PandasHDFStore. Defaults to None.
+        depth (str, optional): bit depth of frames. Defaults to 'uint8'.
 
-    returns: specified output or the results as pd.DataFrame and any other result as list.
+    Returns:
+        output or (pandas.DataFrame, numpy.array)
     """
     if framenumbers is None:
         framenumbers = np.arange(len(args[0]))
 
-    
     # Prepare wrapped function for mapping to `frames`
     detection_func = partial(parallelWorker, params = param)
     if nWorkers ==1:
@@ -54,7 +53,7 @@ def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorker
         # prepare imap pool
         pool = ProcessPoolExecutor(max_workers=nWorkers, mp_context=mp.get_context("spawn"))
         func = pool.map
-        
+
     objects = []
     images = []
     try:
@@ -86,39 +85,39 @@ def parallel_analysis(args, param, parallelWorker, framenumbers = None,  nWorker
             return objects, images
         else:  # return empty DataFrame
             warnings.warn("No objects found in any frame.")
-            return pd.DataFrame(columns=list(objects.columns) + ['frame']), images
+            return pd.DataFrame([]), images
     else:
         return output
 
 
 def smooth(x,window_len=11,window='hanning'):
     """smooth the data using a window with requested size.
-    
+
     This method is based on the convolution of a scaled window with the signal.
-    The signal is prepared by introducing reflected copies of the signal 
+    The signal is prepared by introducing reflected copies of the signal
     (with the window size) in both ends so that transient parts are minimized
     in the begining and end part of the output signal.
     import warnings
     input:
-        x: the input signal 
+        x: the input signal
         window_len: the dimension of the smoothing window; should be an odd integer
         window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
             flat window will produce a moving average smoothing.
 
     output:
         the smoothed signal
-        
+
     example:
 
     t=linspace(-2,2,0.1)
     x=sin(t)+randn(len(t))*0.1
     y=smooth(x)
-    
-    see also: 
-    
+
+    see also:
+
     numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
     scipy.signal.lfilter
- 
+
     TODO: the window parameter could be the window itself if an array instead of a string
     NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
     """
@@ -134,7 +133,7 @@ def smooth(x,window_len=11,window='hanning'):
         return x
 
 
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+    if window not in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
         raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
 
@@ -150,16 +149,37 @@ def smooth(x,window_len=11,window='hanning'):
 
 
 def unravelImages(im, lengthX):
-    """reshape images from linear to square."""
+    """ Reshape images from linear to square.
+    Args:
+        im (list): an image
+        lengthX (int): shape of new image in second axis
+
+    Returns:
+        numpy.array: image reshaped as (N,lengthX)
+    """
     return im.reshape(-1, lengthX)
-    
-    
+
+
 def get_im(df, colnames, lengthX):
-    """get an image from a dataframe of columns for each pixel."""
+    """deprecated
+    """
+
     return unravelImages(df[colnames].to_numpy(), lengthX)
 
 
 def pad_images(im, shape, size, reshape = True, depth = 'uint8'):
+    """pad image to desired size.
+
+    Args:
+        im (list): a linearized version of an image
+        shape (int): shape of second axis of image.
+        size (int): pad image to size (size, size)
+        reshape (bool, optional): reshape image to (-1, shape) before padding. Defaults to True.
+        depth (str, optional): bit depth of image. Defaults to 'uint8'.
+
+    Returns:
+        numpy.array: padded image of size (size, size)
+    """
     # make image from list
     im = np.array(im, dtype = depth)
     if reshape:
@@ -175,8 +195,8 @@ def pad_images(im, shape, size, reshape = True, depth = 'uint8'):
     py, px = (size-sy)//2, (size-sx)//2
     # add back the possible rounding error
     oy, ox = (size-sy)%2, (size-sx)%2
-    newIm = np.pad(im, [(py, py+oy), (px, px+ox)], mode='constant', constant_values= 0)
-    if newIm.shape !=(size, size):
+    new_im = np.pad(im, [(py, py+oy), (px, px+ox)], mode='constant', constant_values= 0)
+    if new_im.shape !=(size, size):
         warnings.warn(f'Rerunning to correct size {size}')
         return pad_images(im, shape, size, reshape = False)
-    return newIm
+    return new_im
