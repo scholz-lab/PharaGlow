@@ -1,7 +1,7 @@
 # PharaGlow
 
 Package to track and analyze C. elegans pharynx from movies. Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v0.4.2/). The package can be used to simply track labelled pharynxes or as a simple center of mass tracker for brightfield, but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.
-Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.  It comprises three stages on analysis which can be done sequentially and are independent. Analyses can be interrupted at the end of each stage after saving the output dataframe. The package has been succesfully tested on recording simultaneously 25 adults worms for up to 15 minutes at 30 frames per second (1x).
+Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.  It comprises three stages on analysis which can be done sequentially and are independent. Analyses can be interrupted at the end of each stage after saving the output dataframe. The package has been succesfully tested on simultaneously recording of up to 25 adults worms for 15 minutes at 30 frames per second (1x).
 
 **1. Step -  Basic object detection**
     This step creates a "_features.json" file which contains a table of objects detected in each frame.
