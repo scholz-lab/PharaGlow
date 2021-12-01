@@ -107,7 +107,7 @@ a dataFolder containing 3 movies in subfolder1, subfolder2, subfolder3
 * The code that will be run is called notebooks/BatchRunTemplate.ipynb. This is functionally the same as the code in notebook/RunningPharaglowParallel.ipynb
 
 #### Batch running multiple files with the same parameters (Option 1)
-* run the batch processing in the commandline like this: 
+* Run the batch processing in the commandline like this: 
 
 ```bash
 python runBatchParallel.py
@@ -117,7 +117,7 @@ python runBatchParallel.py
 * This script runs multiple notebooks in parallel. This works better in windows OS than parallelization within the notebook (Option 2)
 
 #### Batch running multiple files with the same parameters (Option 2)
-* run the batch processing in the commandline like this: 
+* Run the batch processing in the commandline like this: 
 
 ```bash
 python runBatch.py
