@@ -1,7 +1,7 @@
 # PharaGlow
 
 Package to track and analyze C. elegans pharynx from movies. Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v0.4.2/). The package can be used to simply track labelled pharynxes or as a simple center of mass tracker for brightfield, but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.
-Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.  It comprises three stages on analysis which can be done sequentially and are independent. Analyses can be interrupted at the end of each stage after saving the output dataframe. The package can analyze recording up to 25 worms for 15 minutes at 30 frames per second (1x).
+Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.  It comprises three stages on analysis which can be done sequentially and are independent. Analyses can be interrupted at the end of each stage after saving the output dataframe. The package has been succesfully tested on recording simultaneously 25 adults worms for up to 15 minutes at 30 frames per second (1x).
 
 **1. Step -  Basic object detection**
     This step creates a "_features.json" file which contains a table of objects detected in each frame.
@@ -18,18 +18,22 @@ All subsequent analyses steps add 'columns' to the data, and thus features is a 
 
 
 ### Installation
-1. create an anaconda environment
+1. clone PharaGlow repository in your local directory
+```
+git clone [...]
+```
+
+2. Naviguate to your local Pharaglow directory and create an anaconda environment
 ```bash
 conda env create --file environmentPumping.yml
 ```
 
-2. Install pharaglow - clone the repo and navigate into the directory PharaGlow.
+3. Install pharaglow
 ```
-git clone [...]
 python setup.py install --user
 ```
 
-3. (optional, for developers, replace myenv with the name of the environment, eg. environmentPumping):
+4. (optional, for developers, replace myenv with the name of the environment, eg. environmentPumping):
 to create a dedicated environment kernel
 ```
 conda activate myenv
