@@ -47,9 +47,9 @@ conda install -c conda-forge nbstripout
 Before analyzing your data, check  your installation and familiarize yourself with the code. Obtain a copy of a test dataset with 1000 frames of 1x magnification, showing animals expressing myo-2::mCherry. (Lab Dropbox/Data).
 
 * Start a jupyter notebook server
-* open the notebook notebooks/PharaGlowMain.ipynb
-* alter the paths in the cell labeled 'input parameters' to point to the data and the output locations, as well as the AnalysisParameter file (see below)
-* run the notebook. The first few cells are pretty fast, but feature detection can take tens of minutes (depends on your computer and nWorkers. It takes 3 minutes on an Intel I9, 5 workers)
+* Open the notebook notebooks/PharaGlowMain.ipynb
+* Alter the paths in the cell labeled 'input parameters' to point to the data and the output locations, as well as the AnalysisParameter file (see below)
+* Run the notebook. The first few cells are pretty fast, but feature detection can take tens of minutes (depends on your computer and nWorkers. It takes 3 minutes on an Intel I9, 5 workers).
 The output of masks looks like this for frame 10 using the default AnalysisParameters.
 ![png](examples/MS0006_frame10_mask.png)
 The resulting trajectories look like this before filtering by a minimal duration:
@@ -66,28 +66,28 @@ These parameters are:
 "dilate": 1,
 "tfactor":0.8,
 "length":100,
-"searchRange": 20,
-"minimalDuration": 900,
-"memory": 30,
 "minSize":750,
 "maxSize":1500,
 "watershed": 70,
+"searchRange": 20,
+"memory": 30,
+"minimalDuration": 900,
 "widthStraight":10,
 "pad":5,
 "nPts":100,
 "linewidth":2
 }
 #### Parameters for detection
-* bgWindow (frames) - calculate a static background on every nth image of the movie. If this is too short, you get a memory error. It can be as large as 500 frames for a full 18000 frame movie.
 * subtract (0 or 1) - subtract the background from the movie for detection. Helps particularly with the higher resolution movies.
-* thresholdWindow (frames) - to get a threshold for binarization, use every nth frame of the movie.
 * smooth (integer 0 - inf px) - should the image be smoothed. This helps to avoid breaking up the pharynx into two parts. 
+* thresholdWindow (frames) - to get a threshold for binarization, use every nth frame of the movie.
+* bgWindow (frames) - calculate a static background on every nth image of the movie. If this is too short, you get a memory error. It can be as large as 500 frames for a full 18000 frame movie.
 * dilate (integer, >=1) - binary dilation of the image. Can help to connect the worm if its broken up into two pieces.
+* tfactor (float, positive, smaller than 1) - use rarely. If you have disparate sizes the automated threshold doesn't work well. This factor multiplies the threshold value for binarization. Eg. for an 8-bit image, if the threshold is 150 and tfactor is 0.5 the image would be thresholded at 150*0.5=75.
+* length (px) - this sets the size of the extracted images around the center of the worm. It should be at least as large as the largest expected worm length
 * minSize (px) - remove all objects smaller than this
 * maxSize (px) - remove all objects larger than this (but a caveat here is when we have worm collisions where we allow the resulting segmentation to be a bit bigger)
 * watershed (px) - when two or more worms touch, how large is an individual approximately
-* tfactor (float, positive, smaller than 1) - use rarely. If you have disparate sizes the automated threshold doesn't work well. This factor multiplies the threshold value for binarization. Eg. for an 8-bit image, if the threshold is 150 and tfactor is 0.5 the image would be thresholded at 150*0.5=75.
-* length (px) - this sets the size of the extracted images around the center of the worm. It should be at least as large as the largest expected worm length
 
 #### Parameters for tracking
 * searchrange (px) describes how much we expect a worm to move frame-to-frame when we link particles together during tracking. This can be a bit bigger to allow for loosing the worm for a bit, but then you might get large perceived jumps in velocity.
@@ -95,13 +95,14 @@ These parameters are:
 * minimalDuration (frames)- filters out worm trajectories that are shorter than this. 
 
 #### Parameters for pharynx feature extraction
- * widthStraight - how wide is a worm for the straightened image
- * pad - crops a boundary around a worm for image analysis. this helps when the mask is a bit too small.
- * nPts - how many points along the centerline are we measuring. This should relate to the typical length of a worm
+ * widthStraight (px) - how wide is a worm for the straightened image
+ * pad (px) - crops a boundary around a worm for image analysis. this helps when the mask is a bit too small.
+ * nPts (integer >= ??) - how many points along the centerline are we measuring. This should relate to the typical length of a worm
+ * linewidth () - TO EDIT
 
 ### Batch running multiple files with the same parameters
 (Based on the module papermill for running jupyter notebooks with many parameters).
-* Edit the notebooks/runBatch,py to the appropriate locations and parameter files. It will analyze a dataFolder where multiple folders of tifffiles are located. eg.
+* Edit the notebooks/runBatch.py to the appropriate locations and parameter files. It will analyze a dataFolder where multiple folders of tiff files are located. eg.
 a dataFolder containing 3 movies in subfolder1, subfolder2, subfolder3
 * The code that will be run is called notebooks/BatchRunTemplate.ipynb. This is functionally  the same as the code in notebook/RunningPharaglowParallel.ipynb
 
