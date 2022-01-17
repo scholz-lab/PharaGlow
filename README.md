@@ -38,6 +38,58 @@ All subsequent analyses steps add 'columns' to the dataframe,
 
 ## Installation
 
+### (1) Install Anaconda
+You need to have Anaconda (https://www.anaconda.com/products/individual), 
+Python >3.7 and Git (?) installed. 
+We recommend using Anaconda to install Python and Git.
+
+### (2) Clone PharaGlow repository from Github in your local directory
+ In the terminal (Linux)/Anaconda Command Prompt (Windows),
+ navigate to the directory where to clone Pharaglow
+ and write the git clone command:
+
+```
+git clone https://github.com/scholz-lab/PharaGlow.git
+```
+
+Note that you can also just download it from our Github repository (Branch Master > Code > Download ZIP)
+
+### (3) Create and activate the required anaconda environment
+In the terminal (Linux)/Anaconda Command Prompt (Windows),
+ naviguate to your newly cloned Pharaglow directory
+ and run:
+
+```bash
+conda env create --file environmentPumping.yml
+```
+
+You can now use this environment by running:
+
+```
+conda activate pumping
+```
+
+
+### (4) Install PharaGlow
+
+Last step, (don't forget to activate the pumping environment) run: 
+```
+python setup.py install --user
+```
+
+### (*optional*)
+ *Create a dedicated environment kernel*
+
+```
+conda activate myenv
+python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
+```
+
+*And remove notebook output before committing*
+
+```
+conda install -c conda-forge nbstripout
+```
 
 ## Quick Start
 ### Run PharaGlow on a demo dataset
