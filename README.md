@@ -1,7 +1,6 @@
 # PharaGlow - tracking locomotion and feeding behavior of moving worms
 
-
-
+![png](examples/pglow_header.png)
 
 
 PharaGlow is a python package for tracking and analyzing C. elegans pharynx from movies.
