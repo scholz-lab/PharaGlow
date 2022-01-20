@@ -1,7 +1,99 @@
-# PharaGlow
+# PharaGlow - tracking locomotion and feeding behavior of moving worms
 
-Package to track and analyze C. elegans pharynx from movies. Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v0.4.2/). The package can be used to simply track labelled pharynxes or as a simple center of mass tracker for brightfield, but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.
-Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.  It comprises three stages on analysis which can be done sequentially and are independent. Analyses can be interrupted at the end of each stage after saving the output dataframe. The package can analyze recording up to 25 worms for 15 minutes at 30 frames per second (1x).
+![png](examples/pglow_header.png)
+
+PharaGlow is a python package for tracking and analyzing *C. elegans* motion and feeding behavior from videos.
+ The package can be used to simply track labelled pharynxes
+ (or animals from brightfield) as a simple center of mass tracker,
+ but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.
+
+## Installation
+
+1. Install Anaconda
+You need to have Anaconda (https://www.anaconda.com/products/individual), 
+Python >=3.7.
+We recommend using Anaconda to install Python and Git.
+
+2. Clone PharaGlow repository from Github in your local directory
+ 
+ * copy the repository link from Github in https://scholz-lab.github.io/PharaGlow/ 
+ (in Branch Master > Code > HTTPS OR SSH)
+ 
+ *  In the terminal (Linux)/Anaconda Command Prompt (Windows),
+ navigate to the directory where to clone PharaGlow
+ and write the git clone command:
+
+```
+git clone https://github.com/scholz-lab/PharaGlow.git
+```
+
+Note that you can also download PharaGlow from our Github repository (Branch Master > Code > Download ZIP)
+to have the current copy of PharaGlow
+
+3. Create and activate the required anaconda environment
+In the terminal (Linux)/Anaconda Command Prompt (Windows),
+ naviguate to your newly cloned PharaGlow directory
+ and run:
+
+```bash
+conda env create --file environmentPumping.yml
+```
+
+You can now use this environment by running:
+
+```
+conda activate pumping
+```
+
+
+4. Install PharaGlow
+
+Last step, (don't forget to activate the pumping environment) run: 
+```
+python setup.py install --user
+```
+
+5. (*optional*)
+ *Create a dedicated environment kernel*
+
+```
+conda activate myenv
+python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
+```
+
+*And remove notebook output before committing*
+
+```
+conda install -c conda-forge nbstripout
+```
+## Overview
+
+**1. Step -  Basic object detection**
+    This step creates a "_features.json" file
+	which contains a table of objects (worms) detected in each frame.
+	It creates also a stack of images that contain a cropped area around each worm.
+    
+**2. Step - Linking objects into trajectories**
+    This step results in individual files "_trajectory.json" and _images.tiff for each tracked animal.
+    
+**3. Step - Analyzing the details of object shapes**
+    This step is doing the heavy lifting:
+	It extracts centerlines, widths, contours and other object descriptors from the objects.
+	It results in individual files "_result.json" for each tracked animal.
+	
+All subsequent analyses steps add 'columns' to the dataframe,
+ and thus features is a subset of trajectories is a subset of results.
+
+
+## Quick Start
+### Run PharaGlow on a demo dataset
+* We provide a demo data set with 1000 frames of 1x magnification (30 fps, 2.34 um per pixel) showing *C. elegans* expressing *myo-2::mCherry*.
+https://osf.io/fy4ed/. You can also find the expected outputs in the data repository at OSF.
+
+* Before analyzing your data, we recommend to check your installation and familiarize yourself with the code by running the jupyter notebook
+ "testing/PharaGlowMain_testdata.ipynb" on this dataset using the provided parameter file "AnalysisParameters_1x.json"
+
+This notebook runs the pharaglow image analysis pipeline. It comprises three stages on analysis which can be done sequentially and are independent. Analyses can be interrupted at the end of each stage after saving the output dataframe. 
 
 **1. Step -  Basic object detection**
     This step creates a "_features.json" file which contains a table of objects detected in each frame.
@@ -10,318 +102,457 @@ Typical use is by interacting through the notebook which contains the whole pipe
 **2. Step - Linking objects into trajectories**
     This results in individual files "_trajectory.json" for each tracked animal.
     
-**3. Step - Analyzing the details of object shapes**
+**3. Step - Analysing the details of object shapes**
     This step is doing the heavy lifting: It extracts centerlines, widths, contours and other object descriptors from the objects
 
 All subsequent analyses steps add 'columns' to the data, and thus features is a subset of trajectories is a subset of results.
 
+#### 1. Setup
 
-
-### Installation
-1. create an anaconda environment
-```bash
-conda env create --file environmentPumping.yml
-```
-
-2. Install pharaglow - clone the repo and navigate into the directory PharaGlow.
-```
-git clone [...]
-python setup.py install --user
-```
-
-3. (optional, for developers, replace myenv with the name of the environment, eg. environmentPumping):
-to create a dedicated environment kernel
-```
-conda activate myenv
-python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
-```
- and to remove notebook output before committing
-```
-conda install -c conda-forge nbstripout
-```
-### Quick Start
-Before analyzing your data, check  your installation and familiarize yourself with the code. Obtain a copy of a test dataset with 1000 frames of 1x magnification, showing animals expressing myo-2::mCherry. (Lab Dropbox/Data).
-
-* Start a jupyter notebook server
-* open the notebook notebooks/RunningPharaGlowMain.ipynb
-* alter the paths in the cell labeled 'input parameters' to point to the data and the output locations, as well as the AnalysisParameter file (see below)
-* run the notebook. The first few cells are pretty fast, but feature detection can take tens of minutes (depends on your computer and nWorkers. It takes 3 minutes on an Intel I9, 5 workers)
-The output of masks looks like this for frame 10 using the default AnalysisParameters.
-![png](examples/MS0006_frame10_mask.png)
-The resulting trajectories look like this before filtering by a minimal duration:
-![png](examples/MS0006_trajectories.png)
-
-### Pharaglow parameter file
-Pharaglow uses a json parameter file to expose parameters that are allowed to be changed by you. A default file comes with the repository, you can use it as a starting point (AnalysisParameters_1x)
-These parameters are:
-{
-"subtract":0,
-"smooth": 3,
-"thresholdWindow": 100,
-"bgWindow": 100,
-"dilate": 1,
-"tfactor":0.8,
-"length":100,
-"searchRange": 20,
-"minimalDuration": 900,
-"memory": 30,
-"minSize":750,
-"maxSize":1500,
-"watershed": 70,
-"widthStraight":10,
-"pad":5,
-"nPts":100,
-"linewidth":2
-}
-#### Parameters for detection
-* bgWindow (frames) - calculate a static background on every nth image of the movie. If this is too short, you get a memory error. It can be as large as 500 frames for a full 18000 frame movie.
-* subtract (0 or 1) - subtract the background from the movie for detection. Helps particularly with the higher resolution movies.
-* thresholdWindow (frames) - to get a threshold for binarization, use every nth frame of the movie.
-* smooth (integer 0 - inf px) - should the image be smoothed. This helps to avoid breaking up the pharynx into two parts. 
-* dilate (integer, >=1) - binary dilation of the image. Can help to connect the worm if its broken up into two pieces.
-* minSize (px) - remove all objects smaller than this
-* maxSize (px) - remove all objects larger than this (but a caveat here is when we have worm collisions where we allow the resulting segmentation to be a bit bigger)
-* watershed (px) - when two or more worms touch, how large is an individual approximately
-* tfactor (float, positive, smaller than 1) - use rarely. If you have disparate sizes the automated threshold doesn't work well. This factor multiplies the threshold value for binarization. Eg. for an 8-bit image, if the threshold is 150 and tfactor is 0.5 the image would be thresholded at 150*0.5=75.
-* length (px) - this sets the size of the extracted images around the center of the worm. It should be at least as large as the largest expected worm length
-
-#### Parameters for tracking
-* searchrange (px) describes how much we expect a worm to move frame-to-frame when we link particles together during tracking. This can be a bit bigger to allow for loosing the worm for a bit, but then you might get large perceived jumps in velocity.
-* memory (frames) - when we loose a worm for a few frames, how long can gaps be until we call it a 'new' worm
-* minimalDuration (frames)- filters out worm trajectories that are shorter than this. 
-
-#### Parameters for pharynx feature extraction
- * widthStraight - how wide is a worm for the straightened image
- * pad - crops a boundary around a worm for image analysis. this helps when the mask is a bit too small.
- * nPts - how many points along the centerline are we measuring. This should relate to the typical length of a worm
-
-### Batch running multiple files with the same parameters
-(Based on the module papermill for running jupyter notebooks with many parameters).
-* Edit the notebooks/runBatch,py to the appropriate locations and parameter files. It will analyze a dataFolder where multiple folders of tifffiles are located. eg.
-a dataFolder containing 3 movies in subfolder1, subfolder2, subfolder3
-* The code that will be run is called notebooks/BatchRunTemplate.ipynb. This is functionally  the same as the code in notebook/RunningPharaglowParallel.ipynb
-
-#### Batch running multiple files with the same parameters (Option 1)
-* run the batch processing in the commandline like this: 
-
-```bash
-python runBatchParallel.py
-```
-
-* For each subfolder a notebook file with the plots will be generated! This makes it easy to check if tracking was successful.
-* This script runs multiple notebooks in parallel. This works better in windows OS than parallelization within the notebook (Option 2)
-
-#### Batch running multiple files with the same parameters (Option 2)
-* run the batch processing in the commandline like this: 
-
-```bash
-python runBatch.py
-```
-* Here you use multiple workers (nWorkers variable) to use parallelization within each notebook. Only one notebook is run at a time.
-* You should see a progress bar that indicates where the script is in processing the template jupyter notebook.
-
-
-### Running pharaglow on labelled pharynx movies
-#### Tracking worms with PharaGlow
-This code generates a pandas dataframe that contains the particles that were tracked.
 
 ```python
-%matplotlib inline
-import numpy as np
-import pandas as pd
-import pims
-# image io and analysis
-import json
-from skimage.measure import label
-# plotting
-import matplotlib  as mpl 
-import matplotlib.pyplot as plt 
+def setup(parameterfile, inPath, outPath, movie):
+    """helper function to simplify the setting up before analysis. Handles path checking and creating, parameter reads ad data reads."""
+    ... # see the notebooks directory for more information
+    return logger, param, rawframes, lawn, outfile, imfile
+```
 
-#our packages
-from pharaglow import tracking, run, features
+##### Input parameters
 
-# io
-fname = "pathToData/NZ_0007_croppedsample.tif"
-parameterfile = "PathToFile/pharaglow_parameters.txt"
-print('Starting pharaglow analysis...')
-rawframes = pims.open(fname)
-print('Analyzing', rawframes)
-print('Loading parameters from {}'.format(parameterfile))
-with open(parameterfile) as f:
-    param = json.load(f)
+
+```python
+parameterfile = r"C:\Users\bonnard\Documents\GitHub\PharaGlow\AnalysisParameters_1x.json"
+inPath = r"C:\Users\bonnard\Documents\DATA\1_rawdata\extern\MS0006"
+outPath = r"C:\Users\bonnard\Documents\DATA\3_1_pharaglow\MS0006"
+movie = "MS0006"
+
+nWorkers = 4
+
+depth = 'uint8'
+save_minimal = True
+
+lawnPath = None #"/opt/data/Lawns/"
+
+logger, param, rawframes, lawn, outfile, imfile = setup(parameterfile, inPath, outPath, movie)
+```
+
+
+#### 2. Object detection
+
+##### Create binary masks
+
+
+```python
+start = timeit.default_timer()
+
 # detecting objects
-print('Binarizing images')
-masks = tracking.calculateMask(rawframes, minSize = param['minSize'])
-print('Detecting features')
-features = tracking.runfeatureDetection(rawframes, masks)
-print('Done')
+logger.info('Binarizing images...')
+
+masks = tracking.calculateMask(rawframes,
+                               minSize = param['minSize'],
+                               bgWindow = param['bgWindow'],
+                               thresholdWindow = param['thresholdWindow'],
+                               smooth =  param['smooth'],
+                               subtract =  param['subtract'],
+                               dilate = param['dilate'],
+                               tfactor=param['tfactor'])
+
+
+stop = timeit.default_timer()
+logger.info(f"binary masks created ({stop - start}s)")  
 ```
-![png](examples/trajectories.png)
+
+    INFO:PharaGlow:Binarizing images...
+    INFO:PharaGlow:binary masks created (2.287s)
 
 
-#### Running pharaglow on tracked dataframes.
-```python
-print('Linking trajectories')
-trajectories = tracking.linkParticles(features, param['searchRange'], param['minimalDuration'])
-print('Extracting pharynx data')
-trajectories = run.runPharaglowOnStack(trajectories, param)
-print('Done tracking. Successfully tracked {} frames with {} trajectories.'.format(len(rawframes), trajectories['particle'].nunique()))
-```
-An example kymograph after running both tracking and pharynx analysis
-![png](examples/kymographs.png)
-
-### Example running pharaGlow only
-This would be useful when working with single-worm cropped data where tracking isn't neccessary.
-
-```python
-import matplotlib.pylab as plt
-import numpy as np
-from skimage.io import imread
-
-import pharaglow.features as pg
-```
+##### Make sure the thresholding worked otherwise change parameters
 
 
 ```python
-# load data
-fname = '/media/scholz_la/hd2/Data/PumpTest/mCherry3-1_pumping.tif'
-data = imread(fname, as_gray=False, plugin=None)
-data = data[:, 60:150, 90:]
+# Select a rawframe to visualize
+t = 400 
+
+if t> (len(rawframes)-1):
+    # Check if the selected rawframe is present otherwise t=0
+    print(f"Warning ! Max {len(rawframes)} rawframes. {t} changed to 0")
+    t=0
+
+print(f"rawframe {t} to visualize ")
 ```
+
+    rawframe 400 to visualize 
+
+
+###### Visualize the raw data
 
 
 ```python
-# preprocessing image
-im = data[150]
-mask = pg.thresholdPharynx(im)
-skel = pg.skeletonPharynx(mask)
-order = pg.sortSkeleton(skel)
-ptsX, ptsY = np.where(skel)
-ptsX, ptsY = ptsX[order], ptsY[order]
-```
+plt.figure(figsize=(16,8))
 
-
-```python
-plt.figure(figsize=(8, 4))
-plt.subplot(221)
-plt.imshow(im, cmap=plt.cm.gray, interpolation='nearest')
-plt.axis('off')
-plt.subplot(222)
-plt.imshow(skel,  cmap='gray', interpolation='nearest', alpha=0.95)
-plt.axis('off')
-plt.subplot(223)
-plt.imshow(mask, cmap='gray', interpolation='nearest', alpha=0.95)
-plt.axis('off')
-plt.subplot(224)
-plt.imshow(im, cmap='gray')
-plt.scatter(ptsY, ptsX, c=order, s = 5);
-plt.axis('off')
-plt.subplots_adjust(hspace=0.1, wspace=-0.45, top=1, bottom=0, left=0, right=1)
-plt.show()
-```
-
-
-![png](examples/output_3_0.png)
-
-
-
-```python
-# getting centerline and width
-poptX, poptY = pg.fitSkeleton(ptsX, ptsY)
-contour = pg.morphologicalPharynxContour(mask, scale = 4, smoothing=2)
-xstart, xend = pg.cropcenterline(poptX, poptY, contour, nP = len(ptsX))
-xs = np.linspace(xstart, xend, 25)
-cl = pg.centerline(poptX, poptY, xs)
-dCl = pg.normalVecCl(poptX, poptY, xs)
-widths = pg.widthPharynx(cl, contour, dCl)
-lw = 10
-wL =  np.stack([cl+lw*dCl, cl-lw*dCl], axis=1)
-```
-
-
-```python
-plt.figure(figsize=(8, 8))
-plt.imshow(255-im, cmap = 'gray')
-plt.plot(cl[:,1], cl[:,0], 'r:')
-plt.plot(contour[:,1], contour[:,0], zorder=10)
-[plt.plot(wL[i,:,1], wL[i,:,0], 'w', alpha =0.5) for i in range(len(xs)-1)];
-
-[plt.plot(widths[i, :,1], widths[i, :,0], 'w') for i in range(len(cl))];
-```
-
-
-![png](examples/output_5_0.png)
-
-
-
-```python
-kymo = pg.intensityAlongCenterline(im, cl, linewidth =2)
-kymoWeighted = pg.intensityAlongCenterline(im, cl, width = pg.scalarWidth(widths))
-
-```
-
-
-```python
-# show different linescans - this helps to identify front and back of pharynx
-plt.plot(kymo, label='simple kymograph')
-plt.plot(kymoWeighted, label='width-weighted kymograph')
-plt.legend();
-```
-
-
-![png](examples/output_7_0.png)
-
-
-
-```python
-#local derivative, can enhance contrast
-grad = pg.gradientPharynx(im)
-# straightened image
-straightIm = pg.straightenPharynx(im, xstart, xend, poptX, poptY, width=np.max(pg.scalarWidth(widths))//2)
-```
-
-
-```python
 plt.subplot(121)
-plt.imshow(grad, cmap = plt.cm.nipy_spectral)
+# Plot the histogram of the pixel intensity values of the rawframe
+plt.hist(rawframes[t].ravel(), bins=256, log=True)
+plt.xlim(0, 260) # xlim for 8 bits image
+
 plt.subplot(122)
-plt.imshow(straightIm.T)
+# Adjust the color limit for the rawframe for vizualisation only
+color = (0,170) #  0<=color<=255 for 8 bits image
+# color = None 
+plt.imshow(rawframes[t],clim = color)
+plt.colorbar(orientation='horizontal');
+
+plt.savefig(os.path.join(outPath,f'{date.today()}_{movie}_frame{t}_px_hist.pdf'))
 ```
 
 
+![png](examples/output_14_0.png)
 
 
-    <matplotlib.image.AxesImage at 0x7f19f1d232e8>
+###### Show the mask and detected objects
+
+
+```python
+# %matplotlib qt
+
+from skimage.measure import label, regionprops
+
+plt.figure(figsize=(16,6))
+plt.subplot(121)
+# Show the rawframe
+plt.imshow(rawframes[t],clim= color)#+lawn)
+if lawn is not None:
+    # Show the lawn
+    plt.contour(binLawn, alpha=0.5, cmap='pink')
+    
+plt.subplot(122)
+# Show the masks and their size [px]
+plt.imshow(masks[t])#[:600,1000:])#[500:1500,2000:3500])#[:,2500:])
+# print(np.min(masks[t]))
+label_image, num = label(masks[t], background=0, connectivity = 1,return_num=True)
+print(f"{num} detected objects")
+for region in regionprops(label_image):
+    plt.text(region.centroid[1]+50, region.centroid[0], region.area, color ='w')
+    
+plt.tight_layout()
+
+# save the pdf
+plt.suptitle(f"Rawframe and masks (#{num}) rawframe {t} ({movie})", fontsize=14)
+plt.savefig(os.path.join(outPath,f'{date.today()}_{movie}_frame{t}_masks.pdf'))
+```
+
+    5 detected objects
 
 
 
+![png](examples/output_16_1.png)
 
-![png](examples/output_9_1.png)
+
+##### Detecting individual objects and tracking or use multiprocessing to speed up feature detection
+
+This section will go through all frames and find worm-sized (as specified by the parameters) objects. It creates a pd.Dataframe containing these and a stack of images (numpy array) that contain a cropped area around each worm. Note: Each worm image will be length x length x 8bit. So with 30 worms per image you expect the image array to be 6Gb/10 minutes.
+
+
+```python
+start = timeit.default_timer()
+
+logger.info('Detecting features...')
+logger.info(f'...with {nWorkers} workers')
+objects, images = util.parallel_analysis((masks, rawframes), param, tracking.parallelWorker, framenumbers = None, nWorkers = nWorkers, output= None, depth = depth)
+# create a link between image and dataframe
+objects['im_idx'] = np.arange(len(objects))
+stop = timeit.default_timer()
+logger.info(f"features detected ({stop - start}s)") 
+```
+
+    INFO:PharaGlow:Detecting features...
+    INFO:PharaGlow:...with 4 workers
+
+
+    Analyzing image 0 of 999
+    Analyzing image 100 of 999
+    Analyzing image 200 of 999
+    Analyzing image 300 of 999
+    Analyzing image 400 of 999
+    Analyzing image 500 of 999
+    Analyzing image 600 of 999
+    Analyzing image 700 of 999
+    Analyzing image 800 of 999
+    Analyzing image 900 of 999
+
+
+    INFO:PharaGlow:features detected (319.0189164s)
 
 
 
 ```python
-# local gradient enhances anatomical features
-kymo = pg.intensityAlongCenterline(grad, cl, linewidth =5)
-kymoWeighted = pg.intensityAlongCenterline(grad, cl, width = pg.scalarWidth(widths))
-
+# Files monitoring
+logger.info(f" Number of frames in features:{objects['frame'].nunique()}")
+                                                       
+if len(rawframes) != len(objects['frame'].unique()):
+    logger.warning(f" Number of frames in features ({objects['frame'].nunique()}) and the number of rawframes ({len(rawframes)}) don't match !")
 ```
+
+    INFO:PharaGlow: Number of frames in features:999
+
+
+##### Visualize results of object detection
 
 
 ```python
-# show different linescans - this helps to identify front and back of pharynx
-# notice rge drop for the grinder!
-plt.plot(kymo, label='simple kymograph')
-plt.plot(kymoWeighted, label='width-weighted kymograph')
-plt.legend();
+### Show the area of all objects
+plt.figure(figsize=(12,6))
+plt.subplot(121)
+objects['area'].hist(bins = 30)
+plt.xlabel('Area (px)')
+plt.subplot(122)
+objects['frame'].value_counts().sort_index().plot()
+plt.ylabel('Number of objects')
+plt.xlabel('Frame')
+
+# save the pdf
+plt.title(f"{movie}", fontsize=24)
+plt.savefig(os.path.join(outPath,f'{date.today()}_{movie}_objects_.pdf'))
+
+logger.info(f"features.area.min():{objects.area.min()}") # region.area > params['minSize']
+logger.info(f"features.area.max():{objects.area.max()}") # region.area < params['maxSize']
+```
+    INFO:PharaGlow:features.area.min():458
+    INFO:PharaGlow:features.area.max():1197
+
+![png](examples/output_21_1.png)
+
+
+##### Save features and images
+
+```python
+start = timeit.default_timer()
+# saving features
+logger.info("Saving features...")
+objects.info(memory_usage='deep')
+objects.to_json(outfile.format('features', 'all'), orient='split')
+stop = timeit.default_timer()
+logger.info(f"features saved as {outfile.format('features', 'all')} ({stop - start}s)")
+
+start = timeit.default_timer()
+# saving images
+imsave(imfile.format('images', 'all'), images)
+stop = timeit.default_timer()
+logger.info(f"images saved as {imfile.format('images', 'all')} ({stop - start}s)")
 ```
 
+This step results in a features file which contains center-of-mass tracking information, and an images files which are cropped regions of interest around a worm.
 
-![png](examples/output_11_0.png)
-
+###### (Optional) Load features and images if continuing prior analysis
 
 
 ```python
-
+%%time
+# leaving this here for re-analysis
+if False:
+    # Load feature
+    start = timeit.default_timer()
+    logger.info("Loading features...")
+    objects = io.load(outfile.format('features', 'all'), orient='split')
+    images = pims.open(imfile.format('images', 'all'))
+    stop = timeit.default_timer()
+    logger.info(f"features loaded ({stop - start}s)")
 ```
+
+    Wall time: 0 ns
+
+
+#### 3. Creating trajectories
+
+##### Link objects to trajectories using trackpy and interpolate short misses
+
+
+```python
+logger.info('Linking trajectories...')
+logger.info(f"Parameter searchRange: {param['searchRange']} px")
+logger.info(f"Parameter memory: {param['memory']} frames")
+```
+
+    INFO:PharaGlow:Linking trajectories...
+    INFO:PharaGlow:Parameter searchRange: 10 px
+    INFO:PharaGlow:Parameter memory: 30 frames
+
+
+```python
+trajectories = tp.link_df(objects,param['searchRange'], memory = param['memory'])
+logger.info(f"Number of trajectories after linking: {len(trajectories['particle'].unique())}")
+```
+
+    INFO:PharaGlow:Number of trajectories after linking: 8
+
+
+##### Show the trajectories
+
+```python
+plt.figure(figsize=(8,8))
+tp.plot_traj(trajectories, colorby = 'particle', superimpose=1-masks[t],label=False);
+```
+![png](examples/output_32_0.png)
+
+
+```python
+logger.info(f"Filtering out trajectories which last less than the minimal duration ({param['minimalDuration']} frames)...")
+logger.info(f"Nb of trajectories before filtering: {trajectories['particle'].nunique()}")
+
+trajectories = tp.filter_stubs(trajectories,param['minimalDuration'])
+logger.info(f"Nb of trajectories after filtering: {trajectories['particle'].nunique()}")
+```
+
+    INFO:PharaGlow:Filtering out trajectories which last less than the minimal duration (600 frames)...
+    INFO:PharaGlow:Nb of trajectories before filtering: 8
+    INFO:PharaGlow:Nb of trajectories after filtering: 5
+
+
+```python
+fig = plt.figure(figsize=(8,8))
+ax = tp.plot_traj(trajectories, colorby = 'particle', superimpose=1-masks[t],label=False);
+# save the pdf
+ax.set_title(f"{movie}", fontsize=24)
+fig.savefig(os.path.join(outPath,f'{date.today()}_{movie}_trajectories_filtered.pdf'))
+
+# with labels
+fig = plt.figure(figsize=(8,8))
+ax = tp.plot_traj(trajectories, colorby = 'particle', superimpose=1-masks[t],label=True);
+# save the pdf
+ax.set_title(f"{movie}", fontsize=24)
+fig.savefig(os.path.join(outPath,f'{date.today()}_{movie}_trajectories_filtered_labelled.pdf'))
+```
+
+![png](examples/output_34_0.png)
+
+
+![png](examples/output_34_1.png)
+
+
+##### Save individual trajectories & add the missing images to interpolated trajectories
+
+Here we do multiple things: Add missing rows to the trajectory, create a separate image stack for each animal and save the trajectories.
+
+
+```python
+logger.info(f"Saving {trajectories['particle'].nunique()} trajectories to separate files...")
+
+start = timeit.default_timer()
+
+for particle_index in trajectories['particle'].unique():
+    tmp = trajectories[trajectories.loc[:,'particle'] == particle_index].copy()
+    ims = images[tmp['im_idx']]
+    ims = np.array(ims, dtype = 'uint8')
+    # generate an interpolated trajectory where all frames are accounted for
+    traj_interp, ims_interp = tracking.interpolate_helper(rawframes, ims, tmp, param)
+    # save the new single worm movie
+    imsave(imfile.format('images', particle_index), np.array(ims_interp, dtype='uint8'))
+    # save the trajectory
+    traj_interp.to_json(outfile.format('trajectories', int(particle_index)), orient='split')
+    
+stop = timeit.default_timer()
+logger.info(f"trajectories saved as json files ({stop - start}s)") 
+```
+
+    INFO:PharaGlow:Saving 5 trajectories to separate files...
+    INFO:PharaGlow:trajectories saved as json files (0.692s)
+
+
+#### 3. Run the whole pharaglow feature extraction
+
+
+```python
+start = timeit.default_timer()
+# save only minimal outputs - reduces save by approx factor 3
+
+# analyze all trajectories
+for fn in os.listdir(outPath):
+    file = os.path.join(outPath,fn)
+    
+    if os.path.isfile(file) and f'{movie}_trajectories_' in fn and fn.endswith('.json'):
+        particle_index = int(fn.split('.')[0].split('_')[-1])
+        traj =  io.load(file, orient='split')
+        # load images
+        images = pims.open(imfile.format('images', particle_index))
+        if len(traj.index)<1:
+            print('Skipped', file)
+            continue
+        logger.info('Analyzing trajectory:%s', fn)
+        
+        tmp,_ = util.parallel_analysis((images,), param,\
+                          parallelWorker= run.parallel_pharaglow_run, framenumbers = traj['frame'], nWorkers = nWorkers, output= None)
+        # add basic image properties
+        tmp['Imax'] = np.max(images, axis=(1,2))
+        tmp['Imean'] = np.mean(images, axis=(1,2))
+        tmp['Imedian']= np.median(images, axis=(1,2))
+        tmp['Istd']= np.std(images, axis=(1,2))
+        tmp['Area2'] = [np.sum(mask) for mask in tmp['Mask']]
+        # remove some columns to make the result smaller
+        if save_minimal:
+            tmp = tmp.drop(['Mask', 'SkeletonX', 'SkeletonY', 'ParX', 'ParY', 
+                            'Xstart', 'Xend', 'dCl', 'Widths', 'Contour', 'Gradient', 
+                            'Kymo', 'KymoGrad', 'Similarity', 'Xtmp'], axis = 1, errors = 'ignore')
+        # add the basic tracker info - you can also keep these as separate files
+        tmp = tmp.merge(traj, on='frame', how = 'outer')
+        # drop nans to allow post processing
+        tmp = tmp.dropna()
+        print(tmp.info())
+        # run some stuff on the whole dataframe.
+        run.pharynxorientation(tmp)
+        # extract pumps
+        tmp[['pumps']] = tmp.apply(\
+        lambda row: pd.Series(features.extractPump(row['Straightened'])), axis=1)
+        # get more exact entry location
+        if lawn is not None:
+            tmp['insideHead'] = tmp.apply(\
+                lambda row: pd.Series(features.headLocationLawn(row['Centerline'],row['slice'], binLawn)), axis=1)
+            tmp['insideHeadIntensity'] = tmp.apply(\
+                lambda row: pd.Series(features.headLocationLawn(row['Centerline'],row['slice'], lawn)), axis=1)
+        
+        tmp.to_json(outfile.format('results', particle_index), orient='split')
+        
+if save_minimal:
+    logger.info('minimal information saved')
+    
+stop = timeit.default_timer()
+logger.info(f"Whole pharaglow features extracted ({stop - start}s)")  
+```
+
+    INFO:PharaGlow:minimal information saved
+    INFO:PharaGlow:Whole pharaglow features extracted (963.5043299000099s)
+
+
+
+### Run PharaGlow on your data
+#### Raw files requirement
+Raw data are tiff files
+ typically obtained from simultaneously recording of up to 50 adults worms at 30 frames per second at 1x magnification. Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.
+ It comprises three stages on analysis which can be done sequentially and are independent. Analyses can be interrupted at the end of each stage after saving the output dataframe.
+ 
+#### Parameters file
+PharaGlow requires a json parameter file with the parameters that are editable by you. 
+A default file comes with the repository, you can use it as a starting point (AnalysisParameters_1x.json)
+These parameters are:
+
+
+| **Parameters**  | **Value**  |                                                                                                                      |
+| subtract        | 0          | subtract the background from the movie for detection. Helps particularly with the higher resolution movies (0 or 1)  |
+| smooth          | 3          | should the image be smoothed. This helps to avoid breaking up the pharynx into two parts (integer >=0 in px)         |
+
+
+#### Run PharaGlow on a single data set
+system requirement
+
+#### Run PharaGlow in parallel processing
+system requirement
+
+
+## API
+https://scholz-lab.github.io/PharaGlow/build/html/pharaglow.html
+## Code contributors
+## References
+Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v0.4.2/).
+## License
+
+
 
