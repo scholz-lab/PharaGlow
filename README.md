@@ -530,16 +530,25 @@ Raw data are tiff files
  typically obtained from simultaneously recording of up to 50 adults worms at 30 frames per second at 1x magnification. Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.
 
  
-#### Parameters file
-PharaGlow requires a json parameter file with the parameters that are editable by you. 
-A default file comes with the repository, you can use it as a starting point (AnalysisParameters_1x.json)
-These parameters are:
-
-
-| **Parameters**  | **Value**  |                                                                                                                      |
-| subtract        | 0          | subtract the background from the movie for detection. Helps particularly with the higher resolution movies (0 or 1)  |
-| smooth          | 3          | should the image be smoothed. This helps to avoid breaking up the pharynx into two parts (integer >=0 in px)         |
-
+| Field | Description |
+|-------|-------------|
+| **subtract** | (0 or 1) Subtract the background from the movie for detection. Helps particularly with the higher resolution movies.|
+| **smooth** | (integer, >= 0, in pixel) Should the image be smoothed. This helps to avoid breaking up the pharynx into two parts.|
+| **dilate** | (integer, >=1) Binary dilation of the image. Can help to connect the worm if its broken up into two pieces.|
+| **tfactor** | (float,[0-1]) Use rarely. If you have disparate sizes the automated threshold doesn't work well. This factor multiplies the threshold value for binarization. Eg. for an 8-bit image, if the threshold is 150 and tfactor is 0.5 the image would be thresholded at 150*0.5=75.|
+| **thresholdWindow** | (in frames) To get a threshold for binarization, use every nth frame of the movie.| 
+| **bgWindow** |(in frames) Calculate a static background on every nth image of the movie. If this is too short, you get a memory error. It can be as large as 500 frames for a full 18000 frame movie.|
+| **length** | (in pixel) This sets the size of the extracted images around the center of the worm. It should be at least as large as the largest expected worm length. |
+| **watershed** | (in pixel) When two or more worms touch, how large is an individual approximately.|
+| **minSize** | (in pixel) Remove all objects smaller than this.|
+| **maxSize** | (in pixel) Remove all objects larger than this (but a caveat here is when we have worm collisions where we allow the resulting segmentation to be a bit bigger). |
+| **searchrange** | (in pixel) Describes how much we expect a worm to move frame-to-frame when we link particles together during tracking. This can be a bit bigger to allow for loosing the worm for a bit, but then you might get large perceived jumps in velocity.|
+| **memory** | (in frames) When we loose a worm for a few frames, how long can gaps be until we call it a 'new' worm.|
+| **minimalDuration** | (in frames) Filters out worm trajectories that are shorter than this.|
+| **widthStraight** | (in pixel) How wide is a worm for the straightened image.|
+| **pad** | (in pixel) crops a boundary around a worm for image analysis. this helps when the mask is a bit too small.|
+| **nPts** | (integer) How many points along the centerline are we measuring. This should relate to the typical length of a worm.|
+| **linewidth** |  TODO|
 
 #### Run PharaGlow on a single data set
 
@@ -555,6 +564,7 @@ https://scholz-lab.github.io/PharaGlow/build/html/pharaglow.html
 Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v0.4.2/).
 
 ## License
-
+scholz-lab/PharaGlow is licensed under the
+GNU General Public License v3.0
 
 
