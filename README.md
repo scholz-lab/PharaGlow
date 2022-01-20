@@ -40,23 +40,28 @@ All subsequent analyses steps add 'columns' to the dataframe,
 
 ### (1) Install Anaconda
 You need to have Anaconda (https://www.anaconda.com/products/individual), 
-Python >3.7 and Git (?) installed. 
+Python >3.7 and Git installed. 
 We recommend using Anaconda to install Python and Git.
 
 ### (2) Clone PharaGlow repository from Github in your local directory
- In the terminal (Linux)/Anaconda Command Prompt (Windows),
- navigate to the directory where to clone Pharaglow
+ 
+ 1/ Copy the repository link from Github in https://scholz-lab.github.io/PharaGlow/ 
+ (in Branch Master > Code > HTTPS OR SSH)
+ 
+ 2/ In the terminal (Linux)/Anaconda Command Prompt (Windows),
+ navigate to the directory where to clone PharaGlow
  and write the git clone command:
 
 ```
 git clone https://github.com/scholz-lab/PharaGlow.git
 ```
 
-Note that you can also just download it from our Github repository (Branch Master > Code > Download ZIP)
+Note that you can also download PharaGlow from our Github repository (Branch Master > Code > Download ZIP)
+to have the current copy of PharaGlow
 
 ### (3) Create and activate the required anaconda environment
 In the terminal (Linux)/Anaconda Command Prompt (Windows),
- naviguate to your newly cloned Pharaglow directory
+ naviguate to your newly cloned PharaGlow directory
  and run:
 
 ```bash
@@ -93,10 +98,39 @@ conda install -c conda-forge nbstripout
 
 ## Quick Start
 ### Run PharaGlow on a demo dataset
+We provide a demo data set with 1000 frames of 1x magnification
+ (30fps, 2.34um per pixel),
+ showing *C. elegans* expressing myo-2::mCherry.
+ (TODO : add link here)
+
+Before analyzing your data, we recommend to check your installation
+ and familiarize yourself with the code by running the jupyter notebook
+ "PharaGlowMain.ipynb" (in "notebooks") on this dataset.
+ using the parameter file "AnalysisParameters_1x.json"
+ 
+You can also find the expected outputs in TODO : add link here
+
+TODO add PharaGlowMain.ipynb run on the demodataset with the output
+
 ### Run PharaGlow on your data
 #### Raw files requirement
-#### Run PharaGlow XX
+#### Parameters file
+PharaGlow requires a json parameter file with the parameters that are editable by you. 
+A default file comes with the repository, you can use it as a starting point (AnalysisParameters_1x.json)
+These parameters are:
+
+
+| **Parameters**  | **Value**  |                                                                                                                      |
+| subtract        | 0          | subtract the background from the movie for detection. Helps particularly with the higher resolution movies (0 or 1)  |
+| smooth          | 3          | should the image be smoothed. This helps to avoid breaking up the pharynx into two parts (integer >=0 in px)         |
+
+
+#### Run PharaGlow on a single data set
+system requirement
+
 #### Run PharaGlow in parallel processing
+system requirement
+
 
 ## Code contributors
 ## Community Support, Developers, & Help
