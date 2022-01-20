@@ -529,7 +529,11 @@ logger.info(f"Whole pharaglow features extracted ({stop - start}s)")
 Raw data are tiff files
  typically obtained from simultaneously recording of up to 50 adults worms at 30 frames per second at 1x magnification. Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.
 
- 
+#### Parameters file
+PharaGlow requires a json parameter file with the parameters that are editable by you. 
+A default file comes with the repository, you can use it as a starting point (AnalysisParameters_1x.json).
+These parameters are:
+
 | Field | Description |
 |-------|-------------|
 | **subtract** | (0 or 1) Subtract the background from the movie for detection. Helps particularly with the higher resolution movies.|
@@ -548,7 +552,7 @@ Raw data are tiff files
 | **widthStraight** | (in pixel) How wide is a worm for the straightened image.|
 | **pad** | (in pixel) crops a boundary around a worm for image analysis. this helps when the mask is a bit too small.|
 | **nPts** | (integer) How many points along the centerline are we measuring. This should relate to the typical length of a worm.|
-| **linewidth** |  TODO|
+| **linewidth** |  |
 
 #### Run PharaGlow on a single data set
 
