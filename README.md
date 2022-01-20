@@ -2,14 +2,10 @@
 
 ![png](examples/pglow_header.png)
 
-
-PharaGlow is a python package for tracking and analyzing C. elegans pharynx from movies.
+PharaGlow is a python package for tracking and analyzing *C. elegans* motion and feeding behavior from videos.
  The package can be used to simply track labelled pharynxes
  (or animals from brightfield) as a simple center of mass tracker,
  but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.
-
-
-
 
 ## Installation
 
