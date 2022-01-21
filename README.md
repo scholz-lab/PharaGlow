@@ -4,20 +4,20 @@
 
 PharaGlow is a python package for tracking and analyzing *C. elegans* motion and feeding behavior from videos.
  The package can be used to simply track labelled pharynxes
- (or animals from brightfield) as a simple center of mass tracker,
+ (or whole animals from brightfield) as a simple center of mass tracker,
  but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.
 
 ## Installation
 
 1. Install Anaconda
-You need to have Anaconda (https://www.anaconda.com/products/individual), 
-Python >=3.7.
-We recommend using Anaconda to install Python and Git.
+You need to have Anaconda (https://www.anaconda.com/products/individual) and Python >=3.7.
+We recommend using Anaconda to install Python.
+
 
 2. Clone PharaGlow repository from Github in your local directory
  
- * copy the repository link from Github in https://scholz-lab.github.io/PharaGlow/ 
- (in Branch Master > Code > HTTPS OR SSH)
+ * Copy the repository link from Github in https://scholz-lab.github.io/PharaGlow/ 
+ (in Branch Master > Code > HTTPS (OR SSH))
  
  *  In the terminal (Linux)/Anaconda Command Prompt (Windows),
  navigate to the directory where to clone PharaGlow
@@ -27,8 +27,9 @@ We recommend using Anaconda to install Python and Git.
 git clone https://github.com/scholz-lab/PharaGlow.git
 ```
 
-Note that you can also download PharaGlow from our Github repository (Branch Master > Code > Download ZIP)
-to have the current copy of PharaGlow
+Note that you can also download PharaGlow from our Github repository
+ (Branch Master > Code > Download ZIP)
+to have the current copy of PharaGlow.
 
 3. Create and activate the required anaconda environment
 In the terminal (Linux)/Anaconda Command Prompt (Windows),
@@ -122,9 +123,9 @@ def setup(parameterfile, inPath, outPath, movie):
 
 ```python
 parameterfile = r"C:\Users\bonnard\Documents\GitHub\PharaGlow\AnalysisParameters_1x.json"
-inPath = r"C:\Users\bonnard\Documents\DATA\1_rawdata\extern\MS0006"
-outPath = r"C:\Users\bonnard\Documents\DATA\3_1_pharaglow\MS0006"
-movie = "MS0006"
+inPath = r"C:\Users\bonnard\Documents\DATA\1_rawdata\demo_data"
+outPath = r"C:\Users\bonnard\Documents\DATA\3_pharaglow\demo_data"
+movie = "demo_data"
 
 nWorkers = 4
 
@@ -527,32 +528,56 @@ logger.info(f"Whole pharaglow features extracted ({stop - start}s)")
 #### Raw files requirement
 Raw data are tiff files
  typically obtained from simultaneously recording of up to 50 adults worms at 30 frames per second at 1x magnification. Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.
- It comprises three stages on analysis which can be done sequentially and are independent. Analyses can be interrupted at the end of each stage after saving the output dataframe.
- 
+
 #### Parameters file
 PharaGlow requires a json parameter file with the parameters that are editable by you. 
-A default file comes with the repository, you can use it as a starting point (AnalysisParameters_1x.json)
+A default file comes with the repository, you can use it as a starting point (AnalysisParameters_1x.json).
 These parameters are:
 
-
-| **Parameters**  | **Value**  |                                                                                                                      |
-| subtract        | 0          | subtract the background from the movie for detection. Helps particularly with the higher resolution movies (0 or 1)  |
-| smooth          | 3          | should the image be smoothed. This helps to avoid breaking up the pharynx into two parts (integer >=0 in px)         |
-
+| Field | Description |
+|-------|-------------|
+| **subtract** | (0 or 1) Subtract the background from the movie for detection. Helps particularly with the higher resolution movies.|
+| **smooth** | (integer, >= 0, in pixel) Should the image be smoothed. This helps to avoid breaking up the pharynx into two parts.|
+| **dilate** | (integer, >=1) Binary dilation of the image. Can help to connect the worm if its broken up into two pieces.|
+| **tfactor** | (float,[0-1]) Use rarely. If you have disparate sizes the automated threshold doesn't work well. This factor multiplies the threshold value for binarization. Eg. for an 8-bit image, if the threshold is 150 and tfactor is 0.5 the image would be thresholded at 150*0.5=75.|
+| **thresholdWindow** | (in frames) To get a threshold for binarization, use every nth frame of the movie.| 
+| **bgWindow** |(in frames) Calculate a static background on every nth image of the movie. If this is too short, you get a memory error. It can be as large as 500 frames for a full 18000 frame movie.|
+| **length** | (in pixel) This sets the size of the extracted images around the center of the worm. It should be at least as large as the largest expected worm length. |
+| **watershed** | (in pixel) When two or more worms touch, how large is an individual approximately.|
+| **minSize** | (in pixel) Remove all objects smaller than this.|
+| **maxSize** | (in pixel) Remove all objects larger than this (but a caveat here is when we have worm collisions where we allow the resulting segmentation to be a bit bigger). |
+| **searchrange** | (in pixel) Describes how much we expect a worm to move frame-to-frame when we link particles together during tracking. This can be a bit bigger to allow for loosing the worm for a bit, but then you might get large perceived jumps in velocity.|
+| **memory** | (in frames) When we loose a worm for a few frames, how long can gaps be until we call it a 'new' worm.|
+| **minimalDuration** | (in frames) Filters out worm trajectories that are shorter than this.|
+| **widthStraight** | (in pixel) How wide is a worm for the straightened image.|
+| **pad** | (in pixel) crops a boundary around a worm for image analysis. this helps when the mask is a bit too small.|
+| **nPts** | (integer) How many points along the centerline are we measuring. This should relate to the typical length of a worm.|
+| **linewidth** |  |
 
 #### Run PharaGlow on a single data set
-system requirement
+If you want to analyze one data set,
+run the notebook PharaGlowMain (PharaGlow > notebooks > PharaGlowMain.ipynb)
+as shown in the section above #Run PharaGlow on a demo dataset
 
-#### Run PharaGlow in parallel processing
-system requirement
+
+#### Run PharaGlow on multiple data sets
+If you want to analyze multiple data sets,
+you need (in PharaGlow > notebooks) :  
+1. pglow_batch_config.json
+2. runPGlow_HPC.py
+3. PharaGlowHPC.ipynb
+
+
 
 
 ## API
 https://scholz-lab.github.io/PharaGlow/build/html/pharaglow.html
-## Code contributors
+
 ## References
 Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v0.4.2/).
-## License
 
+## License
+scholz-lab/PharaGlow is licensed under the
+GNU General Public License v3.0
 
 
