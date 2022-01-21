@@ -555,9 +555,18 @@ These parameters are:
 | **linewidth** |  |
 
 #### Run PharaGlow on a single data set
+If you want to analyze one data set,
+run the notebook PharaGlowMain (PharaGlow > notebooks > PharaGlowMain.ipynb)
+as shown in the section above #Run PharaGlow on a demo dataset
 
 
-#### Run PharaGlow in parallel processing
+#### Run PharaGlow on multiple data sets
+If you want to analyze multiple data sets,
+you need (in PharaGlow > notebooks) :  
+1. pglow_batch_config.json
+2. runPGlow_HPC.py
+3. PharaGlowHPC.ipynb
+
 
 
 
