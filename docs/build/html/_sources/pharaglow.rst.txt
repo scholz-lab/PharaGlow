@@ -1,8 +1,6 @@
 pharaglow package
 =================
 
-Submodules
-----------
 
 pharaglow.extract module
 ------------------------
@@ -52,10 +50,4 @@ pharaglow.util module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
 
-.. automodule:: pharaglow
-   :members:
-   :undoc-members:
-   :show-inheritance:

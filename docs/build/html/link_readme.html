@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PharaGlow &mdash; PharaGlow  documentation</title>
+  <title>PharaGlow - tracking locomotion and feeding behavior of moving worms &mdash; PharaGlow  documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -39,26 +39,29 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">PharaGlow</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">PharaGlow - tracking locomotion and feeding behavior of moving worms</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pharaglow-parameter-file">Pharaglow parameter file</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#parameters-for-detection">Parameters for detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#parameters-for-tracking">Parameters for tracking</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#parameters-for-pharynx-feature-extraction">Parameters for pharynx feature extraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#run-pharaglow-on-a-demo-dataset">Run PharaGlow on a demo dataset</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#setup">1. Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#object-detection">2. Object detection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#creating-trajectories">3. Creating trajectories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run-the-whole-pharaglow-feature-extraction">3. Run the whole pharaglow feature extraction</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#batch-running-multiple-files-with-the-same-parameters">Batch running multiple files with the same parameters</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#batch-running-multiple-files-with-the-same-parameters-option-1">Batch running multiple files with the same parameters (Option 1)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#batch-running-multiple-files-with-the-same-parameters-option-2">Batch running multiple files with the same parameters (Option 2)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#run-pharaglow-on-your-data">Run PharaGlow on your data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#raw-files-requirement">Raw files requirement</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parameters-file">Parameters file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run-pharaglow-on-a-single-data-set">Run PharaGlow on a single data set</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run-pharaglow-on-multiple-data-sets">Run PharaGlow on multiple data sets</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#running-pharaglow-on-labelled-pharynx-movies">Running pharaglow on labelled pharynx movies</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#tracking-worms-with-pharaglow">Tracking worms with PharaGlow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#running-pharaglow-on-tracked-dataframes">Running pharaglow on tracked dataframes.</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#example-running-pharaglow-only">Example running pharaGlow only</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#license">License</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pharaglow.html">pharaglow package</a></li>
@@ -78,7 +81,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>PharaGlow</li>
+      <li>PharaGlow - tracking locomotion and feeding behavior of moving worms</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/link_readme.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -88,312 +91,590 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="pharaglow">
-<h1>PharaGlow<a class="headerlink" href="#pharaglow" title="Permalink to this headline"></a></h1>
-<p>Package to track and analyze C. elegans pharynx from movies. Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v0.4.2/). The package can be used to simply track labelled pharynxes or as a simple center of mass tracker for brightfield, but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.
-Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.  It comprises three stages on analysis which can be done sequentially and are independent. Analyses can be interrupted at the end of each stage after saving the output dataframe. The package can analyze recording up to 25 worms for 15 minutes at 30 frames per second (1x).</p>
-<p><strong>1. Step -  Basic object detection</strong>
-This step creates a “_features.json” file which contains a table of objects detected in each frame.
-Beyond finding the center of mass of an object, no further image analysis is done here.</p>
-<p><strong>2. Step - Linking objects into trajectories</strong>
-This results in individual files “_trajectory.json” for each tracked animal.</p>
-<p><strong>3. Step - Analyzing the details of object shapes</strong>
-This step is doing the heavy lifting: It extracts centerlines, widths, contours and other object descriptors from the objects</p>
-<p>All subsequent analyses steps add ‘columns’ to the data, and thus features is a subset of trajectories is a subset of results.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="pharaglow-tracking-locomotion-and-feeding-behavior-of-moving-worms">
+<h1>PharaGlow - tracking locomotion and feeding behavior of moving worms<a class="headerlink" href="#pharaglow-tracking-locomotion-and-feeding-behavior-of-moving-worms" title="Permalink to this headline"></a></h1>
+<p><img alt="png" src="examples/pglow_header.png" /></p>
+<p>PharaGlow is a python package for tracking and analyzing <em>C. elegans</em> motion and feeding behavior from videos.
+The package can be used to simply track labelled pharynxes
+(or whole animals from brightfield) as a simple center of mass tracker,
+but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.</p>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h2>
 <ol class="simple">
-<li><p>create an anaconda environment</p></li>
+<li><p>Install Anaconda
+You need to have Anaconda (https://www.anaconda.com/products/individual) and Python &gt;=3.7.
+We recommend using Anaconda to install Python.</p></li>
+<li><p>Clone PharaGlow repository from Github in your local directory</p></li>
+</ol>
+<ul class="simple">
+<li><p>Copy the repository link from Github in https://github.com/scholz-lab/PharaGlow/
+(in Branch Master &gt; Code &gt; HTTPS (OR SSH))</p></li>
+<li><p>In the terminal (Linux)/Anaconda Command Prompt (Windows),
+navigate to the directory where to clone PharaGlow
+and write the git clone command:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">scholz</span><span class="o">-</span><span class="n">lab</span><span class="o">/</span><span class="n">PharaGlow</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>Note that you can also download PharaGlow from our Github repository
+(Branch Master &gt; Code &gt; Download ZIP)
+to have the current copy of PharaGlow.</p>
+<ol class="simple">
+<li><p>Create and activate the required anaconda environment
+In the terminal (Linux)/Anaconda Command Prompt (Windows),
+naviguate to your newly cloned PharaGlow directory
+and run:</p></li>
 </ol>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda env create --file environmentPumping.yml
 </pre></div>
 </div>
-<ol class="simple">
-<li><p>Install pharaglow - clone the repo and navigate into the directory PharaGlow.</p></li>
-</ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>
-<span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span> <span class="o">--</span><span class="n">user</span>
+<p>You can now use this environment by running:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">activate</span> <span class="n">pumping</span>
 </pre></div>
 </div>
 <ol class="simple">
-<li><p>(optional, for developers, replace myenv with the name of the environment, eg. environmentPumping):
-to create a dedicated environment kernel</p></li>
+<li><p>Install PharaGlow</p></li>
+</ol>
+<p>Last step, (don’t forget to activate the pumping environment) run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span> <span class="o">--</span><span class="n">user</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li><p>(<em>optional</em>)
+<em>Create a dedicated environment kernel</em></p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">activate</span> <span class="n">myenv</span>
 <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">ipykernel</span> <span class="n">install</span> <span class="o">--</span><span class="n">user</span> <span class="o">--</span><span class="n">name</span> <span class="n">myenv</span> <span class="o">--</span><span class="n">display</span><span class="o">-</span><span class="n">name</span> <span class="s2">&quot;Python (myenv)&quot;</span>
 </pre></div>
 </div>
-<p>and to remove notebook output before committing</p>
+<p><em>And remove notebook output before committing</em></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">nbstripout</span>
 </pre></div>
 </div>
 </section>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
+<p><strong>1. Step -  Basic object detection</strong>
+This step creates a “_features.json” file
+which contains a table of objects (worms) detected in each frame.
+It creates also a stack of images that contain a cropped area around each worm.</p>
+<p><strong>2. Step - Linking objects into trajectories</strong>
+This step results in individual files “_trajectory.json” and _images.tiff for each tracked animal.</p>
+<p><strong>3. Step - Analyzing the details of object shapes</strong>
+This step is doing the heavy lifting:
+It extracts centerlines, widths, contours and other object descriptors from the objects.
+It results in individual files “_result.json” for each tracked animal.</p>
+<p>All subsequent analyses steps add ‘columns’ to the dataframe,
+and thus features is a subset of trajectories is a subset of results.</p>
+</section>
 <section id="quick-start">
 <h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline"></a></h2>
-<p>Before analyzing your data, check  your installation and familiarize yourself with the code. Obtain a copy of a test dataset with 1000 frames of 1x magnification, showing animals expressing myo-2::mCherry. (Lab Dropbox/Data).</p>
+<section id="run-pharaglow-on-a-demo-dataset">
+<h3>Run PharaGlow on a demo dataset<a class="headerlink" href="#run-pharaglow-on-a-demo-dataset" title="Permalink to this headline"></a></h3>
 <ul class="simple">
-<li><p>Start a jupyter notebook server</p></li>
-<li><p>open the notebook notebooks/RunningPharaGlowMain.ipynb</p></li>
-<li><p>alter the paths in the cell labeled ‘input parameters’ to point to the data and the output locations, as well as the AnalysisParameter file (see below)</p></li>
-<li><p>run the notebook. The first few cells are pretty fast, but feature detection can take tens of minutes (depends on your computer and nWorkers. It takes 3 minutes on an Intel I9, 5 workers)
-The output of masks looks like this for frame 10 using the default AnalysisParameters.
-<img alt="png" src="examples/MS0006_frame10_mask.png" />
-The resulting trajectories look like this before filtering by a minimal duration:
-<img alt="png" src="examples/MS0006_trajectories.png" /></p></li>
+<li><p>We provide a demo data set with 1000 frames of 1x magnification (30 fps, 2.34 um per pixel) showing <em>C. elegans</em> expressing <em>myo-2::mCherry</em>.
+https://osf.io/fy4ed/. You can also find the expected outputs in the data repository at OSF.</p></li>
+<li><p>Before analyzing your data, we recommend to check your installation and familiarize yourself with the code by running the jupyter notebook
+“testing/PharaGlowMain_testdata.ipynb” on this dataset using the provided parameter file “AnalysisParameters_1x.json”</p></li>
 </ul>
-</section>
-<section id="pharaglow-parameter-file">
-<h2>Pharaglow parameter file<a class="headerlink" href="#pharaglow-parameter-file" title="Permalink to this headline"></a></h2>
-<p>Pharaglow uses a json parameter file to expose parameters that are allowed to be changed by you. A default file comes with the repository, you can use it as a starting point (AnalysisParameters_1x)
-These parameters are:
-{
-“subtract”:0,
-“smooth”: 3,
-“thresholdWindow”: 100,
-“bgWindow”: 100,
-“dilate”: 1,
-“tfactor”:0.8,
-“length”:100,
-“searchRange”: 20,
-“minimalDuration”: 900,
-“memory”: 30,
-“minSize”:750,
-“maxSize”:1500,
-“watershed”: 70,
-“widthStraight”:10,
-“pad”:5,
-“nPts”:100,
-“linewidth”:2
-}</p>
-<section id="parameters-for-detection">
-<h3>Parameters for detection<a class="headerlink" href="#parameters-for-detection" title="Permalink to this headline"></a></h3>
-<ul class="simple">
-<li><p>bgWindow (frames) - calculate a static background on every nth image of the movie. If this is too short, you get a memory error. It can be as large as 500 frames for a full 18000 frame movie.</p></li>
-<li><p>subtract (0 or 1) - subtract the background from the movie for detection. Helps particularly with the higher resolution movies.</p></li>
-<li><p>thresholdWindow (frames) - to get a threshold for binarization, use every nth frame of the movie.</p></li>
-<li><p>smooth (integer 0 - inf px) - should the image be smoothed. This helps to avoid breaking up the pharynx into two parts.</p></li>
-<li><p>dilate (integer, &gt;=1) - binary dilation of the image. Can help to connect the worm if its broken up into two pieces.</p></li>
-<li><p>minSize (px) - remove all objects smaller than this</p></li>
-<li><p>maxSize (px) - remove all objects larger than this (but a caveat here is when we have worm collisions where we allow the resulting segmentation to be a bit bigger)</p></li>
-<li><p>watershed (px) - when two or more worms touch, how large is an individual approximately</p></li>
-<li><p>tfactor (float, positive, smaller than 1) - use rarely. If you have disparate sizes the automated threshold doesn’t work well. This factor multiplies the threshold value for binarization. Eg. for an 8-bit image, if the threshold is 150 and tfactor is 0.5 the image would be thresholded at 150*0.5=75.</p></li>
-<li><p>length (px) - this sets the size of the extracted images around the center of the worm. It should be at least as large as the largest expected worm length</p></li>
-</ul>
-</section>
-<section id="parameters-for-tracking">
-<h3>Parameters for tracking<a class="headerlink" href="#parameters-for-tracking" title="Permalink to this headline"></a></h3>
-<ul class="simple">
-<li><p>searchrange (px) describes how much we expect a worm to move frame-to-frame when we link particles together during tracking. This can be a bit bigger to allow for loosing the worm for a bit, but then you might get large perceived jumps in velocity.</p></li>
-<li><p>memory (frames) - when we loose a worm for a few frames, how long can gaps be until we call it a ‘new’ worm</p></li>
-<li><p>minimalDuration (frames)- filters out worm trajectories that are shorter than this.</p></li>
-</ul>
-</section>
-<section id="parameters-for-pharynx-feature-extraction">
-<h3>Parameters for pharynx feature extraction<a class="headerlink" href="#parameters-for-pharynx-feature-extraction" title="Permalink to this headline"></a></h3>
-<ul class="simple">
-<li><p>widthStraight - how wide is a worm for the straightened image</p></li>
-<li><p>pad - crops a boundary around a worm for image analysis. this helps when the mask is a bit too small.</p></li>
-<li><p>nPts - how many points along the centerline are we measuring. This should relate to the typical length of a worm</p></li>
-</ul>
-</section>
-</section>
-<section id="batch-running-multiple-files-with-the-same-parameters">
-<h2>Batch running multiple files with the same parameters<a class="headerlink" href="#batch-running-multiple-files-with-the-same-parameters" title="Permalink to this headline"></a></h2>
-<p>(Based on the module papermill for running jupyter notebooks with many parameters).</p>
-<ul class="simple">
-<li><p>Edit the notebooks/runBatch,py to the appropriate locations and parameter files. It will analyze a dataFolder where multiple folders of tifffiles are located. eg.
-a dataFolder containing 3 movies in subfolder1, subfolder2, subfolder3</p></li>
-<li><p>The code that will be run is called notebooks/BatchRunTemplate.ipynb. This is functionally  the same as the code in notebook/RunningPharaglowParallel.ipynb</p></li>
-</ul>
-<section id="batch-running-multiple-files-with-the-same-parameters-option-1">
-<h3>Batch running multiple files with the same parameters (Option 1)<a class="headerlink" href="#batch-running-multiple-files-with-the-same-parameters-option-1" title="Permalink to this headline"></a></h3>
-<ul class="simple">
-<li><p>run the batch processing in the commandline like this:</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python runBatchParallel.py
+<p>This notebook runs the pharaglow image analysis pipeline. It comprises three stages on analysis which can be done sequentially and are independent. Analyses can be interrupted at the end of each stage after saving the output dataframe.</p>
+<p><strong>1. Step -  Basic object detection</strong>
+This step creates a “_features.json” file which contains a table of objects detected in each frame.
+Beyond finding the center of mass of an object, no further image analysis is done here.</p>
+<p><strong>2. Step - Linking objects into trajectories</strong>
+This results in individual files “_trajectory.json” for each tracked animal.</p>
+<p><strong>3. Step - Analysing the details of object shapes</strong>
+This step is doing the heavy lifting: It extracts centerlines, widths, contours and other object descriptors from the objects</p>
+<p>All subsequent analyses steps add ‘columns’ to the data, and thus features is a subset of trajectories is a subset of results.</p>
+<section id="setup">
+<h4>1. Setup<a class="headerlink" href="#setup" title="Permalink to this headline"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">parameterfile</span><span class="p">,</span> <span class="n">inPath</span><span class="p">,</span> <span class="n">outPath</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;helper function to simplify the setting up before analysis. Handles path checking and creating, parameter reads ad data reads.&quot;&quot;&quot;</span>
+    <span class="o">...</span> <span class="c1"># see the notebooks directory for more information</span>
+    <span class="k">return</span> <span class="n">logger</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">rawframes</span><span class="p">,</span> <span class="n">lawn</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">imfile</span>
 </pre></div>
 </div>
-<ul class="simple">
-<li><p>For each subfolder a notebook file with the plots will be generated! This makes it easy to check if tracking was successful.</p></li>
-<li><p>This script runs multiple notebooks in parallel. This works better in windows OS than parallelization within the notebook (Option 2)</p></li>
-</ul>
-</section>
-<section id="batch-running-multiple-files-with-the-same-parameters-option-2">
-<h3>Batch running multiple files with the same parameters (Option 2)<a class="headerlink" href="#batch-running-multiple-files-with-the-same-parameters-option-2" title="Permalink to this headline"></a></h3>
-<ul class="simple">
-<li><p>run the batch processing in the commandline like this:</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python runBatch.py
+<section id="input-parameters">
+<h5>Input parameters<a class="headerlink" href="#input-parameters" title="Permalink to this headline"></a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">parameterfile</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;C:\Users\bonnard\Documents\GitHub\PharaGlow\AnalysisParameters_1x.json&quot;</span>
+<span class="n">inPath</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;C:\Users\bonnard\Documents\DATA\1_rawdata\demo_data&quot;</span>
+<span class="n">outPath</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;C:\Users\bonnard\Documents\DATA\3_pharaglow\demo_data&quot;</span>
+<span class="n">movie</span> <span class="o">=</span> <span class="s2">&quot;demo_data&quot;</span>
+
+<span class="n">nWorkers</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="n">depth</span> <span class="o">=</span> <span class="s1">&#39;uint8&#39;</span>
+<span class="n">save_minimal</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="n">lawnPath</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#&quot;/opt/data/Lawns/&quot;</span>
+
+<span class="n">logger</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">rawframes</span><span class="p">,</span> <span class="n">lawn</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">imfile</span> <span class="o">=</span> <span class="n">setup</span><span class="p">(</span><span class="n">parameterfile</span><span class="p">,</span> <span class="n">inPath</span><span class="p">,</span> <span class="n">outPath</span><span class="p">,</span> <span class="n">movie</span><span class="p">)</span>
 </pre></div>
 </div>
-<ul class="simple">
-<li><p>Here you use multiple workers (nWorkers variable) to use parallelization within each notebook. Only one notebook is run at a time.</p></li>
-<li><p>You should see a progress bar that indicates where the script is in processing the template jupyter notebook.</p></li>
-</ul>
 </section>
 </section>
-<section id="running-pharaglow-on-labelled-pharynx-movies">
-<h2>Running pharaglow on labelled pharynx movies<a class="headerlink" href="#running-pharaglow-on-labelled-pharynx-movies" title="Permalink to this headline"></a></h2>
-<section id="tracking-worms-with-pharaglow">
-<h3>Tracking worms with PharaGlow<a class="headerlink" href="#tracking-worms-with-pharaglow" title="Permalink to this headline"></a></h3>
-<p>This code generates a pandas dataframe that contains the particles that were tracked.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">pims</span>
-<span class="c1"># image io and analysis</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">label</span>
-<span class="c1"># plotting</span>
-<span class="kn">import</span> <span class="nn">matplotlib</span>  <span class="k">as</span> <span class="nn">mpl</span> 
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span> 
+<section id="object-detection">
+<h4>2. Object detection<a class="headerlink" href="#object-detection" title="Permalink to this headline"></a></h4>
+<section id="create-binary-masks">
+<h5>Create binary masks<a class="headerlink" href="#create-binary-masks" title="Permalink to this headline"></a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
 
-<span class="c1">#our packages</span>
-<span class="kn">from</span> <span class="nn">pharaglow</span> <span class="kn">import</span> <span class="n">tracking</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">features</span>
-
-<span class="c1"># io</span>
-<span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;pathToData/NZ_0007_croppedsample.tif&quot;</span>
-<span class="n">parameterfile</span> <span class="o">=</span> <span class="s2">&quot;PathToFile/pharaglow_parameters.txt&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Starting pharaglow analysis...&#39;</span><span class="p">)</span>
-<span class="n">rawframes</span> <span class="o">=</span> <span class="n">pims</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Analyzing&#39;</span><span class="p">,</span> <span class="n">rawframes</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loading parameters from </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">parameterfile</span><span class="p">))</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">parameterfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">param</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 <span class="c1"># detecting objects</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Binarizing images&#39;</span><span class="p">)</span>
-<span class="n">masks</span> <span class="o">=</span> <span class="n">tracking</span><span class="o">.</span><span class="n">calculateMask</span><span class="p">(</span><span class="n">rawframes</span><span class="p">,</span> <span class="n">minSize</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;minSize&#39;</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Detecting features&#39;</span><span class="p">)</span>
-<span class="n">features</span> <span class="o">=</span> <span class="n">tracking</span><span class="o">.</span><span class="n">runfeatureDetection</span><span class="p">(</span><span class="n">rawframes</span><span class="p">,</span> <span class="n">masks</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><img alt="png" src="examples/trajectories.png" /></p>
-</section>
-<section id="running-pharaglow-on-tracked-dataframes">
-<h3>Running pharaglow on tracked dataframes.<a class="headerlink" href="#running-pharaglow-on-tracked-dataframes" title="Permalink to this headline"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Linking trajectories&#39;</span><span class="p">)</span>
-<span class="n">trajectories</span> <span class="o">=</span> <span class="n">tracking</span><span class="o">.</span><span class="n">linkParticles</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;searchRange&#39;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;minimalDuration&#39;</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Extracting pharynx data&#39;</span><span class="p">)</span>
-<span class="n">trajectories</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">runPharaglowOnStack</span><span class="p">(</span><span class="n">trajectories</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done tracking. Successfully tracked </span><span class="si">{}</span><span class="s1"> frames with </span><span class="si">{}</span><span class="s1"> trajectories.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rawframes</span><span class="p">),</span> <span class="n">trajectories</span><span class="p">[</span><span class="s1">&#39;particle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()))</span>
-</pre></div>
-</div>
-<p>An example kymograph after running both tracking and pharynx analysis
-<img alt="png" src="examples/kymographs.png" /></p>
-</section>
-</section>
-<section id="example-running-pharaglow-only">
-<h2>Example running pharaGlow only<a class="headerlink" href="#example-running-pharaglow-only" title="Permalink to this headline"></a></h2>
-<p>This would be useful when working with single-worm cropped data where tracking isn’t neccessary.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pylab</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">skimage.io</span> <span class="kn">import</span> <span class="n">imread</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Binarizing images...&#39;</span><span class="p">)</span>
 
-<span class="kn">import</span> <span class="nn">pharaglow.features</span> <span class="k">as</span> <span class="nn">pg</span>
-</pre></div>
-</div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># load data</span>
-<span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;/media/scholz_la/hd2/Data/PumpTest/mCherry3-1_pumping.tif&#39;</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">imread</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">as_gray</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plugin</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">60</span><span class="p">:</span><span class="mi">150</span><span class="p">,</span> <span class="mi">90</span><span class="p">:]</span>
-</pre></div>
-</div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># preprocessing image</span>
-<span class="n">im</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">150</span><span class="p">]</span>
-<span class="n">mask</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">thresholdPharynx</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
-<span class="n">skel</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">skeletonPharynx</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
-<span class="n">order</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">sortSkeleton</span><span class="p">(</span><span class="n">skel</span><span class="p">)</span>
-<span class="n">ptsX</span><span class="p">,</span> <span class="n">ptsY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">skel</span><span class="p">)</span>
-<span class="n">ptsX</span><span class="p">,</span> <span class="n">ptsY</span> <span class="o">=</span> <span class="n">ptsX</span><span class="p">[</span><span class="n">order</span><span class="p">],</span> <span class="n">ptsY</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">221</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">gray</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">222</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">skel</span><span class="p">,</span>  <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">223</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">224</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">ptsY</span><span class="p">,</span> <span class="n">ptsX</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">5</span><span class="p">);</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">hspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=-</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-<p><img alt="png" src="examples/output_3_0.png" /></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># getting centerline and width</span>
-<span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">fitSkeleton</span><span class="p">(</span><span class="n">ptsX</span><span class="p">,</span> <span class="n">ptsY</span><span class="p">)</span>
-<span class="n">contour</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">morphologicalPharynxContour</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">smoothing</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">cropcenterline</span><span class="p">(</span><span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">contour</span><span class="p">,</span> <span class="n">nP</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ptsX</span><span class="p">))</span>
-<span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
-<span class="n">cl</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">centerline</span><span class="p">(</span><span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">xs</span><span class="p">)</span>
-<span class="n">dCl</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">normalVecCl</span><span class="p">(</span><span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">xs</span><span class="p">)</span>
-<span class="n">widths</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">widthPharynx</span><span class="p">(</span><span class="n">cl</span><span class="p">,</span> <span class="n">contour</span><span class="p">,</span> <span class="n">dCl</span><span class="p">)</span>
-<span class="n">lw</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">wL</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">cl</span><span class="o">+</span><span class="n">lw</span><span class="o">*</span><span class="n">dCl</span><span class="p">,</span> <span class="n">cl</span><span class="o">-</span><span class="n">lw</span><span class="o">*</span><span class="n">dCl</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="mi">255</span><span class="o">-</span><span class="n">im</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="s1">&#39;gray&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cl</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">cl</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;r:&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">contour</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">contour</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-<span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wL</span><span class="p">[</span><span class="n">i</span><span class="p">,:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">wL</span><span class="p">[</span><span class="n">i</span><span class="p">,:,</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)];</span>
+<span class="n">masks</span> <span class="o">=</span> <span class="n">tracking</span><span class="o">.</span><span class="n">calculateMask</span><span class="p">(</span><span class="n">rawframes</span><span class="p">,</span>
+                               <span class="n">minSize</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;minSize&#39;</span><span class="p">],</span>
+                               <span class="n">bgWindow</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;bgWindow&#39;</span><span class="p">],</span>
+                               <span class="n">thresholdWindow</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;thresholdWindow&#39;</span><span class="p">],</span>
+                               <span class="n">smooth</span> <span class="o">=</span>  <span class="n">param</span><span class="p">[</span><span class="s1">&#39;smooth&#39;</span><span class="p">],</span>
+                               <span class="n">subtract</span> <span class="o">=</span>  <span class="n">param</span><span class="p">[</span><span class="s1">&#39;subtract&#39;</span><span class="p">],</span>
+                               <span class="n">dilate</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;dilate&#39;</span><span class="p">],</span>
+                               <span class="n">tfactor</span><span class="o">=</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;tfactor&#39;</span><span class="p">])</span>
 
-<span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">widths</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">widths</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cl</span><span class="p">))];</span>
-</pre></div>
-</div>
-<p><img alt="png" src="examples/output_5_0.png" /></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">kymo</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">intensityAlongCenterline</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="n">linewidth</span> <span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">kymoWeighted</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">intensityAlongCenterline</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">scalarWidth</span><span class="p">(</span><span class="n">widths</span><span class="p">))</span>
 
+<span class="n">stop</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;binary masks created (</span><span class="si">{</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="s2">s)&quot;</span><span class="p">)</span>  
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># show different linescans - this helps to identify front and back of pharynx</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kymo</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;simple kymograph&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kymoWeighted</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;width-weighted kymograph&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>INFO:PharaGlow:Binarizing images...
+INFO:PharaGlow:binary masks created (2.287s)
 </pre></div>
 </div>
-<p><img alt="png" src="examples/output_7_0.png" /></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#local derivative, can enhance contrast</span>
-<span class="n">grad</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">gradientPharynx</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
-<span class="c1"># straightened image</span>
-<span class="n">straightIm</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">straightenPharynx</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">,</span> <span class="n">poptX</span><span class="p">,</span> <span class="n">poptY</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">pg</span><span class="o">.</span><span class="n">scalarWidth</span><span class="p">(</span><span class="n">widths</span><span class="p">))</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+</section>
+<section id="make-sure-the-thresholding-worked-otherwise-change-parameters">
+<h5>Make sure the thresholding worked otherwise change parameters<a class="headerlink" href="#make-sure-the-thresholding-worked-otherwise-change-parameters" title="Permalink to this headline"></a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Select a rawframe to visualize</span>
+<span class="n">t</span> <span class="o">=</span> <span class="mi">400</span> 
+
+<span class="k">if</span> <span class="n">t</span><span class="o">&gt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rawframes</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="c1"># Check if the selected rawframe is present otherwise t=0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning ! Max </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">rawframes</span><span class="p">)</span><span class="si">}</span><span class="s2"> rawframes. </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> changed to 0&quot;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">=</span><span class="mi">0</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rawframe </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> to visualize &quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">nipy_spectral</span><span class="p">)</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>rawframe 400 to visualize 
+</pre></div>
+</div>
+<section id="visualize-the-raw-data">
+<h6>Visualize the raw data<a class="headerlink" href="#visualize-the-raw-data" title="Permalink to this headline"></a></h6>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+<span class="c1"># Plot the histogram of the pixel intensity values of the rawframe</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">rawframes</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">260</span><span class="p">)</span> <span class="c1"># xlim for 8 bits image</span>
+
 <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">straightIm</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.image.AxesImage at 0x7f19f1d232e8&gt;
-</pre></div>
-</div>
-<p><img alt="png" src="examples/output_9_1.png" /></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># local gradient enhances anatomical features</span>
-<span class="n">kymo</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">intensityAlongCenterline</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="n">linewidth</span> <span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-<span class="n">kymoWeighted</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">intensityAlongCenterline</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">scalarWidth</span><span class="p">(</span><span class="n">widths</span><span class="p">))</span>
+<span class="c1"># Adjust the color limit for the rawframe for vizualisation only</span>
+<span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">170</span><span class="p">)</span> <span class="c1">#  0&lt;=color&lt;=255 for 8 bits image</span>
+<span class="c1"># color = None </span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">rawframes</span><span class="p">[</span><span class="n">t</span><span class="p">],</span><span class="n">clim</span> <span class="o">=</span> <span class="n">color</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">);</span>
 
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outPath</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">movie</span><span class="si">}</span><span class="s1">_frame</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s1">_px_hist.pdf&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># show different linescans - this helps to identify front and back of pharynx</span>
-<span class="c1"># notice rge drop for the grinder!</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kymo</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;simple kymograph&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kymoWeighted</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;width-weighted kymograph&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span>
+<p><img alt="png" src="examples/output_14_0.png" /></p>
+</section>
+<section id="show-the-mask-and-detected-objects">
+<h6>Show the mask and detected objects<a class="headerlink" href="#show-the-mask-and-detected-objects" title="Permalink to this headline"></a></h6>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># %matplotlib qt</span>
+
+<span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">label</span><span class="p">,</span> <span class="n">regionprops</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+<span class="c1"># Show the rawframe</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">rawframes</span><span class="p">[</span><span class="n">t</span><span class="p">],</span><span class="n">clim</span><span class="o">=</span> <span class="n">color</span><span class="p">)</span><span class="c1">#+lawn)</span>
+<span class="k">if</span> <span class="n">lawn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="c1"># Show the lawn</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">binLawn</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;pink&#39;</span><span class="p">)</span>
+    
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+<span class="c1"># Show the masks and their size [px]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">masks</span><span class="p">[</span><span class="n">t</span><span class="p">])</span><span class="c1">#[:600,1000:])#[500:1500,2000:3500])#[:,2500:])</span>
+<span class="c1"># print(np.min(masks[t]))</span>
+<span class="n">label_image</span><span class="p">,</span> <span class="n">num</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">masks</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">background</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">connectivity</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="n">return_num</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">num</span><span class="si">}</span><span class="s2"> detected objects&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">regionprops</span><span class="p">(</span><span class="n">label_image</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">region</span><span class="o">.</span><span class="n">centroid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">50</span><span class="p">,</span> <span class="n">region</span><span class="o">.</span><span class="n">centroid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">region</span><span class="o">.</span><span class="n">area</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+    
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+<span class="c1"># save the pdf</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rawframe and masks (#</span><span class="si">{</span><span class="n">num</span><span class="si">}</span><span class="s2">) rawframe </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">movie</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outPath</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">movie</span><span class="si">}</span><span class="s1">_frame</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s1">_masks.pdf&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
-<p><img alt="png" src="examples/output_11_0.png" /></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>5 detected objects
 </pre></div>
 </div>
+<p><img alt="png" src="examples/output_16_1.png" /></p>
+</section>
+</section>
+<section id="detecting-individual-objects-and-tracking-or-use-multiprocessing-to-speed-up-feature-detection">
+<h5>Detecting individual objects and tracking or use multiprocessing to speed up feature detection<a class="headerlink" href="#detecting-individual-objects-and-tracking-or-use-multiprocessing-to-speed-up-feature-detection" title="Permalink to this headline"></a></h5>
+<p>This section will go through all frames and find worm-sized (as specified by the parameters) objects. It creates a pd.Dataframe containing these and a stack of images (numpy array) that contain a cropped area around each worm. Note: Each worm image will be length x length x 8bit. So with 30 worms per image you expect the image array to be 6Gb/10 minutes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Detecting features...&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;...with </span><span class="si">{</span><span class="n">nWorkers</span><span class="si">}</span><span class="s1"> workers&#39;</span><span class="p">)</span>
+<span class="n">objects</span><span class="p">,</span> <span class="n">images</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">parallel_analysis</span><span class="p">((</span><span class="n">masks</span><span class="p">,</span> <span class="n">rawframes</span><span class="p">),</span> <span class="n">param</span><span class="p">,</span> <span class="n">tracking</span><span class="o">.</span><span class="n">parallelWorker</span><span class="p">,</span> <span class="n">framenumbers</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">nWorkers</span> <span class="o">=</span> <span class="n">nWorkers</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span><span class="p">)</span>
+<span class="c1"># create a link between image and dataframe</span>
+<span class="n">objects</span><span class="p">[</span><span class="s1">&#39;im_idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">))</span>
+<span class="n">stop</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;features detected (</span><span class="si">{</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="s2">s)&quot;</span><span class="p">)</span> 
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>INFO:PharaGlow:Detecting features...
+INFO:PharaGlow:...with 4 workers
+
+
+Analyzing image 0 of 999
+Analyzing image 100 of 999
+Analyzing image 200 of 999
+Analyzing image 300 of 999
+Analyzing image 400 of 999
+Analyzing image 500 of 999
+Analyzing image 600 of 999
+Analyzing image 700 of 999
+Analyzing image 800 of 999
+Analyzing image 900 of 999
+
+
+INFO:PharaGlow:features detected (319.0189164s)
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Files monitoring</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Number of frames in features:</span><span class="si">{</span><span class="n">objects</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                                       
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rawframes</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Number of frames in features (</span><span class="si">{</span><span class="n">objects</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s2">) and the number of rawframes (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">rawframes</span><span class="p">)</span><span class="si">}</span><span class="s2">) don&#39;t match !&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>INFO:PharaGlow: Number of frames in features:999
+</pre></div>
+</div>
+</section>
+<section id="visualize-results-of-object-detection">
+<h5>Visualize results of object detection<a class="headerlink" href="#visualize-results-of-object-detection" title="Permalink to this headline"></a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">### Show the area of all objects</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+<span class="n">objects</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">bins</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Area (px)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+<span class="n">objects</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Number of objects&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Frame&#39;</span><span class="p">)</span>
+
+<span class="c1"># save the pdf</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">movie</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outPath</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">movie</span><span class="si">}</span><span class="s1">_objects_.pdf&#39;</span><span class="p">))</span>
+
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;features.area.min():</span><span class="si">{</span><span class="n">objects</span><span class="o">.</span><span class="n">area</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># region.area &gt; params[&#39;minSize&#39;]</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;features.area.max():</span><span class="si">{</span><span class="n">objects</span><span class="o">.</span><span class="n">area</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># region.area &lt; params[&#39;maxSize&#39;]</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>INFO:PharaGlow:features.area.min():458
+INFO:PharaGlow:features.area.max():1197
+</pre></div>
+</div>
+<p><img alt="png" src="examples/output_21_1.png" /></p>
+</section>
+<section id="save-features-and-images">
+<h5>Save features and images<a class="headerlink" href="#save-features-and-images" title="Permalink to this headline"></a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+<span class="c1"># saving features</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saving features...&quot;</span><span class="p">)</span>
+<span class="n">objects</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">memory_usage</span><span class="o">=</span><span class="s1">&#39;deep&#39;</span><span class="p">)</span>
+<span class="n">objects</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">outfile</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;features&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">),</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+<span class="n">stop</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;features saved as </span><span class="si">{</span><span class="n">outfile</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;features&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="s2">s)&quot;</span><span class="p">)</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+<span class="c1"># saving images</span>
+<span class="n">imsave</span><span class="p">(</span><span class="n">imfile</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">),</span> <span class="n">images</span><span class="p">)</span>
+<span class="n">stop</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;images saved as </span><span class="si">{</span><span class="n">imfile</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="s2">s)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This step results in a features file which contains center-of-mass tracking information, and an images files which are cropped regions of interest around a worm.</p>
+<section id="optional-load-features-and-images-if-continuing-prior-analysis">
+<h6>(Optional) Load features and images if continuing prior analysis<a class="headerlink" href="#optional-load-features-and-images-if-continuing-prior-analysis" title="Permalink to this headline"></a></h6>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="n">time</span>
+<span class="c1"># leaving this here for re-analysis</span>
+<span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+    <span class="c1"># Load feature</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading features...&quot;</span><span class="p">)</span>
+    <span class="n">objects</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">outfile</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;features&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">),</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="n">pims</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">imfile</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">))</span>
+    <span class="n">stop</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;features loaded (</span><span class="si">{</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="s2">s)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Wall time: 0 ns
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="creating-trajectories">
+<h4>3. Creating trajectories<a class="headerlink" href="#creating-trajectories" title="Permalink to this headline"></a></h4>
+<section id="link-objects-to-trajectories-using-trackpy-and-interpolate-short-misses">
+<h5>Link objects to trajectories using trackpy and interpolate short misses<a class="headerlink" href="#link-objects-to-trajectories-using-trackpy-and-interpolate-short-misses" title="Permalink to this headline"></a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Linking trajectories...&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter searchRange: </span><span class="si">{</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;searchRange&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> px&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter memory: </span><span class="si">{</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;memory&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> frames&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>INFO:PharaGlow:Linking trajectories...
+INFO:PharaGlow:Parameter searchRange: 10 px
+INFO:PharaGlow:Parameter memory: 30 frames
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">trajectories</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">link_df</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;searchRange&#39;</span><span class="p">],</span> <span class="n">memory</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;memory&#39;</span><span class="p">])</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of trajectories after linking: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">trajectories</span><span class="p">[</span><span class="s1">&#39;particle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>INFO:PharaGlow:Number of trajectories after linking: 8
+</pre></div>
+</div>
+</section>
+<section id="show-the-trajectories">
+<h5>Show the trajectories<a class="headerlink" href="#show-the-trajectories" title="Permalink to this headline"></a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="n">tp</span><span class="o">.</span><span class="n">plot_traj</span><span class="p">(</span><span class="n">trajectories</span><span class="p">,</span> <span class="n">colorby</span> <span class="o">=</span> <span class="s1">&#39;particle&#39;</span><span class="p">,</span> <span class="n">superimpose</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="n">masks</span><span class="p">[</span><span class="n">t</span><span class="p">],</span><span class="n">label</span><span class="o">=</span><span class="kc">False</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><img alt="png" src="examples/output_32_0.png" /></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Filtering out trajectories which last less than the minimal duration (</span><span class="si">{</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;minimalDuration&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> frames)...&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Nb of trajectories before filtering: </span><span class="si">{</span><span class="n">trajectories</span><span class="p">[</span><span class="s1">&#39;particle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">trajectories</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">filter_stubs</span><span class="p">(</span><span class="n">trajectories</span><span class="p">,</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;minimalDuration&#39;</span><span class="p">])</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Nb of trajectories after filtering: </span><span class="si">{</span><span class="n">trajectories</span><span class="p">[</span><span class="s1">&#39;particle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>INFO:PharaGlow:Filtering out trajectories which last less than the minimal duration (600 frames)...
+INFO:PharaGlow:Nb of trajectories before filtering: 8
+INFO:PharaGlow:Nb of trajectories after filtering: 5
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">plot_traj</span><span class="p">(</span><span class="n">trajectories</span><span class="p">,</span> <span class="n">colorby</span> <span class="o">=</span> <span class="s1">&#39;particle&#39;</span><span class="p">,</span> <span class="n">superimpose</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="n">masks</span><span class="p">[</span><span class="n">t</span><span class="p">],</span><span class="n">label</span><span class="o">=</span><span class="kc">False</span><span class="p">);</span>
+<span class="c1"># save the pdf</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">movie</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outPath</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">movie</span><span class="si">}</span><span class="s1">_trajectories_filtered.pdf&#39;</span><span class="p">))</span>
+
+<span class="c1"># with labels</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">plot_traj</span><span class="p">(</span><span class="n">trajectories</span><span class="p">,</span> <span class="n">colorby</span> <span class="o">=</span> <span class="s1">&#39;particle&#39;</span><span class="p">,</span> <span class="n">superimpose</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="n">masks</span><span class="p">[</span><span class="n">t</span><span class="p">],</span><span class="n">label</span><span class="o">=</span><span class="kc">True</span><span class="p">);</span>
+<span class="c1"># save the pdf</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">movie</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outPath</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">movie</span><span class="si">}</span><span class="s1">_trajectories_filtered_labelled.pdf&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><img alt="png" src="examples/output_34_0.png" /></p>
+<p><img alt="png" src="examples/output_34_1.png" /></p>
+</section>
+<section id="save-individual-trajectories-add-the-missing-images-to-interpolated-trajectories">
+<h5>Save individual trajectories &amp; add the missing images to interpolated trajectories<a class="headerlink" href="#save-individual-trajectories-add-the-missing-images-to-interpolated-trajectories" title="Permalink to this headline"></a></h5>
+<p>Here we do multiple things: Add missing rows to the trajectory, create a separate image stack for each animal and save the trajectories.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving </span><span class="si">{</span><span class="n">trajectories</span><span class="p">[</span><span class="s1">&#39;particle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s2"> trajectories to separate files...&quot;</span><span class="p">)</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">particle_index</span> <span class="ow">in</span> <span class="n">trajectories</span><span class="p">[</span><span class="s1">&#39;particle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">trajectories</span><span class="p">[</span><span class="n">trajectories</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="s1">&#39;particle&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">particle_index</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">ims</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;im_idx&#39;</span><span class="p">]]</span>
+    <span class="n">ims</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ims</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;uint8&#39;</span><span class="p">)</span>
+    <span class="c1"># generate an interpolated trajectory where all frames are accounted for</span>
+    <span class="n">traj_interp</span><span class="p">,</span> <span class="n">ims_interp</span> <span class="o">=</span> <span class="n">tracking</span><span class="o">.</span><span class="n">interpolate_helper</span><span class="p">(</span><span class="n">rawframes</span><span class="p">,</span> <span class="n">ims</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+    <span class="c1"># save the new single worm movie</span>
+    <span class="n">imsave</span><span class="p">(</span><span class="n">imfile</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="n">particle_index</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ims_interp</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;uint8&#39;</span><span class="p">))</span>
+    <span class="c1"># save the trajectory</span>
+    <span class="n">traj_interp</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">outfile</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;trajectories&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">particle_index</span><span class="p">)),</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+    
+<span class="n">stop</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;trajectories saved as json files (</span><span class="si">{</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="s2">s)&quot;</span><span class="p">)</span> 
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>INFO:PharaGlow:Saving 5 trajectories to separate files...
+INFO:PharaGlow:trajectories saved as json files (0.692s)
+</pre></div>
+</div>
+</section>
+</section>
+<section id="run-the-whole-pharaglow-feature-extraction">
+<h4>3. Run the whole pharaglow feature extraction<a class="headerlink" href="#run-the-whole-pharaglow-feature-extraction" title="Permalink to this headline"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+<span class="c1"># save only minimal outputs - reduces save by approx factor 3</span>
+
+<span class="c1"># analyze all trajectories</span>
+<span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">outPath</span><span class="p">):</span>
+    <span class="n">file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outPath</span><span class="p">,</span><span class="n">fn</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="ow">and</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">movie</span><span class="si">}</span><span class="s1">_trajectories_&#39;</span> <span class="ow">in</span> <span class="n">fn</span> <span class="ow">and</span> <span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.json&#39;</span><span class="p">):</span>
+        <span class="n">particle_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">traj</span> <span class="o">=</span>  <span class="n">io</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+        <span class="c1"># load images</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="n">pims</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">imfile</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="n">particle_index</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Skipped&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Analyzing trajectory:</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span>
+        
+        <span class="n">tmp</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">parallel_analysis</span><span class="p">((</span><span class="n">images</span><span class="p">,),</span> <span class="n">param</span><span class="p">,</span>\
+                          <span class="n">parallelWorker</span><span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">parallel_pharaglow_run</span><span class="p">,</span> <span class="n">framenumbers</span> <span class="o">=</span> <span class="n">traj</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">],</span> <span class="n">nWorkers</span> <span class="o">=</span> <span class="n">nWorkers</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># add basic image properties</span>
+        <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;Imax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;Imean&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;Imedian&#39;</span><span class="p">]</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;Istd&#39;</span><span class="p">]</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;Area2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;Mask&#39;</span><span class="p">]]</span>
+        <span class="c1"># remove some columns to make the result smaller</span>
+        <span class="k">if</span> <span class="n">save_minimal</span><span class="p">:</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;Mask&#39;</span><span class="p">,</span> <span class="s1">&#39;SkeletonX&#39;</span><span class="p">,</span> <span class="s1">&#39;SkeletonY&#39;</span><span class="p">,</span> <span class="s1">&#39;ParX&#39;</span><span class="p">,</span> <span class="s1">&#39;ParY&#39;</span><span class="p">,</span> 
+                            <span class="s1">&#39;Xstart&#39;</span><span class="p">,</span> <span class="s1">&#39;Xend&#39;</span><span class="p">,</span> <span class="s1">&#39;dCl&#39;</span><span class="p">,</span> <span class="s1">&#39;Widths&#39;</span><span class="p">,</span> <span class="s1">&#39;Contour&#39;</span><span class="p">,</span> <span class="s1">&#39;Gradient&#39;</span><span class="p">,</span> 
+                            <span class="s1">&#39;Kymo&#39;</span><span class="p">,</span> <span class="s1">&#39;KymoGrad&#39;</span><span class="p">,</span> <span class="s1">&#39;Similarity&#39;</span><span class="p">,</span> <span class="s1">&#39;Xtmp&#39;</span><span class="p">],</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+        <span class="c1"># add the basic tracker info - you can also keep these as separate files</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;frame&#39;</span><span class="p">,</span> <span class="n">how</span> <span class="o">=</span> <span class="s1">&#39;outer&#39;</span><span class="p">)</span>
+        <span class="c1"># drop nans to allow post processing</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">tmp</span><span class="o">.</span><span class="n">info</span><span class="p">())</span>
+        <span class="c1"># run some stuff on the whole dataframe.</span>
+        <span class="n">run</span><span class="o">.</span><span class="n">pharynxorientation</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+        <span class="c1"># extract pumps</span>
+        <span class="n">tmp</span><span class="p">[[</span><span class="s1">&#39;pumps&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>\
+        <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">extractPump</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Straightened&#39;</span><span class="p">])),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># get more exact entry location</span>
+        <span class="k">if</span> <span class="n">lawn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;insideHead&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>\
+                <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">headLocationLawn</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Centerline&#39;</span><span class="p">],</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">],</span> <span class="n">binLawn</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;insideHeadIntensity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>\
+                <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">headLocationLawn</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Centerline&#39;</span><span class="p">],</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">],</span> <span class="n">lawn</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">tmp</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">outfile</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;results&#39;</span><span class="p">,</span> <span class="n">particle_index</span><span class="p">),</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;split&#39;</span><span class="p">)</span>
+        
+<span class="k">if</span> <span class="n">save_minimal</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;minimal information saved&#39;</span><span class="p">)</span>
+    
+<span class="n">stop</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Whole pharaglow features extracted (</span><span class="si">{</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="s2">s)&quot;</span><span class="p">)</span>  
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>INFO:PharaGlow:minimal information saved
+INFO:PharaGlow:Whole pharaglow features extracted (963.5043299000099s)
+</pre></div>
+</div>
+</section>
+</section>
+<section id="run-pharaglow-on-your-data">
+<h3>Run PharaGlow on your data<a class="headerlink" href="#run-pharaglow-on-your-data" title="Permalink to this headline"></a></h3>
+<section id="raw-files-requirement">
+<h4>Raw files requirement<a class="headerlink" href="#raw-files-requirement" title="Permalink to this headline"></a></h4>
+<p>Raw data are tiff files
+typically obtained from simultaneously recording of up to 50 adults worms at 30 frames per second at 1x magnification. Typical use is by interacting through the notebook which contains the whole pipeline from raw movies to final data.</p>
+</section>
+<section id="parameters-file">
+<h4>Parameters file<a class="headerlink" href="#parameters-file" title="Permalink to this headline"></a></h4>
+<p>PharaGlow requires a json parameter file with the parameters that are editable by you.
+A default file comes with the repository, you can use it as a starting point (AnalysisParameters_1x.json).
+These parameters are:</p>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>subtract</strong></p></td>
+<td><p>(0 or 1) Subtract the background from the movie for detection. Helps particularly with the higher resolution movies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>smooth</strong></p></td>
+<td><p>(integer, &gt;= 0, in pixel) Should the image be smoothed. This helps to avoid breaking up the pharynx into two parts.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>dilate</strong></p></td>
+<td><p>(integer, &gt;=1) Binary dilation of the image. Can help to connect the worm if its broken up into two pieces.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>tfactor</strong></p></td>
+<td><p>(float,[0-1]) Use rarely. If you have disparate sizes the automated threshold doesn’t work well. This factor multiplies the threshold value for binarization. Eg. for an 8-bit image, if the threshold is 150 and tfactor is 0.5 the image would be thresholded at 150*0.5=75.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>thresholdWindow</strong></p></td>
+<td><p>(in frames) To get a threshold for binarization, use every nth frame of the movie.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>bgWindow</strong></p></td>
+<td><p>(in frames) Calculate a static background on every nth image of the movie. If this is too short, you get a memory error. It can be as large as 500 frames for a full 18000 frame movie.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>length</strong></p></td>
+<td><p>(in pixel) This sets the size of the extracted images around the center of the worm. It should be at least as large as the largest expected worm length.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>watershed</strong></p></td>
+<td><p>(in pixel) When two or more worms touch, how large is an individual approximately.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>minSize</strong></p></td>
+<td><p>(in pixel) Remove all objects smaller than this.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>maxSize</strong></p></td>
+<td><p>(in pixel) Remove all objects larger than this (but a caveat here is when we have worm collisions where we allow the resulting segmentation to be a bit bigger).</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>searchrange</strong></p></td>
+<td><p>(in pixel) Describes how much we expect a worm to move frame-to-frame when we link particles together during tracking. This can be a bit bigger to allow for loosing the worm for a bit, but then you might get large perceived jumps in velocity.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>memory</strong></p></td>
+<td><p>(in frames) When we loose a worm for a few frames, how long can gaps be until we call it a ‘new’ worm.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>minimalDuration</strong></p></td>
+<td><p>(in frames) Filters out worm trajectories that are shorter than this.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>widthStraight</strong></p></td>
+<td><p>(in pixel) How wide is a worm for the straightened image.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>pad</strong></p></td>
+<td><p>(in pixel) crops a boundary around a worm for image analysis. this helps when the mask is a bit too small.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>nPts</strong></p></td>
+<td><p>(integer) How many points along the centerline are we measuring. This should relate to the typical length of a worm.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>linewidth</strong></p></td>
+<td><p>(integer) number of points to sample for a kymograph. 1 means only pixels directly on the centerline are taken.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="run-pharaglow-on-a-single-data-set">
+<h4>Run PharaGlow on a single data set<a class="headerlink" href="#run-pharaglow-on-a-single-data-set" title="Permalink to this headline"></a></h4>
+<p>If you want to analyze one data set,
+run the notebook PharaGlowMain (PharaGlow &gt; notebooks &gt; PharaGlowMain.ipynb)
+as shown in the section above #Run PharaGlow on a demo dataset</p>
+</section>
+<section id="run-pharaglow-on-multiple-data-sets">
+<h4>Run PharaGlow on multiple data sets<a class="headerlink" href="#run-pharaglow-on-multiple-data-sets" title="Permalink to this headline"></a></h4>
+<p>If you want to analyze multiple data sets,
+you need (in PharaGlow &gt; notebooks) :</p>
+<ol class="simple">
+<li><p>pglow_batch_config.json</p></li>
+<li><p>runPGlow_HPC.py</p></li>
+<li><p>PharaGlowHPC.ipynb</p></li>
+</ol>
+</section>
+</section>
+</section>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline"></a></h2>
+<p>https://scholz-lab.github.io/PharaGlow/build/html/pharaglow.html</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline"></a></h2>
+<p>Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v0.4.2/).</p>
+</section>
+<section id="license">
+<h2>License<a class="headerlink" href="#license" title="Permalink to this headline"></a></h2>
+<p>scholz-lab/PharaGlow is licensed under the
+GNU General Public License v3.0</p>
 </section>
 </section>
 
