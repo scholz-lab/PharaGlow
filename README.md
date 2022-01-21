@@ -16,7 +16,7 @@ We recommend using Anaconda to install Python.
 
 2. Clone PharaGlow repository from Github in your local directory
  
- * Copy the repository link from Github in https://scholz-lab.github.io/PharaGlow/ 
+ * Copy the repository link from Github in https://github.com/scholz-lab/PharaGlow/
  (in Branch Master > Code > HTTPS (OR SSH))
  
  *  In the terminal (Linux)/Anaconda Command Prompt (Windows),
@@ -552,7 +552,7 @@ These parameters are:
 | **widthStraight** | (in pixel) How wide is a worm for the straightened image.|
 | **pad** | (in pixel) crops a boundary around a worm for image analysis. this helps when the mask is a bit too small.|
 | **nPts** | (integer) How many points along the centerline are we measuring. This should relate to the typical length of a worm.|
-| **linewidth** |  |
+| **linewidth** | (integer) number of points to sample for a kymograph. 1 means only pixels directly on the centerline are taken.|
 
 #### Run PharaGlow on a single data set
 If you want to analyze one data set,
