@@ -27,6 +27,7 @@ dependencies:
   - pip:
     - imagecodecs-lite==2019.12.3
     - papermill==2.1.1
+    - pyampd==0.0.1
 
 prefix: /home/nzjacic/.conda/envs/pumping
 
