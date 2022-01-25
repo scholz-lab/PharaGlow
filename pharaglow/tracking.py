@@ -15,6 +15,7 @@ from skimage import morphology, util, filters
 from scipy import ndimage as ndi
 from functools import partial
 from multiprocessing import Pool
+from scipy.stats import skew
 
 from .util import pad_images
 
@@ -244,6 +245,7 @@ def objectDetection(mask, img, frame, params):
                              'xw': region.weighted_centroid[1],
                              'shapeY': im.shape[0],
                              'shapeX': im.shape[1],
+                             'skew':skew(im.ravel())
                              },])
             # add the images to crop images
             crop_images.append(list(im.ravel()))
