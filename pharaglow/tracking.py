@@ -11,7 +11,7 @@ import trackpy as tp
 
 import skimage
 from skimage.measure import label
-from skimage import morphology, util, filters
+from skimage import morphology, util, filters, segmentation, measure
 from scipy import ndimage as ndi
 from functools import partial
 from multiprocessing import Pool
@@ -222,10 +222,10 @@ def objectDetection(mask, img, frame, params):
     assert mask.shape == img.shape, 'Image and Mask size do not match.'
     df = pd.DataFrame()
     crop_images = []
-    label_image = skimage.measure.label(mask, background=0, connectivity = 1)
-    label_image = skimage.segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
+    label_image = measure.label(mask, background=0, connectivity = 1)
+    label_image = segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
 
-    for region in skimage.measure.regionprops(label_image, intensity_image=img):
+    for region in measure.regionprops(label_image, intensity_image=img):
         if region.area > params['minSize'] and region.area < params['maxSize']:
             # get the image of an object
             im, sliced = extractImagePad(img, region.bbox, params['pad'], mask=label_image==region.label)
@@ -252,7 +252,7 @@ def objectDetection(mask, img, frame, params):
         # do watershed to get crossing objects separated.
         elif region.area > params['minSize']:
             labeled = refineWatershed(img[region.slice], size = params['watershed'])
-            for part in skimage.measure.regionprops(labeled, intensity_image=img[region.slice]):
+            for part in measure.regionprops(labeled, intensity_image=img[region.slice]):
                 if part.area > params['minSize']*0.75 and part.area < params['maxSize']:
                     # get the image of an object
                     # account for the offset from the region
@@ -362,7 +362,7 @@ def cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine = False):
         labeled = refineWatershed(im, size)
         d = np.sqrt(lx**2+ly**2)
         if len(np.unique(labeled))>2:
-            for part in skimage.measure.regionprops(labeled):
+            for part in measure.regionprops(labeled):
                 d2 = np.sqrt((part.centroid[0]-ly//2)**2+(part.centroid[1]-lx//2)**2)
                 if d2 < d:
                     mask = labeled==part.label
