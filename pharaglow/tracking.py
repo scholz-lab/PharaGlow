@@ -245,13 +245,12 @@ def objectDetection(mask, img, frame, params):
                              'xw': region.weighted_centroid[1],
                              'shapeY': im.shape[0],
                              'shapeX': im.shape[1],
-                             'skew':skew(im.ravel())
                              },])
             # add the images to crop images
             crop_images.append(list(im.ravel()))
         # do watershed to get crossing objects separated.
         elif region.area > params['minSize']:
-            labeled = refineWatershed(img[region.slice], size = params['watershed'])
+            labeled = refineWatershed(img[region.slice], min_size = params['watershed'])
             for part in measure.regionprops(labeled, intensity_image=img[region.slice]):
                 if part.area > params['minSize']*0.75 and part.area < params['maxSize']:
                     # get the image of an object

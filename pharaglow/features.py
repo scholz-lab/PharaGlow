@@ -4,6 +4,7 @@
 import pims
 import numpy as np
 from numpy.linalg import norm
+from scipy.stats import skew
 from scipy.cluster.hierarchy import linkage, leaves_list
 from scipy.optimize import curve_fit
 from skimage.morphology import skeletonize, disk, remove_small_holes, remove_small_objects, binary_closing, binary_opening
@@ -367,3 +368,21 @@ def inside(x,y,binLawn):
         float: image intensity at binLawn(y,x)
     """
     return binLawn[int(y), int(x)]
+
+def calculateImageproperties(df, images):
+    """Calculate summary statistics for the padded images.
+
+    Args:
+        df (pandas.DataFrame): dataframe with pharaglow results
+        images (pims.Stack or numpy.array): stack of N images 
+
+    Returns:
+        pandas.DataFrame: dataframe with added columns
+    """
+    df['Imax'] = np.max(images, axis=(1,2))
+    df['Imean'] = np.mean(images, axis=(1,2))
+    df['Imedian']= np.median(images, axis=(1,2))
+    df['Istd']= np.std(images, axis=(1,2))
+    df['Area2'] = [np.sum(mask) for mask in df['Mask']]
+    df['skew'] = skew(np.array(images).T.reshape((-1,len(images))))
+    return df
