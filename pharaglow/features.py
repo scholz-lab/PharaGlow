@@ -369,6 +369,7 @@ def inside(x,y,binLawn):
     """
     return binLawn[int(y), int(x)]
 
+
 def calculateImageproperties(df, images):
     """Calculate summary statistics for the padded images.
 
@@ -383,6 +384,5 @@ def calculateImageproperties(df, images):
     df['Imean'] = np.mean(images, axis=(1,2))
     df['Imedian']= np.median(images, axis=(1,2))
     df['Istd']= np.std(images, axis=(1,2))
-    df['Area2'] = [np.sum(mask) for mask in df['Mask']]
     df['skew'] = skew(np.array(images).T.reshape((-1,len(images))))
     return df
