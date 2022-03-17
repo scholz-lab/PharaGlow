@@ -68,19 +68,19 @@ def preprocess(img, threshold = None, smooth = 0, dilate = False):
     mask = img >= threshold
     # dilations
     for i in range(dilate):
-        mask = ndi.binary_dilation(mask)
+        mask = morphology.dilation(mask)
     return mask
 
 
 @pims.pipeline
-def refineWatershed(img, min_size, filter_sizes = [3,4,5]):
+def refineWatershed(img, min_size, filter_sizes = [3,4,5], dilate = 0):
     """"Refine segmentation using thresholding with different filtered images.
     Favors detection of two objects.
     Args:
         img (numpy.array or pims.Frame): input image
         min_size (int, float): minimal size of objects to retain as labels
         filter_sizes (list, optional): filter sizes to try until objects are separated. Defaults to [3,4,5].
-
+        dilate (int, optional): dilate as often as in the original mask to keep sizes consistent
     Returns:
         numpy.array : labelled image
     """
@@ -97,11 +97,15 @@ def refineWatershed(img, min_size, filter_sizes = [3,4,5]):
         mask = morphology.remove_small_objects(mask, min_size=min_size, connectivity=2, in_place=True)
         labelled, num = label(mask, background=0, connectivity = 2,return_num=True)
         if num ==2:
-            return labelled
+            min_mask = labelled
         if num<current_no and num>0:
             min_mask = labelled
             current_no = num
-    return min_mask.astype(int)
+    min_mask = min_mask.astype(int)
+    # dilations
+    for i in range(dilate):
+        min_mask = morphology.dilation(min_mask)
+    return min_mask
 
 
 def calculateMask(frames, bgWindow = 30 , thresholdWindow = 30, subtract = False, smooth = 0, tfactor = 1, **kwargs):
@@ -110,9 +114,9 @@ def calculateMask(frames, bgWindow = 30 , thresholdWindow = 30, subtract = False
 
     Args:
         frames (numpy.array or pims.ImageSequence): image stack with input images
-        bgWindow (int): subsample frames for background creation. Defaults to 30.
+        bgWindow (int): subsample frames for background creation by selecting bgWindow numbers of frames evenly spaced. Defaults to 30.
         thresholdWindow (int, optional): subsample frames to calculate the threshold.
-                        Use larger values if the objects are dense. Defaults to 30.
+                        Selects thresholdWindow evenly spread frames. Defaults to 30.
         subtract (bool, optional): calculate and subtract a median-background. Defaults to False.
         smooth (int, optional): size of gaussian filter for image smoothing. Defaults to 0.
         tfactor (int, optional): fudge factor to correct threshold. Discouraged. Defaults to 1.
@@ -122,12 +126,14 @@ def calculateMask(frames, bgWindow = 30 , thresholdWindow = 30, subtract = False
     """
 
     if subtract:
-        bg = np.median(frames[::bgWindow], axis=0)
+        select_frames = np.linspace(0, len(frames)-1, bgWindow).astype(int)
+        bg = np.median(frames[select_frames], axis=0)
         if np.max(bg) > 0:
             #subtract bg from all frames
             frames = subtractBG(frames, bg)
     # image to determine threshold
-    tmp = np.max(frames[::thresholdWindow], axis=0)
+    select_frames = np.linspace(0, len(frames)-1, thresholdWindow).astype(int)
+    tmp = np.max(frames[select_frames], axis=0)
     # smooth
     if smooth:
         tmp = filters.gaussian(tmp, smooth, preserve_range = True)
@@ -250,7 +256,7 @@ def objectDetection(mask, img, frame, params):
             crop_images.append(list(im.ravel()))
         # do watershed to get crossing objects separated.
         elif region.area > params['minSize']:
-            labeled = refineWatershed(img[region.slice], min_size = params['watershed'])
+            labeled = refineWatershed(img[region.slice], min_size = params['watershed'], dilate = params['dilate'])
             for part in measure.regionprops(labeled, intensity_image=img[region.slice]):
                 if part.area > params['minSize']*0.75 and part.area < params['maxSize']:
                     # get the image of an object
