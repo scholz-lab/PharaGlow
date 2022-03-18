@@ -4,6 +4,7 @@ notebook changes:
 - change nan-dropping to only apply to all-nan rows in final dataframe
 - include more image intensity metric earlier in trajectory step
 - remove minSize from masking process
+- thresholdWindow and bgWindow now denote number of frames used for estimation
 
 main module: 
 - update watershed for collision handling to apply dilations (create areas similar to mask process)
