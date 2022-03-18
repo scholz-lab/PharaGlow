@@ -540,8 +540,8 @@ These parameters are:
 | **smooth** | (integer, >= 0, in pixel) Should the image be smoothed. This helps to avoid breaking up the pharynx into two parts.|
 | **dilate** | (integer, >=1) Binary dilation of the image. Can help to connect the worm if its broken up into two pieces.|
 | **tfactor** | (float,[0-1]) Use rarely. If you have disparate sizes the automated threshold doesn't work well. This factor multiplies the threshold value for binarization. Eg. for an 8-bit image, if the threshold is 150 and tfactor is 0.5 the image would be thresholded at 150*0.5=75.|
-| **thresholdWindow** | (in frames) To get a threshold for binarization, use every nth frame of the movie.| 
-| **bgWindow** |(in frames) Calculate a static background on every nth image of the movie. If this is too short, you get a memory error. It can be as large as 500 frames for a full 18000 frame movie.|
+| **thresholdWindow** | (in frames) To get a threshold for binarization, use every nth frame of the movie evenly spaced up to N=thresholdWindow.| 
+| **bgWindow** |(in frames) Calculate a static background on every nth evenly spaced movie image of the movie with a total N=bgWindow. If this is too short, you get a memory error. It can be as large as 500 frames for a full 18000 frame movie.|
 | **length** | (in pixel) This sets the size of the extracted images around the center of the worm. It should be at least as large as the largest expected worm length. |
 | **watershed** | (in pixel) When two or more worms touch, how large is an individual approximately.|
 | **minSize** | (in pixel) Remove all objects smaller than this.|
