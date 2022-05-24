@@ -28,7 +28,7 @@ def work(pars):
         pass
 
 
-def main(parfile, nworkers=1, mock = False, single = False):
+def main(parfile, nworkers=1, mock = False, single = False, filterword = ""):
     """run batch jupyter notebook analysis.
 
         mock (bool): if True, create jobs but don't run the analyses.
@@ -59,7 +59,7 @@ def main(parfile, nworkers=1, mock = False, single = False):
     else:
         for subfolder in [f.path for f in os.scandir(pars['batchPath']) if f.is_dir()]:
             movie = subfolder.split('/')[-1]
-            if not movie.startswith('.'):
+            if not movie.startswith('.') and filterword in movie:
                 pars['inPath'] = subfolder
                 pars['movie'] = movie
                 jobs.append(pars.copy())
@@ -95,5 +95,7 @@ if __name__=='__main__':
                         help="Number of multiprocessing processes to use for parallelization. If n=1, run serially..")
     parser.add_argument("-s", "--single", type=bool, default = False,
                         help="Analyze a single directory.")
+    parser.add_argument("-f", "--filter", type=str, default = "",
+                        help="analyze only directories that contain this string.")
     args = parser.parse_args()
-    main(args.parfile, args.nworkers, args.mock, args.single)
+    main(args.parfile, args.nworkers, args.mock, args.single, args.filter)
