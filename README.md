@@ -53,6 +53,7 @@ Last step, (don't forget to activate the pumping environment) run:
 ```
 python setup.py install --user
 ```
+in the main directory of the software, which has the file called setup.py
 
 5. (*optional*)
  *Create a dedicated environment kernel*
