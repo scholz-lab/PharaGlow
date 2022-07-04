@@ -172,7 +172,7 @@ The program generates 3 levels of outputs (see [Overview](#overview)). The final
 |  shapeX | int64   | image shape X fro cropped image
 |  im_idx | int64   | index of images correpsonding to location in images_all.tiff stack.
 |  particle | int64  | particle id assigned during linking (step 2)
-|  particle | floa64  | pumping metric 
+|  pumps | floa64  | pumping metric 
 
 ## API
 https://scholz-lab.github.io/PharaGlow/build/html/pharaglow.html
