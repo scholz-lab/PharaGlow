@@ -334,7 +334,7 @@ def interpolateTrajectories(traj, columns = None):
         for c in columns:
             traj[c] = traj[c].interpolate()
         return traj
-    return traj.interpolate(axis = 1)
+    return traj.interpolate(axis = 0)
 
 
 def cropImagesAroundCMS(img, x, y, lengthX, lengthY, size, refine = False):
