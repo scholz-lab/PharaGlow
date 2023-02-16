@@ -59,8 +59,8 @@ in the main directory of the software, which has the file called setup.py
  *Create a dedicated environment kernel*
 
 ```
-conda activate myenv
-python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
+conda activate pumping
+python -m ipykernel install --user --name pumping --display-name "Python (pumping)"
 ```
 
 *And remove notebook output before committing*
