@@ -269,8 +269,9 @@ def calculate_pumps(df, min_distance, sensitivity, adaptive_window, min_prominen
         # add interpolated pumping rate to dataframe
         df['rate'] = np.interp(np.arange(len(df)), peaks[:-1], fps/np.diff(peaks))
         # # get a binary trace where pumps are 1 and non-pumps are 0
-        df['pump_events'] = 0
-        df.loc[peaks,['pump_events']] = 1
+        events= np.zeros(len(df['rate']))
+        events[peaks] = 1
+        df['pump_events'] = events
     else:
         df['rate'] = 0
         df['pump_events'] = 0
