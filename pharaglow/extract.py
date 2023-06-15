@@ -355,5 +355,5 @@ def calculate_reversals(df, animal_size, angle_threshold, scale):
     rev = traj_Resampled.index[traj_Resampled.angle>=angle_threshold]
     df.loc[:,'reversals'] = 0
     df.loc[rev,'reversals'] = 1
-    
+    return df
  
