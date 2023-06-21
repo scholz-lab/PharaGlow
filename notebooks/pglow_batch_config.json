@@ -1,8 +1,8 @@
-{"parameterfile": "/gpfs/soma_fs/home/scholz/Code/PPa_params_1x.txt",
-    "inPath" : "/gpfs/soma_fs/scratch/mscholz/guniz_raw/210813/",
-    "outPath" : "/gpfs/soma_fs/scratch/mscholz/guniz_analyzed/",
-    "templateNotebook" : "/gpfs/soma_fs/home/scholz/Code/PharaGlow/notebooks/PharaGlowMain.ipynb",
-    "nWorkers": 40,
+{"parameterfile": "/home/valerio/pharaglow/AnalysisParameters_1x.json",
+    "batchPath" : "/home/valerio/nif/partial_demo_data",
+    "outPath" : "/home/valerio/nif/output_partial_demo_data/",
+    "templateNotebook" : "/home/valerio/pharaglow/notebooks/PharaGlowHPC.ipynb",
+    "nWorkers": 10,
     "lawnPath" : "None",
     "depth":"uint8",
     "save_minimal": 1
