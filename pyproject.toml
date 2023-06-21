@@ -86,7 +86,11 @@ dependencies = [ # Optional
 #   $ pip install pharaglow[test]
 #
 [project.optional-dependencies] # Optional
-test = ["papermill"]
+test = [
+  "papermill",
+  "matplotlib",
+  "ipykernel",
+]
 
 # List URLs that are relevant to the project
 #
