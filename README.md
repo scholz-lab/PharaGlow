@@ -1,7 +1,9 @@
+
+![](examples/pglowLogo.png)
+<!-- ![](https://raw.githubusercontent.com/scholz-lab/PharaGlow/master/examples/pglowLogo.png) -->
 # PharaGlow - tracking locomotion and feeding behavior of moving worms
 
 ![](https://raw.githubusercontent.com/scholz-lab/PharaGlow/master/examples/pglow_header.png)
-<!-- ![png](examples/pglowLogo.png) -->
 
 
 PharaGlow is a python package for tracking and analyzing *C. elegans* motion and feeding behavior from videos.
