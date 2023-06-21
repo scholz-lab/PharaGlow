@@ -229,7 +229,10 @@ def objectDetection(mask, img, frame, params):
     df = pd.DataFrame()
     crop_images = []
     label_image = measure.label(mask, background=0, connectivity = 1)
-    label_image = segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
+    #label_image = segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
+    #NOTE: in_place argument is deprecated. The default behavior is creating a new array.
+    #REF: https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.clear_border
+    label_image = segmentation.clear_border(label_image, buffer_size=0, bgval=0, mask=None)
 
     for region in measure.regionprops(label_image, intensity_image=img):
         if region.area > params['minSize'] and region.area < params['maxSize']:
