@@ -19,5 +19,9 @@ if __name__ == "__main__":
                   "pims",
                   "scikit-image",
                   "trackpy",
+                  # optional dependencies (test/dev)
+                  "papermill",
+                  "matplotlib",
+                  "ipykernel",
             ],
       )

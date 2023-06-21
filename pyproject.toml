@@ -69,7 +69,7 @@ classifiers = [  # Optional
 #
 # For an analysis of this field vs pip's requirements files see:
 # https://packaging.python.org/discussions/install-requires-vs-requirements/
-dependencies = [ # Optional
+dependencies = [
   "numpy",
   "scipy",
   "pyampd",
@@ -77,6 +77,10 @@ dependencies = [ # Optional
   "pims",
   "scikit-image",
   "trackpy",
+  # Optional (test/dev) dependencies
+  "papermill",
+  "matplotlib",
+  "ipykernel",
 ]
 
 # List additional groups of dependencies here (e.g. test)
@@ -85,12 +89,14 @@ dependencies = [ # Optional
 #
 #   $ pip install pharaglow[test]
 #
+# NOTE: commented out since target group probably unfamiliar with the syntax
+#       to install the additional dependencies they need to test pharaglow.
 [project.optional-dependencies] # Optional
-test = [
-  "papermill",
-  "matplotlib",
-  "ipykernel",
-]
+#test = [
+#  "papermill",
+#  "matplotlib",
+#  "ipykernel",
+#]
 
 # List URLs that are relevant to the project
 #
@@ -103,6 +109,7 @@ test = [
 "PharaGlow Homepage" = "https://github.com/scholz-lab/PharaGlow"
 "Bug Reports" = "https://github.com/scholz-lab/PharaGlow/issues"
 "Source" = "https://github.com/scholz-lab/PharaGlow"
+"API Reference" = "https://scholz-lab.github.io/PharaGlow/build/html/pharaglow.html"
 
 # The following would provide a command line executable called `sample`
 # which executes the function `main` from this package when invoked.
