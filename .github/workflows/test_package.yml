@@ -39,10 +39,10 @@ jobs:
         with:
           name: "pglow_batch_config_github.json"
           json: '{ \
-            "parameterfile": "${{ GITHUB_WORKSPACE }}/AnalysisParameters_1x.json", \
-            "batchPath" : "${{ GITHUB_WORKSPACE }}/data", \
-            "outPath" : "${{ GITHUB_WORKSPACE }}/out_data", \
-            "templateNotebook" : "${{ GITHUB_WORKSPACE }}/notebooks/PharaGlowHPC.ipynb", \
+            "parameterfile": "${{ github.workspace }}/AnalysisParameters_1x.json", \
+            "batchPath" : "${{ github.workspace }}/data", \
+            "outPath" : "${{ github.workspace }}/out_data", \
+            "templateNotebook" : "${{ github.workspace }}/notebooks/PharaGlowHPC.ipynb", \
             "nWorkers": 10, \
             "lawnPath" : "None", \
             "depth":"uint8", \
@@ -55,6 +55,6 @@ jobs:
           cat notebooks/pglow_batch_config_github.json
       - name: Test with papermill (jupyter notebook)
         run: |
-          python ${{ GITHUB_WORKSPACE }}/notebooks/runPGlow_HPC.py -n 1 -s true \
+          python ${{ github.workspace }}/notebooks/runPGlow_HPC.py -n 1 -s true \
           -k pharaglow-pip \
-          ${{ GITHUB_WORKSPACE }}/notebooks/pglow_batch_config_github.json
+          ${{ github.workspace }}/notebooks/pglow_batch_config_github.json
