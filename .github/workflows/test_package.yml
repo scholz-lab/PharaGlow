@@ -33,7 +33,7 @@ jobs:
       - name: Install ipykernel used by the testing script
         run: |
           python -m ipykernel install --user --name pharaglow-pip
-      - name: Create JSON file and output directory
+      - name: Create JSON file
         id: create-json
         uses: jsdaniell/create-json@v1.2.2
         with:
@@ -49,6 +49,7 @@ jobs:
             "save_minimal": 1 \
             }'
           dir: "notebooks/"
+      - name: Create output test data directory
         run: |
           mkdir out_data
           cat notebooks/pglow_batch_config_github.json
