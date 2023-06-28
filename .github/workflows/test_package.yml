@@ -14,7 +14,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -32,6 +31,7 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Install ipykernel used by the testing script
+        run: |
           python -m ipykernel install --user --name pharaglow-pip
       - name: Create JSON file and output directory
         id: create-json
