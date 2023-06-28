@@ -1,6 +1,6 @@
 {"parameterfile": "/home/valerio/pharaglow/AnalysisParameters_1x.json",
-    "batchPath" : "/home/valerio/nif/partial_demo_data",
-    "outPath" : "/home/valerio/nif/output_partial_demo_data/",
+    "batchPath" : "/home/valerio/pharaglow/data",
+    "outPath" : "/home/valerio/pharaglow/out_data",
     "templateNotebook" : "/home/valerio/pharaglow/notebooks/PharaGlowHPC.ipynb",
     "nWorkers": 10,
     "lawnPath" : "None",

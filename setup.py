@@ -23,5 +23,6 @@ if __name__ == "__main__":
                   "papermill",
                   "matplotlib",
                   "ipykernel",
+                  "imagecodecs", # LZW used by test data compression
             ],
       )

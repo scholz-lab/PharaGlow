@@ -81,6 +81,7 @@ dependencies = [
   "papermill",
   "matplotlib",
   "ipykernel",
+  "imagecodecs",
 ]
 
 # List additional groups of dependencies here (e.g. test)
