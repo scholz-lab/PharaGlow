@@ -33,7 +33,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Install ipykernel used by the testing script
           python -m ipykernel install --user --name pharaglow-pip
-      - name: Create JSON file and persist in notebooks
+      - name: Create JSON file and output directory
         id: create-json
         uses: jsdaniell/create-json@v1.2.2
         with:
@@ -49,9 +49,9 @@ jobs:
             "save_minimal": 1 \
             }'
           dir: "notebooks/"
-      - name: Create output directory
         run: |
           mkdir out_data
+          cat notebooks/pglow_batch_config_github.json
       - name: Test with papermill (jupyter notebook)
         run: |
           python ${{ GITHUB_WORKSPACE }}/notebooks/runPGlow_HPC.py -n 1 -s true \
