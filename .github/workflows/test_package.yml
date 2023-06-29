@@ -30,11 +30,12 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
+          echo "workspace: ${{ github.workspace }}"
           python -m pip install --upgrade pip
           python -m pip install pip-tools
           python -m piptools compile \
             -o requirements.txt \
-            pyproject.toml
+            ${{ github.workspace }}/pyproject.toml
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Install ipykernel used by the testing script
         run: |
