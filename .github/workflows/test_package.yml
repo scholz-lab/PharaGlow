@@ -34,8 +34,6 @@ jobs:
       # is not showing any issues. (Omar 30.06.2023)
       # REF: https://github.com/jazzband/pip-tools/issues/1711
         run: |
-          # echo "workspace: ${{ github.workspace }}"
-          # ls ${{ github.workspace }}
           python -m pip install --upgrade pip
           #python -m pip install pip-tools
           #python -m piptools compile \
@@ -45,25 +43,26 @@ jobs:
       - name: Install ipykernel used by the testing script
         run: |
           python -m ipykernel install --user --name pharaglow-pip
-      - name: Create JSON file
-        id: create-json
+      - name: Create pglow_batch_config JSON file
+        id: create-json-pglow
         uses: jsdaniell/create-json@v1.2.2
         with:
           name: "pglow_batch_config_github.json"
-          json: '{ \
-            "parameterfile": "${{ github.workspace }}/AnalysisParameters_1x.json", \
-            "batchPath" : "${{ github.workspace }}/data", \
-            "outPath" : "${{ github.workspace }}/out_data", \
-            "templateNotebook" : "${{ github.workspace }}/notebooks/PharaGlowHPC.ipynb", \
-            "nWorkers": 10, \
-            "lawnPath" : "None", \
-            "depth":"uint8", \
-            "save_minimal": 1 \
+          json: '{ 
+            "parameterfile": "${{ github.workspace }}/AnalysisParameters_1x.json", 
+            "batchPath" : "${{ github.workspace }}/data", 
+            "outPath" : "${{ github.workspace }}/out_data", 
+            "templateNotebook" : "${{ github.workspace }}/notebooks/PharaGlowHPC.ipynb", 
+            "nWorkers": 10, 
+            "lawnPath" : "None", 
+            "depth":"uint8", 
+            "save_minimal": 1 
             }'
           dir: "notebooks/"
       - name: Create output test data directory
         run: |
           mkdir out_data
+          echo "[DEBUG] pglow_batch_cofig_github.json:"
           cat notebooks/pglow_batch_config_github.json
       - name: Test with papermill (jupyter notebook)
         run: |
