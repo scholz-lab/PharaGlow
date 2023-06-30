@@ -29,14 +29,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
+      # The requirements.txt generation using pyproject.toml compilation
+      # complains about invalid pyproject.toml but the validation-pyproject tool
+      # is not showing any issues. (Omar 30.06.2023)
+      # REF: https://github.com/jazzband/pip-tools/issues/1711
         run: |
-          echo "workspace: ${{ github.workspace }}"
-          ls ${{ github.workspace }}
+          # echo "workspace: ${{ github.workspace }}"
+          # ls ${{ github.workspace }}
           python -m pip install --upgrade pip
-          python -m pip install pip-tools
-          python -m piptools compile \
-            -o requirements.txt \
-            ${{ github.workspace }}/pyproject.toml
+          #python -m pip install pip-tools
+          #python -m piptools compile \
+          #  -o requirements.txt \
+          #  ${{ github.workspace }}/pyproject.toml
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Install ipykernel used by the testing script
         run: |
