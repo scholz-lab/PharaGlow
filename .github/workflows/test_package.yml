@@ -23,12 +23,14 @@ jobs:
         #python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", pypy3.7, pypy3.9]
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout pharaglow and LFS test data
+        uses: actions/checkout@v3
+        with:
+          lfs: true
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          lfs: true
       - name: Install dependencies
       # The requirements.txt generation using pyproject.toml compilation
       # complains about invalid pyproject.toml but the validation-pyproject tool
