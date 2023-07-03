@@ -34,8 +34,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Debug action..
         run: |
-        echo "runner os: ${{ runner.os }}"
-        echo "matrix os: ${{ matrix.os }}"
+          echo "runner os: ${{ runner.os }}"
+          echo "matrix os: ${{ matrix.os }}"
       - name: Install dependencies Linux/macOS
         if: runner.os == 'Linux' || runner.os == 'macOS'
       # The requirements.txt generation using pyproject.toml compilation
