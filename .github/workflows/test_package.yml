@@ -80,8 +80,17 @@ jobs:
           mkdir out_data
           echo "[DEBUG] pglow_batch_cofig_github.json:"
           cat notebooks/pglow_batch_config_github.json
-      - name: Test with papermill (jupyter notebook)
+      - name: Run test notebook Linux/macOS
+        if: runner.os == 'Linux' || runner.os == 'macOS'
         run: |
           python ${{ github.workspace }}/notebooks/runPGlow_HPC.py -n 1 -s true \
           -k pharaglow-pip \
+          ${{ github.workspace }}/notebooks/pglow_batch_config_github.json
+      - name: Run test notebook Windows
+        if: runner.os == 'Windows'
+        # Using power sheel bacticks ` for line continuation
+        # REF: https://stackoverflow.com/questions/3235850/how-to-enter-a-multi-line-command
+        run: |
+          python ${{ github.workspace }}/notebooks/runPGlow_HPC.py -n 1 -s true `
+          -k pharaglow-pip `
           ${{ github.workspace }}/notebooks/pglow_batch_config_github.json
