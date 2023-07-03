@@ -38,10 +38,10 @@ jobs:
           echo "matrix os: ${{ matrix.os }}"
       - name: Install dependencies Linux/macOS
         if: runner.os == 'Linux' || runner.os == 'macOS'
-      # The requirements.txt generation using pyproject.toml compilation
-      # complains about invalid pyproject.toml but the validation-pyproject tool
-      # is not showing any issues. (Omar 30.06.2023)
-      # REF: https://github.com/jazzband/pip-tools/issues/1711
+        # The requirements.txt generation using pyproject.toml compilation
+        # complains about invalid pyproject.toml but the validation-pyproject tool
+        # is not showing any issues. (Omar 30.06.2023)
+        # REF: https://github.com/jazzband/pip-tools/issues/1711
         run: |
           python -m pip install --upgrade pip
           #python -m pip install pip-tools
@@ -51,11 +51,11 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Install dependencies Windows
         if: runner.os == 'Windows'
+        # Windows runner defaults to PowerShell (pwsh)
+        # REF: https://dev.to/pwd9000/github-actions-all-the-shells-581h
         run: |
           python -m pip install --upgrade pip
-          if exist requirements.txt (
-            pip install -r requirements.txt
-          )
+          if (Test-Path -Path requirements.txt) { pip install -r requirements.txt }
       - name: Install ipykernel used by the testing script
         run: |
           python -m ipykernel install --user --name pharaglow-pip
