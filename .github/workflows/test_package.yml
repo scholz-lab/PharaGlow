@@ -42,7 +42,13 @@ jobs:
           #python -m piptools compile \
           #  -o requirements.txt \
           #  ${{ github.workspace }}/pyproject.toml
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ runner.os == 'Linux' || runner.os == 'macOS' ]; then
+            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          else # Windows
+            echo "Testing requirements.txt for ${{ matrix.os }}"
+            if exist requirements.txt (
+              pip install -r requirements.txt
+            )
       - name: Install ipykernel used by the testing script
         run: |
           python -m ipykernel install --user --name pharaglow-pip
