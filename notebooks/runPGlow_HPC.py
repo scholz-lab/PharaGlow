@@ -45,7 +45,7 @@ def main(parfile, nworkers=1, mock = False, single = False, filterword = "", ker
         nworkers (int): if >1, this will use multiprocessing to analyse multiple jobs concurrently.
     """
     if platform.system() =='Windows':
-        sys.stdout.write("Windows operating system detected, Swithing to asyncio. \n")
+        sys.stdout.write("Windows operating system detected, Switching to asyncio. \n")
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     # get the batch parameters

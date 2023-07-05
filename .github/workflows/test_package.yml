@@ -60,21 +60,15 @@ jobs:
         run: |
           python -m ipykernel install --user --name pharaglow-pip
       - name: Create pglow_batch_config JSON file
-        id: create-json-pglow
-        uses: jsdaniell/create-json@v1.2.2
-        with:
-          name: "pglow_batch_config_github.json"
-          json: '{ 
-            "parameterfile": "${{ github.workspace }}/AnalysisParameters_1x.json", 
-            "batchPath" : "${{ github.workspace }}/data", 
-            "outPath" : "${{ github.workspace }}/out_data", 
-            "templateNotebook" : "${{ github.workspace }}/notebooks/PharaGlowHPC.ipynb", 
-            "nWorkers": 10, 
-            "lawnPath" : "None", 
-            "depth":"uint8", 
-            "save_minimal": 1 
-            }'
-          dir: "notebooks/"
+        run: >
+        python ${{ github.workspace }}/notebooks/make_conf_file.py
+        -d ${{ github.workspace }}
+        -i data
+        -o out_data
+        -p AnalysisParameters_1x.json
+        -t notebooks
+        -n PharaGlowHPC.ipynb
+        -c pglow_batch_config_github.json
       - name: Create output test data directory
         run: |
           mkdir out_data
