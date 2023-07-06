@@ -119,8 +119,9 @@ dependencies = [
 
 # This is configuration specific to the `setuptools` build backend.
 # If you are using a different build backend, you will need to change this.
-[tool.setuptools]
-packages = ["pharaglow"]
+# REF: https://stackoverflow.com/questions/74284075/function-of-tool-setuptools-packages-find-in-pyproject-toml
+[tool.setuptools.packages]
+find = {}
 
 # If there are data files included in your packages that need to be
 # installed, specify them here.
@@ -129,5 +130,5 @@ packages = ["pharaglow"]
 [build-system]
 # These are the assumed default build requirements from pip:
 # https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
-requires = ["setuptools>=43.0.0", "wheel"]
+requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
