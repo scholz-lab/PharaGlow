@@ -34,6 +34,11 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           pip install build --user
+      - name: Debug action.
+        run: |
+          pwd
+          ls -la
+          echo "github workspace: ${{ github.workspace }}"
       # Creating package wheel and a .tar.gz source distribution.
       - name: Build package
         run: >-
@@ -41,7 +46,7 @@ jobs:
           --sdist
           --wheel
           --outdir dist/
-          ${{ github.workspace }}
+          .
       # REF: https://carpentries-incubator.github.io/python_packaging/aio.html
       # Publish to TestPyPI
       - name: Publish package to TestPyPI
