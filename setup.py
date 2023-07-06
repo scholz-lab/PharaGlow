@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+#NOTE: setup.py is deprecated. The same is achieved via pyproject.toml
+#      The file can be safely deleted.  (Omar V.M.) 
 
-#from distutils.core import setup
 import pharaglow
 from setuptools import setup
 
