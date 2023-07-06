@@ -37,11 +37,11 @@ jobs:
       # Creating package wheel and a .tar.gz source distribution.
       - name: Build package
         run: >-
-        python3 -m build
-        --sdist
-        --wheel
-        --outdir dist/
-        ${{ github.workspace }}
+          python3 -m build
+          --sdist
+          --wheel
+          --outdir dist/
+          ${{ github.workspace }}
       # REF: https://carpentries-incubator.github.io/python_packaging/aio.html
       # Publish to TestPyPI
       - name: Publish package to TestPyPI
