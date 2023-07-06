@@ -36,7 +36,7 @@ jobs:
           pip install build
       # Creating package wheel and a .tar.gz source distribution.
       - name: Build package
-        run: python -m build --sdist --wheel
+        run: python -m build
       # REF: https://carpentries-incubator.github.io/python_packaging/aio.html
       # Publish to TestPyPI
       - name: Publish package to TestPyPI
