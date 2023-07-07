@@ -1,61 +1,27 @@
 [project]
-name = "pharaglow"  # Required
-
-# Versions should comply with PEP 440:
-# https://www.python.org/dev/peps/pep-0440/
-version = "0.9.1"  # Required
-
-# This corresponds to the "Summary" metadata field:
-# https://packaging.python.org/specifications/core-metadata/#summary
-description = "A toolset to analyze videos of foraging animals."  # Optional
-
-# This field corresponds to the "Description" metadata field:
-# https://packaging.python.org/specifications/core-metadata/#description-optional
-readme = "README.md" # Optional
-
-# Specify which Python versions you support. 'pip install' will check this
-# and refuse to install the project if the version does not match. See
-# https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
+name = "pharaglow"
+version = "0.9.1"
+description = "A toolset to analyze videos of foraging animals."
+readme = "README.md"
 requires-python = ">=3.7"
-
-# This indicates the license for the pachage
-# https://packaging.python.org/en/latest/specifications/core-metadata/#license
 license = {file = "LICENSE"}
-
-# This field adds project keywords which will appear on the project page.
-keywords = ["toolset", "tracking", "feeding", "behaviour", "pumping"]  # Optional
-
-# The name and email address of the author of the project.
+keywords = ["toolset", "tracking", "feeding", "behaviour", "pumping"]
 authors = [
-  {name = "M.Scholz", email = "monika.k.scholz@gmail.com" } # Optional
+  {name = "M.Scholz", email = "monika.k.scholz@gmail.com" }
 ]
-
-# List of project maintainers.
 maintainers = [
-  {name = "Omar Valerio", email = "omar.valerio@mpinb.mpg.de" } # Optional
+  {name = "Omar Valerio", email = "omar.valerio@mpinb.mpg.de" }
 ]
-
-# Classifiers help users find your project by categorizing it.
-#
 # For a list of valid classifiers, see https://pypi.org/classifiers/
-classifiers = [  # Optional
+classifiers = [
 
-  # How mature is this project? Common values are
-  #   3 - Alpha
-  #   4 - Beta
-  #   5 - Production/Stable
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
 
-  # Indicate who your project is intended for
   "Intended Audience :: Developers",
   "Topic :: Software Development :: Build Tools",
 
-  # Pick your license as you wish
   "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 
-  # Specify the Python versions you support here. In particular, ensure
-  # that you indicate you support Python 3. These classifiers are *not*
-  # checked by "pip install". See instead "python_requires" above.
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
@@ -65,70 +31,39 @@ classifiers = [  # Optional
   "Programming Language :: Python :: 3 :: Only",
 ]
 
-# This field lists other packages that your project depends on to run.
-#
 # For an analysis of this field vs pip's requirements files see:
 # https://packaging.python.org/discussions/install-requires-vs-requirements/
-dependencies = [
-  "numpy",
-  "scipy",
-  "pyampd",
-  "pandas",
-  "pims",
-  "scikit-image",
-  "trackpy",
-  # Optional (test/dev) dependencies
-  "papermill",
-  "matplotlib",
-  "ipykernel",
-  "imagecodecs",
-]
-
-# List additional groups of dependencies here (e.g. test)
-# Users will be able to install these using the "extras"
-# syntax, for example:
-#
-#   $ pip install pharaglow[test]
-#
-# NOTE: commented out since target group probably unfamiliar with the syntax
-#       to install the additional dependencies they need to test pharaglow.
-[project.optional-dependencies] # Optional
-#test = [
+# NOTE: dependencies moved to setup.cfg file (see install_requires)
+# For auto generating requirements.txt use:
+# python -m pip install pip-tools; pip-compile -o requirements.txt pyproject.cfg
+#dependencies = [
+#  "numpy",
+#  "scipy",
+#  "pyampd",
+#  "pandas",
+#  "pims",
+#  "scikit-image",
+#  "trackpy",
 #  "papermill",
 #  "matplotlib",
 #  "ipykernel",
+#  "imagecodecs",
 #]
 
 # List URLs that are relevant to the project
-#
-# This field corresponds to the "Project-URL" and "Home-Page" metadata fields:
-# https://packaging.python.org/specifications/core-metadata/#project-url-multiple-use
-# https://packaging.python.org/specifications/core-metadata/#home-page-optional
-#
 # The key is what's used to render the link text on PyPI.
-[project.urls]  # Optional
+[project.urls]
 "PharaGlow Homepage" = "https://github.com/scholz-lab/PharaGlow"
 "Bug Reports" = "https://github.com/scholz-lab/PharaGlow/issues"
 "Source" = "https://github.com/scholz-lab/PharaGlow"
 "API Reference" = "https://scholz-lab.github.io/PharaGlow/build/html/pharaglow.html"
 
-# The following would provide a command line executable called `sample`
-# which executes the function `main` from this package when invoked.
-#[project.scripts]  # Optional
-#sample = "sample:main"
-
 # This is configuration specific to the `setuptools` build backend.
-# If you are using a different build backend, you will need to change this.
-# REF: https://stackoverflow.com/questions/74284075/function-of-tool-setuptools-packages-find-in-pyproject-toml
-[tool.setuptools.packages]
-find = {}
-
-# If there are data files included in your packages that need to be
-# installed, specify them here.
-#package-data = {"sample" = ["*.dat"]}
+# [tool.setuptools]
+# packages = {"pharaglow"}
 
 [build-system]
 # These are the assumed default build requirements from pip:
 # https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
-requires = ["setuptools>=61.0.0", "wheel"]
+requires = ["setuptools>=61.0.0"]
 build-backend = "setuptools.build_meta"

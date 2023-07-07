@@ -3,8 +3,7 @@
 <!-- ![](https://raw.githubusercontent.com/scholz-lab/PharaGlow/master/examples/pglowLogo.png) -->
 # PharaGlow - tracking locomotion and feeding behavior of moving worms
 
-![](https://raw.githubusercontent.com/scholz-lab/PharaGlow/master/examples/pglow_header.png)
-
+<!-- ![](https://raw.githubusercontent.com/scholz-lab/PharaGlow/master/examples/pglow_header.png) -->
 
 PharaGlow is a python package for tracking and analyzing *C. elegans* motion and feeding behavior from videos.
  The package can be used to simply track labelled pharynxes
@@ -17,31 +16,12 @@ PharaGlow is a python package for tracking and analyzing *C. elegans* motion and
 You need to have Anaconda (https://www.anaconda.com/products/individual) and Python >=3.7.
 We recommend using Anaconda to install Python.
 
+2. Create and activate a new `conda` environment
 
-2. Clone PharaGlow repository from Github in your local directory
- 
- * Copy the repository link from Github in https://github.com/scholz-lab/PharaGlow/
- (in Branch Master > Code > HTTPS (OR SSH))
- 
- *  In the terminal (Linux)/Anaconda Command Prompt (Windows),
- navigate to the directory where to clone PharaGlow
- and write the git clone command:
-
-```
-git clone https://github.com/scholz-lab/PharaGlow.git
-```
-
-Note that you can also download PharaGlow from our Github repository
- (Branch Master > Code > Download ZIP)
-to have the current copy of PharaGlow.
-
-3. Create and activate the required anaconda environment
-In the terminal (Linux)/Anaconda Command Prompt (Windows),
- naviguate to your newly cloned PharaGlow directory
- and run:
+In the terminal (Linux)/Anaconda Command Prompt (Windows) run:
 
 ```bash
-conda env create --file environmentPumping.yml
+conda env create --name pumping
 ```
 
 You can now use this environment by running:
@@ -50,16 +30,33 @@ You can now use this environment by running:
 conda activate pumping
 ```
 
+3. Install PharaGlow package from PyPI using pip
 
-4. Install PharaGlow
-
-Last step, (don't forget to activate the pumping environment) run: 
 ```
-python setup.py install --user
-```
-in the main directory of the software, which has the file called setup.py
+python -m pip install pharaglow
+``` 
 
-5. (*optional*)
+Alternatively you can clone PharaGlow repository from Github
+ 
+ * Copy the repository link from Github in https://github.com/scholz-lab/PharaGlow/
+ 
+ *  In the terminal (Linux)/Anaconda Command Prompt (Windows),
+ navigate to the directory where you wish to download PharaGlow
+ and enter the command:
+
+```
+git clone https://github.com/scholz-lab/PharaGlow.git pharaglow
+```
+Change to the pharaglow directory and run:
+ 
+```
+cd pharaglow
+conda activate pumping
+pip install -e .
+```
+in the main directory of the software, which has the file called `pyproject.toml`
+
+5. (*Optional*)
  *Create a dedicated environment kernel*
 
 ```
@@ -73,6 +70,9 @@ python -m ipykernel install --user --name pumping --display-name "Python (pumpin
 conda install -c conda-forge nbstripout
 ```
 ## Overview
+
+![](https://raw.githubusercontent.com/scholz-lab/PharaGlow/master/examples/pglow_header.png)
+
 
 **1. Step -  Basic object detection**
     This step creates a "_features.json" file
