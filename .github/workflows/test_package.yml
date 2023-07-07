@@ -20,7 +20,9 @@ jobs:
         #os: [ubuntu-latest]
         os: [ubuntu-latest, macos-latest, windows-latest]
         #python-version: ["3.7"]
-        python-version: ["3.7", "3.8", "3.9", "3.10", pypy3.7, pypy3.9] # 3.11 Getting requirements to build wheel did not run successfully
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        # pypy3.7 Complained about Cython missing requirements 
+        # 3.11 Getting requirements to build wheel did not run successfully
         #python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", pypy3.7, pypy3.9] # 3.11 Getting requirements to build wheel did not run successfully
 
     steps:
