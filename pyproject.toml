@@ -1,6 +1,6 @@
 [project]
 name = "pharaglow"
-version = attr: pharaglow.__version__
+dynamic = ["version"]
 #version = "0.9.2"
 description = "A toolset to analyze videos of foraging animals."
 readme = "README.md"
