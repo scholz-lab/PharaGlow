@@ -1,7 +1,6 @@
 [project]
 name = "pharaglow"
 dynamic = ["version"]
-#version = "0.9.2"
 description = "A toolset to analyze videos of foraging animals."
 readme = "README.md"
 requires-python = ">=3.7"
@@ -37,19 +36,6 @@ classifiers = [
 # NOTE: dependencies moved to setup.cfg file (see install_requires)
 # For auto generating requirements.txt use:
 # python -m pip install pip-tools; pip-compile -o requirements.txt pyproject.cfg
-#dependencies = [
-#  "numpy",
-#  "scipy",
-#  "pyampd",
-#  "pandas",
-#  "pims",
-#  "scikit-image",
-#  "trackpy",
-#  "papermill",
-#  "matplotlib",
-#  "ipykernel",
-#  "imagecodecs",
-#]
 
 # List URLs that are relevant to the project
 # The key is what's used to render the link text on PyPI.
@@ -58,10 +44,6 @@ classifiers = [
 "Bug Reports" = "https://github.com/scholz-lab/PharaGlow/issues"
 "Source" = "https://github.com/scholz-lab/PharaGlow"
 "API Reference" = "https://scholz-lab.github.io/PharaGlow/build/html/pharaglow.html"
-
-# This is configuration specific to the `setuptools` build backend.
-# [tool.setuptools]
-# packages = {"pharaglow"}
 
 [build-system]
 # These are the assumed default build requirements from pip:
