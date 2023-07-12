@@ -62,10 +62,13 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
-          name: testpypi
-          url: https://test.pypi.org/p/pharaglow
-
+          #name: testpypi
+          #url: https://test.pypi.org/p/pharaglow
 
       # Publish to PyPI
       #- name: Publish package to PyPI
       #  uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://pypi.org/legacy/

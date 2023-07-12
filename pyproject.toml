@@ -1,6 +1,7 @@
 [project]
 name = "pharaglow"
-version = "0.9.1"
+version = attr: pharaglow.__version__
+#version = "0.9.2"
 description = "A toolset to analyze videos of foraging animals."
 readme = "README.md"
 requires-python = ">=3.7"
@@ -65,5 +66,5 @@ classifiers = [
 [build-system]
 # These are the assumed default build requirements from pip:
 # https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
-requires = ["setuptools>=61.0.0"]
+requires = ["setuptools>=61.0.0", "wheel", "attrs>=17.1"]
 build-backend = "setuptools.build_meta"
