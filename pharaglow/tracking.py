@@ -94,7 +94,10 @@ def refineWatershed(img, min_size, filter_sizes = [3,4,5], dilate = 0):
         # mask
         mask = img>filters.threshold_li(img, initial_guess = np.min)
         mask = ndi.binary_closing(mask)
-        mask = morphology.remove_small_objects(mask, min_size=min_size, connectivity=2, in_place=True)
+        #NOTE: in_place argument is deprecated. The default behavior is creating a new array.
+        #REF: https://scikit-image.org/docs/stable/api/skimage.morphology.html#skimage.morphology.remove_small_objects
+        #mask = morphology.remove_small_objects(mask, min_size=min_size, connectivity=2, in_place=True)
+        mask = morphology.remove_small_objects(mask, min_size=min_size, connectivity=2)
         labelled, num = label(mask, background=0, connectivity = 2,return_num=True)
         if num ==2:
             min_mask = labelled
@@ -229,7 +232,10 @@ def objectDetection(mask, img, frame, params):
     df = pd.DataFrame()
     crop_images = []
     label_image = measure.label(mask, background=0, connectivity = 1)
-    label_image = segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
+    #label_image = segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
+    #NOTE: in_place argument is deprecated. The default behavior is creating a new array.
+    #REF: https://scikit-image.org/docs/stable/api/skimage.segmentation.html#skimage.segmentation.clear_border
+    label_image = segmentation.clear_border(label_image, buffer_size=0, bgval=0, mask=None)
 
     for region in measure.regionprops(label_image, intensity_image=img):
         if region.area > params['minSize'] and region.area < params['maxSize']:

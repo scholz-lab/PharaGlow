@@ -6,7 +6,16 @@ from multiprocessing import Pool
 import asyncio
 import platform
 import argparse
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Ignoring the black dependency warning issued by papermill
+class IgnoreBlackWarning(logging.Filter):
+    def filter(self, record):
+        return 'Black is not installed' not in record.msg
+logging.getLogger("papermill.translators").addFilter(IgnoreBlackWarning())
 
 # worker function for analysing a single notebook
 def work(pars):
@@ -20,22 +29,23 @@ def work(pars):
         pm.execute_notebook(
             nbook,
             os.path.join(pars['outPath'], f'out_{pars["movie"]}.ipynb'),
-            parameters=pars
+            parameters=pars, kernel_name=pars["kernel_name"]
         )
     # skips to next movie if error raised to streamline analysis process
-    except pm.exceptions.PapermillExecutionError:
-        print(pars['movie'], 'ERROR')
+    except pm.exceptions.PapermillExecutionError as pmex:
+        print(f"PapermillExecutionError ocurred processing movie: {pars['movie']}")
+        logger.exception(pmex)
         pass
 
 
-def main(parfile, nworkers=1, mock = False, single = False, filterword = ""):
+def main(parfile, nworkers=1, mock = False, single = False, filterword = "", kernel_name = 'pharaglow'):
     """run batch jupyter notebook analysis.
 
         mock (bool): if True, create jobs but don't run the analyses.
         nworkers (int): if >1, this will use multiprocessing to analyse multiple jobs concurrently.
     """
     if platform.system() =='Windows':
-        sys.stdout.write("Windows operating system detected, Swithing to asyncio. \n")
+        sys.stdout.write("Windows operating system detected, Switching to asyncio. \n")
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     # get the batch parameters
@@ -47,6 +57,17 @@ def main(parfile, nworkers=1, mock = False, single = False, filterword = ""):
         sys.stdout.write('Parameter file is not a file or file not found.\n')
         sys.exit()
 
+    # setting the ipython kernel used to execute the jupyter notebooks
+    # escaping awk curly braces (https://docs.python.org/2/library/string.html#format-string-syntax)
+    stream = os.popen(f"jupyter kernelspec list | grep {kernel_name} | head -n 1 | awk '{{print $1}}'")
+    kernel_test_output = stream.read().strip()
+    if kernel_test_output != kernel_name:
+        sys.stderr.write(f"The ipython kernel '{kernel_name}' is missing.\n")
+        sys.exit()
+    else:
+        pars['kernel_name'] = kernel_name
+
+    # creating an array of jobs (Python multiprocessing)
     jobs = []
 
     # create a dictionary of parameters
@@ -97,5 +118,8 @@ if __name__=='__main__':
                         help="Analyze a single directory.")
     parser.add_argument("-f", "--filter", type=str, default = "",
                         help="analyze only directories that contain this string.")
+    parser.add_argument("-k", "--kernel", type=str, default='pharaglow',
+                        help="The name of the ipython kernel where pharaglow is installed.")
+
     args = parser.parse_args()
-    main(args.parfile, args.nworkers, args.mock, args.single, args.filter)
+    main(args.parfile, args.nworkers, args.mock, args.single, args.filter, args.kernel)
