@@ -35,7 +35,9 @@ classifiers = [
 # https://packaging.python.org/discussions/install-requires-vs-requirements/
 # NOTE: dependencies moved to setup.cfg file (see install_requires)
 # For auto generating requirements.txt use:
-# python -m pip install pip-tools; pip-compile -o requirements.txt pyproject.cfg
+# python -m pip install --upgrade pip
+# python -m pip install pip-tools; pip-compile -o requirements.txt pyproject.toml
+# python -m pip install pip-tools; pip-compile -o requirements.txt setup.cfg
 
 # List URLs that are relevant to the project
 # The key is what's used to render the link text on PyPI.
