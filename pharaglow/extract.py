@@ -237,15 +237,15 @@ def detect_peaks(signal, adaptive_window, min_distance = 4, min_prominence = Non
 def calculate_time(df, fps):
     """calculate time from frame index."""
     # real time
-    df['time'] = df['frame']/fps
+    df.loc[:,'time'] = df['frame']/fps
     return df
     
     
 def calculate_locations(df, scale):
     """calculate correctly scaled x,y coordinates."""
     # real time
-    df['x_scaled'] = df['x']*scale
-    df['y_scaled'] = df['y']*scale
+    df.loc[:,'x_scaled'] = df['x']*scale
+    df.loc[:,'y_scaled'] = df['y']*scale
     return df
     
 
@@ -257,7 +257,7 @@ def calculate_velocity(df, scale, fps, dt = 1):
     deltat = t[dt:]-t[:-dt]
     velocity = np.sqrt(np.sum((v_cms)**2, axis = 1))/deltat*scale*fps
     velocity = np.append(velocity, [np.nan]*dt)
-    df['velocity'] = velocity
+    df.loc[:,'velocity'] = velocity
     return df
 
 
@@ -269,11 +269,12 @@ def calculate_pumps(df, min_distance, sensitivity, adaptive_window, min_prominen
         # add interpolated pumping rate to dataframe
         df['rate'] = np.interp(np.arange(len(df)), peaks[:-1], fps/np.diff(peaks))
         # # get a binary trace where pumps are 1 and non-pumps are 0
-        df['pump_events'] = 0
-        df.loc[peaks,['pump_events']] = 1
+        events= np.zeros(len(df['rate']))
+        events[peaks] = 1
+        df.loc[:,'pump_events'] = events
     else:
-        df['rate'] = 0
-        df['pump_events'] = 0
+        df.loc[:,'rate'] = 0
+        df.loc[:,'pump_events'] = 0
     return df
 
 
@@ -304,7 +305,7 @@ def calculate_reversals_nose(df, dt =1, angle_threshold = 150, w_smooth = 30, mi
     angle[np.isnan(angle)] = 0
     angle = np.append(angle, [np.nan]*dt)
     
-    df['angle_nose'] = angle
+    df.loc[:,'angle_nose'] = angle
     # determine when angle is over threshold
     rev = angle > angle_threshold
     # filter short reversals
@@ -316,5 +317,43 @@ def calculate_reversals_nose(df, dt =1, angle_threshold = 150, w_smooth = 30, mi
     reversal_start = np.diff(np.array(rev, dtype=int))==1
     reversal_start = np.append(reversal_start, [0])
     #df.add_column('reversal_events_nose', reversal_start, overwrite = True)
-    df['reversal_events_nose'] = reversal_start
+    df.loc[:,'reversal_events_nose'] = reversal_start
     return df
+
+
+def calculate_reversals(df, animal_size, angle_threshold, scale):
+    """Adaptation of the Hardaker's method to detect reversal event. 
+    A single worm's centroid trajectory is re-sampled with a distance interval equivalent to 1/10 
+    of the worm's length (100um) and then reversals are calculated from turning angles.
+    Inputs:
+        animal_size: animal size in um.
+        angle_threshold (degree): what defines a turn 
+    Output: None, but adds a column 'reversals' to  df.
+    """
+    # resampling
+    # Calculate the distance cover by the centroid of the worm between two frames um
+    distance = np.cumsum(df['velocity'])*df['time'].diff()
+    # find the maximum number of worm lengths we have travelled
+    maxlen = distance.max()/animal_size
+    # make list of levels that are multiples of animal size
+    levels = np.arange(animal_size, maxlen*animal_size, animal_size)
+    # Find the indices where the distance is equal or the closest to the pixel interval by repeatedly subtracting the levels
+    indices = []
+    for level in levels:
+        idx = distance.sub(level).abs().idxmin()
+        indices.append(idx)
+    # create a downsampled trajectory from these indices
+    traj_Resampled = df.loc[indices, ['x', 'y']].diff()*scale
+    # we ignore the index here for the shifted data
+    traj_Resampled[['x1', 'y1']] = traj_Resampled.shift(1).fillna(0)
+    # use the dot product to calculate the andle
+    def angle(row):
+        v1 = [row.x, row.y]
+        v2 = [row.x1, row.y1]
+        return np.degrees(np.arccos(np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2)))
+    traj_Resampled['angle'] = traj_Resampled.apply(lambda row: angle(row), axis =1)
+    rev = traj_Resampled.index[traj_Resampled.angle>=angle_threshold]
+    df.loc[:,'reversals'] = 0
+    df.loc[rev,'reversals'] = 1
+    return df
+ 
