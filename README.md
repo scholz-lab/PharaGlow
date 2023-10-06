@@ -12,16 +12,17 @@ PharaGlow is a python package for tracking and analyzing *C. elegans* motion and
 
 ## Installation
 
-1. Install Anaconda
-You need to have Anaconda (https://www.anaconda.com/products/individual) and Python >=3.7.
-We recommend using Anaconda to install Python.
+1. Install Python >= 3.8
+
+Too use `pharaglow` you need first to install `python>=3.8`
+We recommend you to install Python using Anaconda (https://www.anaconda.com/products/individual).
 
 2. Create and activate a new `conda` environment
 
 In the terminal (Linux)/Anaconda Command Prompt (Windows) run:
 
 ```bash
-conda env create --name pumping
+conda env create --name pumping python=3.8
 ```
 
 You can now use this environment by running:
