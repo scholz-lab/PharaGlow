@@ -229,7 +229,7 @@ def objectDetection(mask, img, frame, params):
         pandas.Dataframe, list: dataframe with information for each image, list of corresponding images.
     """
     assert mask.shape == img.shape, 'Image and Mask size do not match.'
-    df = pd.DataFrame()
+    info_images = [] #NOTE: appending list, then creating DataFrame REF: https://stackoverflow.com/a/75956237
     crop_images = []
     label_image = measure.label(mask, background=0, connectivity = 1)
     #label_image = segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
@@ -244,7 +244,7 @@ def objectDetection(mask, img, frame, params):
             bbox = [sliced[0].start, sliced[1].start, sliced[0].stop, sliced[1].stop]
             # bbox is min_row, min_col, max_row, max_col
             # Store features which survived to the criterions
-            df = df.append([{'y': region.centroid[0],
+            info_images.append([{'y': region.centroid[0],
                              'x': region.centroid[1],
                              'slice_y0':bbox[0],
                              'slice_y1':bbox[2],
@@ -277,7 +277,7 @@ def objectDetection(mask, img, frame, params):
                     bbox = [sliced[0].start, sliced[1].start, sliced[0].stop, sliced[1].stop]
                     #diffIm = extractImagePad(diffImage, offsetbbox, params['pad'], mask=tmpMask)
                     # Store features which survived to the criterions
-                    df = df.append([{'y': part.centroid[0]+yo,
+                    info_images.append([{'y': part.centroid[0]+yo,
                                      'x': part.centroid[1]+xo,
                                      'slice_y0':bbox[0],
                                      'slice_y1':bbox[2],
@@ -293,6 +293,8 @@ def objectDetection(mask, img, frame, params):
                                      },])
                     # add the images to crop images
                     crop_images.append(list(im.ravel()))
+
+    df = pd.DataFrame(info_images)
     if not df.empty:
         df['shapeX'] = df['shapeX'].astype(int)
         df['shapeY'] = df['shapeY'].astype(int)
