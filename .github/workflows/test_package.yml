@@ -19,8 +19,8 @@ jobs:
       matrix:
         #os: [ubuntu-latest]
         os: [ubuntu-latest, macos-latest, windows-latest]
-        #python-version: ["3.8"]
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.8"]
+        #python-version: ["3.8", "3.9", "3.10", "3.11"]
         # pypy3.7 Complained about Cython missing requirements 
         # 3.11 Getting requirements to build wheel did not run successfully
         #python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", pypy3.7, pypy3.9] # 3.11 Getting requirements to build wheel did not run successfully
@@ -38,6 +38,12 @@ jobs:
         run: |
           echo "runner os: ${{ runner.os }}"
           echo "matrix os: ${{ matrix.os }}"
+          python -m pip install pip-tools
+          python -m piptools compile \
+            -o requirements-debug.txt \
+            ${{ github.workspace }}/pyproject.toml
+          cat requirements-debug.txt
+
       - name: Install dependencies Linux/macOS
         if: runner.os == 'Linux' || runner.os == 'macOS'
         # The requirements.txt generation using pyproject.toml compilation
