@@ -19,11 +19,10 @@ jobs:
       matrix:
         #os: [ubuntu-latest]
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.8"]
-        #python-version: ["3.8", "3.9", "3.10", "3.11"]
-        # pypy3.7 Complained about Cython missing requirements 
-        # 3.11 Getting requirements to build wheel did not run successfully
-        #python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", pypy3.7, pypy3.9] # 3.11 Getting requirements to build wheel did not run successfully
+        #python-version: ["3.8"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", pypy3.8]
+        # pypy3.8 Complained about Cython missing requirements 
+        #python-version: ["3.8", "3.9", "3.10", "3.11", pypy3.8, pypy3.9]
 
     steps:
       - name: Checkout pharaglow and LFS test data
@@ -38,30 +37,25 @@ jobs:
         run: |
           echo "runner os: ${{ runner.os }}"
           echo "matrix os: ${{ matrix.os }}"
-      - name: Compile requirements..
-        run: |
-          python -m pip install pip-tools
-          python -m piptools compile -o requirements-debug.txt ${{ github.workspace }}/pyproject.toml
-          cat requirements-debug.txt
-      - name: Install dependencies Linux/macOS
-        if: runner.os == 'Linux' || runner.os == 'macOS'
+      - name: Compile requirements
         # The requirements.txt generation using pyproject.toml compilation
         # complains about invalid pyproject.toml but the validation-pyproject tool
         # is not showing any issues. (Omar 30.06.2023)
         # REF: https://github.com/jazzband/pip-tools/issues/1711
+        # NOTE: This step overwrites any previously existing requirements.txt file
         run: |
-          python -m pip install --upgrade pip
-          #python -m pip install pip-tools
-          #python -m piptools compile \
-          #  -o requirements.txt \
-          #  ${{ github.workspace }}/pyproject.toml
+          python -m pip install pip-tools
+          python -m piptools compile -o requirements.txt ${{ github.workspace }}/pyproject.toml
+          cat requirements.txt
+      - name: Install dependencies Linux/macOS
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        run:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Install dependencies Windows
         if: runner.os == 'Windows'
         # Windows runner defaults to PowerShell (pwsh)
         # REF: https://dev.to/pwd9000/github-actions-all-the-shells-581h
-        run: |
-          python -m pip install --upgrade pip
+        run:
           if (Test-Path -Path requirements.txt) { pip install -r requirements.txt }
       - name: Install ipykernel used by the testing script
         run: |
