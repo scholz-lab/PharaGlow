@@ -121,8 +121,8 @@ def fitSkeleton(ptsX, ptsY, func = pharynxFunc):
     nP = len(ptsX)
     x = np.linspace(0, 100, nP)
     # fit each axis separately
-    poptX, _ = curve_fit(func, x, ptsX, p0=(np.mean(ptsX),1,1,0.1,0.1))
-    poptY, _= curve_fit(func, x, ptsY, p0 = (np.mean(ptsY),1,1,0.1,0.1))
+    poptX, _ = curve_fit(func, x, ptsX, p0=(np.mean(ptsX),1,1,0.1))
+    poptY, _= curve_fit(func, x, ptsY, p0 = (np.mean(ptsY),1,1,0.1))
 
     return poptX, poptY
 
