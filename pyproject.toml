@@ -3,7 +3,7 @@ name = "pharaglow"
 dynamic = ["version"]
 description = "A toolset to analyze videos of foraging animals."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = {file = "LICENSE"}
 keywords = ["toolset", "tracking", "feeding", "behaviour", "pumping"]
 authors = [
@@ -23,7 +23,6 @@ classifiers = [
   "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -35,7 +34,9 @@ classifiers = [
 # https://packaging.python.org/discussions/install-requires-vs-requirements/
 # NOTE: dependencies moved to setup.cfg file (see install_requires)
 # For auto generating requirements.txt use:
-# python -m pip install pip-tools; pip-compile -o requirements.txt pyproject.cfg
+# python -m pip install --upgrade pip
+# python -m pip install pip-tools; pip-compile -o requirements.txt pyproject.toml
+# python -m pip install pip-tools; pip-compile -o requirements.txt setup.cfg
 
 # List URLs that are relevant to the project
 # The key is what's used to render the link text on PyPI.

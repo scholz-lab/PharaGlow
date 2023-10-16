@@ -229,7 +229,19 @@ def objectDetection(mask, img, frame, params):
         pandas.Dataframe, list: dataframe with information for each image, list of corresponding images.
     """
     assert mask.shape == img.shape, 'Image and Mask size do not match.'
-    df = pd.DataFrame()
+    #NOTE: appending lists, then creating DataFrame REF: https://stackoverflow.com/a/75956237
+    y_list = []
+    x_list = []
+    slice_y0_list = []
+    slice_y1_list = []
+    slice_x0_list = []
+    slice_x1_list = []
+    frame_list = []
+    area_list = []
+    yw_list = []
+    xw_list = []
+    shapeY_list = []
+    shapeX_list = []
     crop_images = []
     label_image = measure.label(mask, background=0, connectivity = 1)
     #label_image = segmentation.clear_border(label_image, buffer_size=0, bgval=0, in_place=False, mask=None)
@@ -244,20 +256,18 @@ def objectDetection(mask, img, frame, params):
             bbox = [sliced[0].start, sliced[1].start, sliced[0].stop, sliced[1].stop]
             # bbox is min_row, min_col, max_row, max_col
             # Store features which survived to the criterions
-            df = df.append([{'y': region.centroid[0],
-                             'x': region.centroid[1],
-                             'slice_y0':bbox[0],
-                             'slice_y1':bbox[2],
-                             'slice_x0':bbox[1],
-                             'slice_x1':bbox[3],
-                             'frame': frame,
-                             'area': region.area,
-                             #'image': im.ravel(),
-                             'yw': region.weighted_centroid[0],
-                             'xw': region.weighted_centroid[1],
-                             'shapeY': im.shape[0],
-                             'shapeX': im.shape[1],
-                             },])
+            y_list.append(region.centroid[0])
+            x_list.append(region.centroid[1])
+            slice_y0_list.append(bbox[0])
+            slice_y1_list.append(bbox[2])
+            slice_x0_list.append(bbox[1])
+            slice_x1_list.append(bbox[3])
+            frame_list.append(frame)
+            area_list.append(region.area)
+            yw_list.append(region.weighted_centroid[0])
+            xw_list.append(region.weighted_centroid[1])
+            shapeY_list.append(im.shape[0])
+            shapeX_list.append(im.shape[1])
             # add the images to crop images
             crop_images.append(list(im.ravel()))
         # do watershed to get crossing objects separated.
@@ -277,22 +287,37 @@ def objectDetection(mask, img, frame, params):
                     bbox = [sliced[0].start, sliced[1].start, sliced[0].stop, sliced[1].stop]
                     #diffIm = extractImagePad(diffImage, offsetbbox, params['pad'], mask=tmpMask)
                     # Store features which survived to the criterions
-                    df = df.append([{'y': part.centroid[0]+yo,
-                                     'x': part.centroid[1]+xo,
-                                     'slice_y0':bbox[0],
-                                     'slice_y1':bbox[2],
-                                     'slice_x0':bbox[1],
-                                     'slice_x1':bbox[3],
-                                     'frame': frame,
-                                     'area': part.area,
-                                     #'image': im.ravel(),
-                                     'yw': part.weighted_centroid[0]+yo,
-                                     'xw': part.weighted_centroid[1]+xo,
-                                     'shapeY':im.shape[0],
-                                     'shapeX': im.shape[1],
-                                     },])
+                    y_list.append(part.centroid[0]+yo)
+                    x_list.append(part.centroid[1]+xo)
+                    slice_y0_list.append(bbox[0])
+                    slice_y1_list.append(bbox[2])
+                    slice_x0_list.append(bbox[1])
+                    slice_x1_list.append(bbox[3])
+                    frame_list.append(frame)
+                    area_list.append(part.area)
+                    yw_list.append(part.weighted_centroid[0]+yo)
+                    xw_list.append(part.weighted_centroid[1]+xo)
+                    shapeY_list.append(im.shape[0])
+                    shapeX_list.append(im.shape[1])
                     # add the images to crop images
                     crop_images.append(list(im.ravel()))
+
+    info_images = {
+        'y': y_list,
+        'x': x_list,
+        'slice_y0': slice_y0_list,
+        'slice_y1': slice_y1_list,
+        'slice_x0': slice_x0_list,
+        'slice_x1': slice_x1_list,
+        'frame': frame_list,
+        'area': area_list,
+        'yw': yw_list,
+        'xw': xw_list,
+        'shapeY': shapeY_list,
+        'shapeX': shapeX_list
+    }
+
+    df = pd.DataFrame(info_images)
     if not df.empty:
         df['shapeX'] = df['shapeX'].astype(int)
         df['shapeY'] = df['shapeY'].astype(int)
