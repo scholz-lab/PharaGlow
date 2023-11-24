@@ -59,7 +59,7 @@ def main(parfile, nworkers=1, mock = False, single = False, filterword = "", ker
 
     # setting the ipython kernel used to execute the jupyter notebooks
     # escaping awk curly braces (https://docs.python.org/2/library/string.html#format-string-syntax)
-    stream = os.popen(f"jupyter kernelspec list | grep {kernel_name} | head -n 1 | awk '{{print $1}}'")
+    stream = os.popen(f"jupyter kernelspec list | grep '\s{kernel_name}\s' | head -n 1 | awk '{{print $1}}'")
     kernel_test_output = stream.read().strip()
     if kernel_test_output != kernel_name:
         sys.stderr.write(f"The ipython kernel '{kernel_name}' is missing.\n")
