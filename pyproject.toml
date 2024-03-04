@@ -1,6 +1,6 @@
 [project]
 name = "pharaglow"
-dynamic = ["version", "dependencies"]
+dynamic = ["version"]
 description = "A toolset to analyze videos of foraging animals."
 readme = "README.md"
 requires-python = ">=3.8"
@@ -54,6 +54,3 @@ classifiers = [
 # REF2: https://github.com/jazzband/pip-tools#versions-and-compatibility
 requires = ["setuptools>=61.0.0", "wheel", "attrs>=17.1"]
 build-backend = "setuptools.build_meta"
-
-[setuptools.dynamic]
-dependencies = { file = "setup.cfg", section = "options.install_requires" }
