@@ -4,6 +4,20 @@ dynamic = ["version"]
 description = "A toolset to analyze videos of foraging animals."
 readme = "README.md"
 requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "scipy",
+    "pyampd",
+    "pandas",
+    "pillow>=10.0.1",
+    "pims",
+    "scikit-image",
+    "trackpy",
+    "papermill",
+    "matplotlib",
+    "ipykernel",
+    "imagecodecs"
+]
 license = {file = "LICENSE"}
 keywords = ["toolset", "tracking", "feeding", "behaviour", "pumping"]
 authors = [
