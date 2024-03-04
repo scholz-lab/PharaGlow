@@ -68,7 +68,7 @@ in the main directory of the software, which has the file called `pyproject.toml
 
 ```
 conda activate pumping
-python -m ipykernel install --user --name pumping --display-name "Python (pumping)"
+python -m ipykernel install --name pumping --display-name "Python (pumping)" --prefix=/gpfs/soma_fs/home/username/usr/miniconda3/envs/pumping/
 ```
 
 *And remove notebook output before committing*
