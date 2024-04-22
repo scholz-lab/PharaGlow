@@ -1,0 +1,9 @@
+{"parameterfile": "/home/mscholz/Desktop/Code/PharaGlow/AnalysisParameters_1x",
+    "batchPath" : "/home/mscholz/Dropbox (Scholz Lab)/Shared/Data/MS0006_0_1000frames",
+    "outPath" : "/home/mscholz/Desktop/TestOutput_MS0006/",
+    "templateNotebook" : "/home/mscholz/Desktop/Code/PharaGlow/notebooks/PharaGlowHPC.ipynb",
+    "nWorkers": 10,
+    "lawnPath" : "None",
+    "depth":"uint8",
+    "save_minimal": 1
+    }
