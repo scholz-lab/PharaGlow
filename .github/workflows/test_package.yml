@@ -23,6 +23,9 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
         # pypy3.8 Complained about OpenBlas missing dependency
         #python-version: ["3.8", "3.9", "3.10", "3.11", pypy3.8, pypy3.9]
+        exclude:
+          - os: macos-latest
+            python-version: "3.8"
 
     steps:
       - name: Checkout pharaglow and LFS test data
@@ -37,6 +40,16 @@ jobs:
         run: |
           echo "runner os: ${{ runner.os }}"
           echo "matrix os: ${{ matrix.os }}"
+      # Install system dependencies for imagecodecs
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install libaec
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libaec-dev
       - name: Compile requirements
         # The requirements.txt generation using pyproject.toml compilation
         # complains about invalid pyproject.toml but the validation-pyproject tool
