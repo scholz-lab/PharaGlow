@@ -5,56 +5,58 @@
 
 <!-- ![](https://raw.githubusercontent.com/scholz-lab/PharaGlow/master/examples/pglow_header.png) -->
 
-PharaGlow is a python package for tracking and analyzing *C. elegans* motion and feeding behavior from videos.
+_PharaGlow_ is a python package for tracking and analyzing *C. elegans* motion and feeding behavior from videos.
  The package can be used to simply track labelled pharynxes
  (or whole animals from brightfield) as a simple center of mass tracker,
  but it also has a pipeline to extract pharyngeal pumping and features of the pharynx.
 
 ## Installation
 
-1. Install Python >= 3.8
+1. Install Python 
 
-To use `pharaglow` you need first to install `python>=3.8`
-We recommend that you install Python using [Anaconda Distribution](https://www.anaconda.com/download).
+To use _PharaGlow_ you first need to install the _Python_ script language interpreter.
+We recommend to install Python using the [Miniconda Distribution](https://www.anaconda.com/docs/getting-started/miniconda/install).
 
 ```bash
 # Example: Downloading and Installing Anaconda for Linux (x86)
-wget https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh
-bash Anaconda3-2023.09-0-Linux-x86_64.sh
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
 ```
+The installer will ask you to accept the license and then proceed to download the necessary packages.
+After, you will be prompted to allow `conda` to be added to your `.bashrc` profile.
 
 2. Create and activate a new `conda` environment
 
-In the terminal (Linux)/Anaconda Command Prompt (Windows) run:
+Using the terminal (Linux) or _Miniconda_ command prompt (Windows) run:
 
 ```bash
-conda env create --name pumping python=3.8
+conda create --name pumping -c conda-forge python=3.8 jupyterlab
 ```
 
-You can now use this environment by running:
+You can activate the created environment using `conda`:
 
 ```
 conda activate pumping
 ```
 
-3. Install PharaGlow package from PyPI using pip
+3. Next, install the `pharaglow` package from PyPI using `pip`:
 
 ```
 python -m pip install pharaglow
 ``` 
 
-Alternatively you can clone PharaGlow repository from Github
+Alternatively you can clone _PharaGlow_ repository from _GitHub_
  
- * Copy the repository link from Github in https://github.com/scholz-lab/PharaGlow/
+ * Copy the repository link from _GitHub_ in https://github.com/scholz-lab/PharaGlow/
  
- *  In the terminal (Linux)/Anaconda Command Prompt (Windows),
- navigate to the directory where you wish to download PharaGlow
+ *  In the terminal (Linux) or _Miniconda_ Command Prompt (Windows),
+ navigate to the directory where you wish to download _PharaGlow_
  and enter the command:
 
 ```
 git clone https://github.com/scholz-lab/PharaGlow.git pharaglow
 ```
-Change to the pharaglow directory and run:
+Change to the `pharaglow` directory and run:
  
 ```
 cd pharaglow
@@ -63,12 +65,12 @@ pip install -e .
 ```
 in the main directory of the software, which has the file called `pyproject.toml`
 
-5. (*Optional*)
+4. (*Optional*)
  *Create a dedicated environment kernel*
 
 ```
 conda activate pumping
-python -m ipykernel install --user --name pumping --display-name "Python (pumping)"
+python -m ipykernel install --user --name pumping --display-name "pumping (python 3.8)"
 ```
 
 *And remove notebook output before committing*
@@ -101,11 +103,20 @@ All subsequent analyses steps add 'columns' to the dataframe,
 ## Quick Start
 ### Run PharaGlow on a demo dataset
 * We provide a demo data set with 1000 frames of 1x magnification (30 fps, 2.34 um per pixel) showing *C. elegans* expressing *myo-2::mCherry*.
-https://osf.io/fy4ed/. You can also find the expected outputs in the data repository at OSF.
+https://osf.io/4wgca/. You can also find the expected outputs in the data repository at OSF.
+
+	```bash
+	conda activate pumping
+	conda install -c conda-forge osfclient
+	osf -p 4wgca list
+	osf -p 4wgca fetch osfstorage/demo_data.zip
+	unzip demo_data.zip
+	```
 
 * Before analyzing your data, we recommend to check your installation and familiarize yourself with the code by running the jupyter notebook
  "testing/PharaGlowMain_testdata.ipynb" on this dataset using the provided parameter file "AnalysisParameters_1x.json"
 
+* To run `pharaglow` inside a `jupyter notebook` in *soma HPC cluster* please refer to the [running_pharaglow_jupyterlab](running_pharaglow_jupyterlab.md) guide.
 
 ### Run PharaGlow on your data
 #### Raw files requirement
@@ -194,5 +205,3 @@ Tracking is based on the package trackPy (http://soft-matter.github.io/trackpy/v
 ## License
 scholz-lab/PharaGlow is licensed under the
 GNU General Public License v3.0
-
-
