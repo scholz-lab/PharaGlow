@@ -5,7 +5,7 @@ description = "A toolset to analyze videos of foraging animals."
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-    "numpy",
+    "numpy<=1.21.6",
     "scipy",
     "pyampd",
     "pandas",
@@ -16,7 +16,7 @@ dependencies = [
     "papermill",
     "matplotlib",
     "ipykernel",
-    "imagecodecs>=2023.1.23",
+    "imagecodecs",
 ]
 license = {file = "LICENSE"}
 keywords = ["toolset", "tracking", "feeding", "behaviour", "pumping"]
