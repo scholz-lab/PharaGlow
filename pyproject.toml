@@ -5,7 +5,7 @@ description = "A toolset to analyze videos of foraging animals."
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-    "numpy",
+    "numpy<=1.23.5",
     "scipy",
     "pyampd",
     "pandas",
